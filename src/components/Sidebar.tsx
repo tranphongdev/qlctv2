@@ -1,5 +1,6 @@
 import React from 'react';
 import { Layout, Button, Tooltip, Drawer } from 'antd';
+import { t } from '../i18n';
 import {
   LayoutDashboard,
   Receipt,
@@ -33,18 +34,22 @@ interface SidebarProps {
   onToggleCollapse: () => void;
 }
 
-export const menuItems: MenuItemDef[] = [
-  { key: 'dashboard', label: 'Tổng quan', icon: <LayoutDashboard size={20} /> },
-  { key: 'transactions', label: 'Giao dịch', icon: <Receipt size={20} /> },
-  { key: 'wallets', label: 'Ví & Tài khoản', icon: <Wallet size={20} /> },
-  { key: 'categories', label: 'Danh mục', icon: <Tags size={20} /> },
-  { key: 'budgets', label: 'Ngân sách', icon: <PieChart size={20} /> },
-  { key: 'goals', label: 'Tiết kiệm', icon: <Target size={20} /> },
-  { key: 'debts', label: 'Nợ & Cho vay', icon: <HandCoins size={20} /> },
-  { key: 'analytics', label: 'Thống kê', icon: <BarChart3 size={20} /> },
-  { key: 'calendar', label: 'Theo lịch', icon: <Calendar size={20} /> },
-  { key: 'ai_insights', label: 'AI Financial', icon: <Sparkles size={20} />, badge: 'HOT' },
-  { key: 'profile', label: 'Cài đặt', icon: <User size={20} /> },
+/**
+ * Hàm chứ không phải hằng module-level: nhãn phải được dịch lại mỗi lượt render,
+ * nếu tính sẵn một lần lúc import thì đổi ngôn ngữ sẽ không cập nhật menu.
+ */
+export const getMenuItems = (): MenuItemDef[] => [
+  { key: 'dashboard', label: t('nav.dashboard'), icon: <LayoutDashboard size={20} /> },
+  { key: 'transactions', label: t('nav.transactions'), icon: <Receipt size={20} /> },
+  { key: 'wallets', label: t('nav.wallets'), icon: <Wallet size={20} /> },
+  { key: 'categories', label: t('nav.categories'), icon: <Tags size={20} /> },
+  { key: 'budgets', label: t('nav.budgets'), icon: <PieChart size={20} /> },
+  { key: 'goals', label: t('nav.goals'), icon: <Target size={20} /> },
+  { key: 'debts', label: t('nav.debts'), icon: <HandCoins size={20} /> },
+  { key: 'analytics', label: t('nav.analytics'), icon: <BarChart3 size={20} /> },
+  { key: 'calendar', label: t('nav.calendar'), icon: <Calendar size={20} /> },
+  { key: 'ai_insights', label: t('nav.ai_insights'), icon: <Sparkles size={20} />, badge: 'HOT' },
+  { key: 'profile', label: t('nav.profile'), icon: <User size={20} /> },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -107,7 +112,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <div>
               <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.3px', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                Financial PRO
+                Financial
               </div>
               <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>Quản lý chi tiêu</div>
             </div>
@@ -134,7 +139,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Navigation List */}
       <div style={{ flex: 1, padding: '12px 8px', overflowY: 'auto' }}>
-        {menuItems.map((item) => {
+        {getMenuItems().map((item) => {
           const isActive = activeTab === item.key;
           return (
             <div key={item.key} style={{ marginBottom: 4 }}>
@@ -220,7 +225,7 @@ export const MobileSidebarDrawer: React.FC<MobileSidebarDrawerProps> = ({
   return (
     <Drawer
       placement="left"
-      width={280}
+      size={280}
       onClose={onClose}
       open={open}
       closeIcon={null}
@@ -247,7 +252,7 @@ export const MobileSidebarDrawer: React.FC<MobileSidebarDrawerProps> = ({
           </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: 16, background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Financial PRO
+              Financial
             </div>
             <div style={{ fontSize: 11, color: '#94a3b8' }}>Quản lý chi tiêu</div>
           </div>
@@ -258,7 +263,7 @@ export const MobileSidebarDrawer: React.FC<MobileSidebarDrawerProps> = ({
 
       {/* Drawer Menu Items */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {menuItems.map((item) => {
+        {getMenuItems().map((item) => {
           const isActive = activeTab === item.key;
           return (
             <div

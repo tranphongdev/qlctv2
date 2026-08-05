@@ -87,7 +87,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
             style={{ borderRadius: 12, marginBottom: 20, textAlign: 'left' }}
           />
 
-          <Button type="primary" size="large" onClick={handleCloseModal} block style={{ borderRadius: 12, fontWeight: 700 }}>
+          <Button type="primary" onClick={handleCloseModal} block style={{ borderRadius: 12, fontWeight: 700 }}>
             Hoàn tất
           </Button>
         </div>

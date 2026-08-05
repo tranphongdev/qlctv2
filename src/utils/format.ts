@@ -1,29 +1,40 @@
 import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
+import 'dayjs/locale/en';
+import { fromVnd, getActiveCurrency, localeOfCurrency } from './currency';
+import type { CurrencyCode } from './currency';
 
 dayjs.locale('vi');
 
-export function formatMoney(amount: number, currency: 'VND' | 'USD' | 'EUR' = 'VND'): string {
+/**
+ * `amountVnd` luôn là số tiền lưu trong app (VND). Hàm tự quy đổi sang đơn vị đang
+ * được chọn trong Cài đặt; truyền `currency` để ép một đơn vị cụ thể.
+ */
+export function formatMoney(amountVnd: number, currency: CurrencyCode = getActiveCurrency()): string {
+  const value = fromVnd(amountVnd, currency);
   if (currency === 'VND') {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(amount);
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
   }
-  if (currency === 'USD') {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-  }
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
+  return new Intl.NumberFormat(localeOfCurrency(currency), { style: 'currency', currency }).format(value);
 }
 
-export function formatCompactNumber(val: number): string {
-  if (Math.abs(val) >= 1000000000) {
-    return (val / 1000000000).toFixed(1) + ' tỷ';
+/** Rút gọn số tiền cho nhãn trục biểu đồ, cũng quy đổi theo đơn vị đang chọn. */
+export function formatCompactNumber(amountVnd: number, currency: CurrencyCode = getActiveCurrency()): string {
+  const val = fromVnd(amountVnd, currency);
+  const abs = Math.abs(val);
+
+  // VND dùng đơn vị đọc quen thuộc của tiếng Việt, các đơn vị khác dùng K/M/B.
+  if (currency === 'VND') {
+    if (abs >= 1_000_000_000) return (val / 1_000_000_000).toFixed(1) + ' tỷ';
+    if (abs >= 1_000_000) return (val / 1_000_000).toFixed(1) + ' triệu';
+    if (abs >= 1_000) return (val / 1_000).toFixed(0) + 'k';
+    return Math.round(val).toString();
   }
-  if (Math.abs(val) >= 1000000) {
-    return (val / 1000000).toFixed(1) + ' triệu';
-  }
-  if (Math.abs(val) >= 1000) {
-    return (val / 1000).toFixed(0) + 'k';
-  }
-  return val.toString();
+
+  if (abs >= 1_000_000_000) return (val / 1_000_000_000).toFixed(1) + 'B';
+  if (abs >= 1_000_000) return (val / 1_000_000).toFixed(1) + 'M';
+  if (abs >= 1_000) return (val / 1_000).toFixed(1) + 'K';
+  return val.toFixed(abs >= 100 ? 0 : 2);
 }
 
 export function todayStr(): string {

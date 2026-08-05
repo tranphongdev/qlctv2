@@ -105,7 +105,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
       }
       footer={null}
       width={Math.min(580, typeof window !== 'undefined' ? window.innerWidth : 580)}
-      destroyOnClose
+      destroyOnHidden
     >
       <Tabs
         defaultActiveKey="1"

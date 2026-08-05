@@ -11,22 +11,24 @@ import {
   Plus,
   Calendar as CalendarIcon,
 } from 'lucide-react';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  Tooltip as RechartsTooltip,
-  Legend,
-} from 'recharts';
+import dayjs from 'dayjs';
+import { Bar, Doughnut } from 'react-chartjs-2';
+import type { ChartData, ChartOptions } from 'chart.js';
+import { legendStyle, tooltipStyle } from '../utils/chartSetup';
 import type { AppState } from '../types';
 import { CounterAnimation } from '../components/CounterAnimation';
 import { formatMoney, formatCompactNumber } from '../utils/format';
 import { DynamicIcon } from '../components/DynamicIcon';
+
+/** Số tháng hiển thị trên chart xu hướng. Ít cột -> cột dày và dễ đọc hơn. */
+const TREND_MONTHS = 6;
+
+/** "2026-08-05" -> "Thứ tư". Trả về chuỗi rỗng nếu giao dịch không có ngày. */
+function weekdayOf(date?: string): string {
+  if (!date) return '';
+  const label = dayjs(date).format('dddd');
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
 
 interface DashboardProps {
   state: AppState;
@@ -52,17 +54,42 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
   const monthlySavings = Math.max(0, monthlyIncome - monthlyExpense);
   const savingsRate = monthlyIncome > 0 ? Math.round((monthlySavings / monthlyIncome) * 100) : 0;
 
-  const dailyMap: Record<string, { thu: number; chi: number }> = {};
-  activeTxs.forEach((t) => {
-    const day = t.date ? `${t.date.slice(8, 10)}/${t.date.slice(5, 7)}` : 'Hôm nay';
-    if (!dailyMap[day]) dailyMap[day] = { thu: 0, chi: 0 };
-    if (t.type === 'thu') dailyMap[day].thu += t.amount;
-    if (t.type === 'chi') dailyMap[day].chi += t.amount;
+  // Số dư đầu tháng = số dư hiện tại trừ đi dòng tiền ròng phát sinh trong tháng,
+  // tức là số dư chốt của tháng trước. Chỉ so sánh khi thực sự có giao dịch trong
+  // tháng và số dư gốc dương, còn lại để null và không hiển thị con số nào.
+  const netCashFlow = monthlyIncome - monthlyExpense;
+  const openingBalance = totalBalance - netCashFlow;
+  const balanceChangePct =
+    currentMonthTxs.length > 0 && openingBalance > 0 ? (netCashFlow / openingBalance) * 100 : null;
+
+  const incomeSourceCount = new Set(
+    activeTxs.filter((t) => t.type === 'thu').map((t) => t.category),
+  ).size;
+  const expenseCategoryCount = new Set(
+    activeTxs.filter((t) => t.type === 'chi').map((t) => t.category),
+  ).size;
+
+  // Gom theo tháng, khoá YYYY-MM để không gộp nhầm cùng tháng khác năm.
+  const monthMap: Record<string, { thu: number; chi: number }> = {};
+  transactions.forEach((t) => {
+    if (!t.date) return;
+    const key = t.date.slice(0, 7);
+    if (!monthMap[key]) monthMap[key] = { thu: 0, chi: 0 };
+    if (t.type === 'thu') monthMap[key].thu += t.amount;
+    if (t.type === 'chi') monthMap[key].chi += t.amount;
   });
 
-  const dailyData = Object.entries(dailyMap)
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([day, val]) => ({ day, thu: val.thu, chi: val.chi }));
+  // Trục hoành là TREND_MONTHS tháng liên tục kết thúc ở tháng hiện tại, kể cả tháng
+  // không có giao dịch. Nếu chỉ vẽ tháng có dữ liệu, chart 1-2 cột sẽ bị Chart.js dàn
+  // mỗi cột ra giữa một ô rộng bằng nửa biểu đồ và cột trôi lệch khỏi nhãn tháng.
+  const monthlyTrend = Array.from({ length: TREND_MONTHS }, (_, i) => {
+    const key = dayjs().subtract(TREND_MONTHS - 1 - i, 'month').format('YYYY-MM');
+    return {
+      month: 'T' + parseInt(key.slice(5, 7), 10),
+      thu: monthMap[key]?.thu ?? 0,
+      chi: monthMap[key]?.chi ?? 0,
+    };
+  });
 
   const categoriesMap = categories.reduce((acc, c) => ({ ...acc, [c.id]: c }), {} as Record<string, any>);
   const categoryExpenses: Record<string, number> = {};
@@ -77,6 +104,105 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
     value: amount,
     color: categoriesMap[catId]?.color || '#4F46E5',
   }));
+
+  const trendData: ChartData<'bar'> = {
+    labels: monthlyTrend.map((m) => m.month),
+    datasets: [
+      // grouped: false -> hai dataset không xếp cạnh nhau mà cùng lấy vạch tháng làm
+      // tâm, nên cột luôn căn giữa nhãn kể cả khi series kia bằng 0. Đổi lại phải
+      // tách bằng bề rộng: cột Thu nhập rộng nằm dưới, cột Chi tiêu hẹp vẽ đè lên.
+      {
+        label: 'Thu nhập',
+        data: monthlyTrend.map((m) => m.thu),
+        backgroundColor: '#22C55E',
+        borderRadius: 6,
+        borderSkipped: false,
+        grouped: false,
+        categoryPercentage: 0.55,
+        barPercentage: 1,
+        maxBarThickness: 44,
+      },
+      {
+        label: 'Chi tiêu',
+        data: monthlyTrend.map((m) => m.chi),
+        backgroundColor: '#EF4444',
+        borderRadius: 6,
+        borderSkipped: false,
+        grouped: false,
+        categoryPercentage: 0.55,
+        barPercentage: 0.5,
+        maxBarThickness: 22,
+      },
+    ],
+  };
+
+  const trendOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    // intersect: true -> tooltip chỉ hiện khi con trỏ nằm đúng trên thân cột.
+    interaction: { mode: 'index', intersect: true },
+    plugins: {
+      legend: { position: 'bottom', ...legendStyle },
+      tooltip: {
+        ...tooltipStyle,
+        callbacks: {
+          label: (ctx) => `${ctx.dataset.label}: ${formatMoney(Number(ctx.parsed.y))}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        border: { display: false },
+        grid: { display: false },
+        ticks: {
+          font: { size: 12 },
+          color: '#94a3b8',
+          autoSkip: true,
+          maxRotation: 0,
+          maxTicksLimit: 10,
+        },
+      },
+      y: {
+        border: { display: false },
+        grid: { color: 'rgba(226, 232, 240, 0.6)' },
+        ticks: {
+          font: { size: 12 },
+          color: '#94a3b8',
+          callback: (value) => formatCompactNumber(Number(value)),
+        },
+      },
+    },
+  };
+
+  const hasPieData = pieData.length > 0;
+  const donutData: ChartData<'doughnut'> = {
+    labels: hasPieData ? pieData.map((d) => d.name) : ['Không có chi tiêu'],
+    datasets: [
+      {
+        data: hasPieData ? pieData.map((d) => d.value) : [1],
+        backgroundColor: hasPieData ? pieData.map((d) => d.color) : ['#e2e8f0'],
+        borderColor: '#fff',
+        borderWidth: 3,
+        hoverOffset: 6,
+      },
+    ],
+  };
+
+  const donutOptions: ChartOptions<'doughnut'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '70%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        ...tooltipStyle,
+        enabled: hasPieData,
+        callbacks: {
+          label: (ctx) => ` ${ctx.label}: ${formatMoney(Number(ctx.parsed))}`,
+        },
+      },
+    },
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -100,10 +226,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
             <CounterAnimation value={totalBalance} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, opacity: 0.95 }}>
-            <span style={{ padding: '2px 8px', borderRadius: 99, background: 'rgba(255,255,255,0.2)', fontWeight: 700 }}>
-              +12.4%
-            </span>
-            <span>Tăng so với tháng trước</span>
+            {balanceChangePct === null ? (
+              <span>Chưa đủ dữ liệu để so sánh</span>
+            ) : (
+              <>
+                <span style={{ padding: '2px 8px', borderRadius: 99, background: 'rgba(255,255,255,0.2)', fontWeight: 700 }}>
+                  {balanceChangePct >= 0 ? '+' : ''}{balanceChangePct.toFixed(1)}%
+                </span>
+                <span>{balanceChangePct >= 0 ? 'Tăng' : 'Giảm'} so với tháng trước</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -122,7 +254,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b' }}>
             <ArrowUpRight size={16} color="#16A34A" />
-            <span>2 nguồn thu nhập</span>
+            <span>{incomeSourceCount > 0 ? `${incomeSourceCount} nguồn thu nhập` : 'Chưa có khoản thu nào'}</span>
           </div>
         </div>
 
@@ -141,7 +273,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b' }}>
             <ArrowDownRight size={16} color="#DC2626" />
-            <span>4 danh mục chính</span>
+            <span>{expenseCategoryCount > 0 ? `${expenseCategoryCount} danh mục chi tiêu` : 'Chưa có khoản chi nào'}</span>
           </div>
         </div>
 
@@ -175,7 +307,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <div>
               <div style={{ fontSize: 16, fontWeight: 700 }}>Xu hướng Chi tiêu & Thu nhập</div>
-              <div style={{ fontSize: 12, color: '#64748b' }}>Phân tích các ngày trong tháng 08/2026</div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>Phân tích {TREND_MONTHS} tháng gần nhất</div>
             </div>
             <Button size="small" icon={<CalendarIcon size={14} />} onClick={() => onSelectTab('calendar')}>
               Xem chi tiết
@@ -183,26 +315,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           </div>
 
           <div style={{ width: '100%', height: 280 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dailyData}>
-                <defs>
-                  <linearGradient id="colorChi" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="colorThu" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22C55E" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} />
-                <YAxis axisLine={false} tickLine={false} tickFormatter={(v) => formatCompactNumber(v)} tick={{ fontSize: 12, fill: '#94a3b8' }} />
-                <RechartsTooltip formatter={(val: any) => [formatMoney(Number(val)), '']} />
-                <Legend />
-                <Area type="monotone" dataKey="thu" name="Thu nhập" stroke="#22C55E" fillOpacity={1} fill="url(#colorThu)" strokeWidth={3} />
-                <Area type="monotone" dataKey="chi" name="Chi tiêu" stroke="#EF4444" fillOpacity={1} fill="url(#colorChi)" strokeWidth={3} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <Bar data={trendData} options={trendOptions} />
           </div>
         </div>
 
@@ -216,24 +329,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           </div>
 
           <div style={{ width: '100%', height: 220 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData.length > 0 ? pieData : [{ name: 'Không có chi tiêu', value: 1, color: '#e2e8f0' }]}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={85}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <RechartsTooltip formatter={(val: any) => [formatMoney(Number(val)), '']} />
-              </PieChart>
-            </ResponsiveContainer>
+            <Doughnut data={donutData} options={donutOptions} />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
@@ -309,7 +405,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                     <div style={{ fontSize: 15, fontWeight: 700, color: isThu ? '#16A34A' : '#DC2626' }}>
                       {isThu ? '+' : '-'}{formatMoney(tx.amount)}
                     </div>
-                    <div style={{ fontSize: 11, color: '#94a3b8' }}>Chủ nhật</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{weekdayOf(tx.date)}</div>
                   </div>
                 </div>
               );

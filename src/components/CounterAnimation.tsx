@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { formatMoney } from '../utils/format';
+import { getActiveCurrency } from '../utils/currency';
+import type { CurrencyCode } from '../utils/currency';
 
 interface CounterAnimationProps {
   value: number;
   duration?: number; // in ms
-  currency?: 'VND' | 'USD' | 'EUR';
+  currency?: CurrencyCode;
   prefix?: string;
   className?: string;
 }
@@ -12,7 +14,7 @@ interface CounterAnimationProps {
 export const CounterAnimation: React.FC<CounterAnimationProps> = ({
   value,
   duration = 800,
-  currency = 'VND',
+  currency = getActiveCurrency(),
   prefix = '',
   className = '',
 }) => {

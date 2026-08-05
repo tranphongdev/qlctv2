@@ -6,6 +6,7 @@ import {
   User,
   Plus,
 } from 'lucide-react';
+import { t } from '../i18n';
 
 interface BottomNavProps {
   activeTab: string;
@@ -15,11 +16,11 @@ interface BottomNavProps {
 
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab, onOpenAddModal }) => {
   const navItems = [
-    { key: 'dashboard', label: 'Tổng quan', icon: <LayoutDashboard size={20} /> },
-    { key: 'transactions', label: 'Giao dịch', icon: <Receipt size={20} /> },
-    { key: 'add', label: 'Thêm', isAction: true },
-    { key: 'wallets', label: 'Ví tiền', icon: <Wallet size={20} /> },
-    { key: 'profile', label: 'Cài đặt', icon: <User size={20} /> },
+    { key: 'dashboard', label: t('nav.dashboard'), icon: <LayoutDashboard size={20} /> },
+    { key: 'transactions', label: t('nav.transactions'), icon: <Receipt size={20} /> },
+    { key: 'add', label: t('nav.add'), isAction: true },
+    { key: 'wallets', label: t('nav.wallets_short'), icon: <Wallet size={20} /> },
+    { key: 'profile', label: t('nav.profile'), icon: <User size={20} /> },
   ];
 
   return (

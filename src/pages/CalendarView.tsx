@@ -50,7 +50,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ state }) => {
       <Drawer
         title={`Giao dịch ngày ${selectedDate}`}
         placement="right"
-        width={Math.min(400, typeof window !== 'undefined' ? window.innerWidth : 400)}
+        size={Math.min(400, typeof window !== 'undefined' ? window.innerWidth : 400)}
         onClose={() => setSelectedDate(null)}
         open={!!selectedDate}
       >

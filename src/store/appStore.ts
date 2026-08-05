@@ -113,25 +113,38 @@ export function useAppState(): AppState {
 }
 
 // Global Mutators
+/**
+ * Cộng (sign = 1) hoặc hoàn tác (sign = -1) ảnh hưởng của một giao dịch lên số dư ví.
+ * Không kẹp về 0 ở đây — người gọi kẹp một lần sau cùng, vì kẹp giữa chừng sẽ làm
+ * bước hoàn tác mất số và không khôi phục lại đúng số dư ban đầu.
+ */
+function applyTxToWallets(wallets: Wallet[], tx: Pick<Transaction, 'type' | 'amount' | 'walletId' | 'toWalletId'>, sign: 1 | -1): Wallet[] {
+  const delta = sign * tx.amount;
+  return wallets.map((w) => {
+    if (tx.type === 'thu' && w.id === tx.walletId) {
+      return { ...w, balance: w.balance + delta };
+    }
+    if (tx.type === 'chi' && w.id === tx.walletId) {
+      return { ...w, balance: w.balance - delta };
+    }
+    if (tx.type === 'chuyen') {
+      if (w.id === tx.walletId) return { ...w, balance: w.balance - delta };
+      if (w.id === tx.toWalletId) return { ...w, balance: w.balance + delta };
+    }
+    return w;
+  });
+}
+
+const clampBalances = (wallets: Wallet[]): Wallet[] =>
+  wallets.map((w) => (w.balance < 0 ? { ...w, balance: 0 } : w));
+
 export function addTransaction(tx: Omit<Transaction, 'id'>) {
   const newTx: Transaction = {
     ...tx,
     id: 'tx_' + Date.now(),
   };
 
-  const updatedWallets = globalState.wallets.map((w) => {
-    if (tx.type === 'thu' && w.id === tx.walletId) {
-      return { ...w, balance: w.balance + tx.amount };
-    }
-    if (tx.type === 'chi' && w.id === tx.walletId) {
-      return { ...w, balance: Math.max(0, w.balance - tx.amount) };
-    }
-    if (tx.type === 'chuyen') {
-      if (w.id === tx.walletId) return { ...w, balance: Math.max(0, w.balance - tx.amount) };
-      if (w.id === tx.toWalletId) return { ...w, balance: w.balance + tx.amount };
-    }
-    return w;
-  });
+  const updatedWallets = clampBalances(applyTxToWallets(globalState.wallets, newTx, 1));
 
   globalState = {
     ...globalState,
@@ -148,12 +161,23 @@ export function addTransaction(tx: Omit<Transaction, 'id'>) {
 }
 
 export function updateTransaction(tx: Transaction) {
+  const previous = globalState.transactions.find((t) => t.id === tx.id);
+
+  // Hoàn tác ảnh hưởng của bản ghi cũ rồi mới áp bản ghi mới. Thiếu bước này thì sửa
+  // số tiền, đổi loại giao dịch hay đổi ví sẽ khiến số dư lệch vĩnh viễn.
+  const updatedWallets = previous
+    ? clampBalances(applyTxToWallets(applyTxToWallets(globalState.wallets, previous, -1), tx, 1))
+    : globalState.wallets;
+
   globalState = {
     ...globalState,
     transactions: globalState.transactions.map((t) => (t.id === tx.id ? tx : t)),
+    wallets: updatedWallets,
   };
   notifyListeners();
+
   syncTransactionToSupabase(tx);
+  if (previous) updatedWallets.forEach((w) => syncWalletToSupabase(w));
 }
 
 export function deleteTransaction(id: string) {
@@ -315,6 +339,20 @@ export function updateSettings(newSettings: Partial<AppState['settings']>) {
     settings: { ...globalState.settings, ...newSettings },
   };
   notifyListeners();
+}
+
+/**
+ * Đồng bộ hồ sơ từ Supabase Auth sau khi đăng nhập. Tách riêng khỏi updateSettings
+ * vì avatar chỉ được lấy từ nhà cung cấp khi người dùng CHƯA tự đặt ảnh — nếu không,
+ * mỗi lần refresh token sẽ ghi đè mất ảnh do người dùng tải lên.
+ */
+export function syncAuthProfile(profile: { userName: string; userEmail: string; avatarUrl: string }) {
+  const current = globalState.settings;
+  updateSettings({
+    userName: profile.userName,
+    userEmail: profile.userEmail,
+    avatarUrl: current.avatarUrl || profile.avatarUrl,
+  });
 }
 
 export function markAllNotificationsRead() {

@@ -125,7 +125,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
         {/* Cho vay (Lending) */}
         <div className="glass-card" style={{ padding: 20 }}>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: '#22C55E' }}>
-            🟢 CHO VAY (Người khác nợ bạn)
+            🟢 CHO VAY
           </div>
           <div className="desktop-only">
             <Table columns={columns} dataSource={lendingList} rowKey="id" pagination={false} style={{ width: '100%' }} />
@@ -155,7 +155,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
         {/* Đi vay (Borrowing) */}
         <div className="glass-card" style={{ padding: 20 }}>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: '#EF4444' }}>
-            🔴 ĐI VAY (Bạn nợ người khác)
+            🔴 ĐI VAY
           </div>
           <div className="desktop-only">
             <Table columns={columns} dataSource={borrowingList} rowKey="id" pagination={false} style={{ width: '100%' }} />
@@ -223,7 +223,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
       <Modal open={!!payTarget} onCancel={() => setPayTarget(null)} title={`Ghi nhận thanh toán: ${payTarget?.name}`} footer={null}>
         <Form form={payForm} layout="vertical" onFinish={handlePay} style={{ marginTop: 16 }}>
           <Form.Item name="amount" label="Số tiền trả (VNĐ)" rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%', fontSize: 18 }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder="0 VNĐ" min={10000} autoFocus />
+            <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder="0 VNĐ" min={10000} autoFocus />
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>

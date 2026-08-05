@@ -70,7 +70,7 @@ export const HeroSection: React.FC = () => {
           </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.4px', background: 'linear-gradient(135deg, #ffffff 0%, #CBD5E1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Financial PRO
+              Financial
             </div>
             <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 600, letterSpacing: '0.5px' }}>SaaS Expense Management</div>
           </div>

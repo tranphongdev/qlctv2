@@ -82,7 +82,7 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
                 <Progress
                   type="circle"
                   percent={pct}
-                  width={80}
+                  size={80}
                   strokeColor={pct >= 100 ? '#EF4444' : pct >= 80 ? '#F59E0B' : '#4F46E5'}
                 />
                 <div>

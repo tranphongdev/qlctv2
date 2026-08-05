@@ -99,7 +99,6 @@ export interface UserSettings {
   language: 'vi' | 'en';
   timezone: string;
   weekStart: 'monday' | 'sunday';
-  autoBackup: boolean;
   autoSync: boolean;
 }
 
@@ -131,6 +130,5 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   language: 'vi',
   timezone: 'Asia/Ho_Chi_Minh',
   weekStart: 'monday',
-  autoBackup: true,
   autoSync: true,
 };

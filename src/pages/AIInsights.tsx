@@ -124,7 +124,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
             onPressEnter={handleSend}
             size="large"
           />
-          <Button type="primary" size="large" icon={<Send size={18} />} onClick={handleSend}>
+          <Button type="primary" icon={<Send size={18} />} onClick={handleSend}>
             Gửi
           </Button>
         </Space.Compact>

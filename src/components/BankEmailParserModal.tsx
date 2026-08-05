@@ -101,7 +101,7 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
       }
       footer={null}
       width={640}
-      destroyOnClose
+      destroyOnHidden
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
         {/* Sample Templates Quick Select */}

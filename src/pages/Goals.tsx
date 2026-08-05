@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Progress, Button, Tag, Modal, Form, Input, InputNumber, DatePicker, message } from 'antd';
-import { Plus, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Progress, Button, Tag, Modal, Form, Input, InputNumber, DatePicker, message, Popconfirm } from 'antd';
+import { Plus, Sparkles, CheckCircle2, Trash2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { AppState, Goal } from '../types';
 import { formatMoney } from '../utils/format';
-import { addGoal, depositToGoal } from '../store/appStore';
+import { addGoal, depositToGoal, deleteGoal } from '../store/appStore';
 
 interface GoalsProps {
   state: AppState;
@@ -67,7 +67,9 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
       </div>
 
       {/* Goals Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+      {/* Trần 380px cho cột: một mục tiêu duy nhất vẫn giữ dáng thẻ thay vì giãn hết
+          chiều ngang biến ảnh bìa thành banner. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 380px))', gap: 16, justifyContent: 'start' }}>
         {goals.map((g) => {
           const pct = Math.min(100, Math.round((g.saved / g.target) * 100));
           const isDone = g.saved >= g.target;
@@ -78,7 +80,7 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
               <div
                 style={{
                   height: 140,
-                  backgroundImage: `url(${g.imageUrl})`,
+                  backgroundImage: `linear-gradient(to bottom, rgba(15,23,42,0.45) 0%, rgba(15,23,42,0) 55%), url(${g.imageUrl})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   position: 'relative',
@@ -102,7 +104,8 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
                   Hạn chót: {g.deadline || 'Không giới hạn'}
                 </div>
 
-                <Progress percent={pct} strokeColor={{ '0%': '#4F46E5', '100%': '#7C3AED' }} />
+                {/* Tag trên ảnh bìa đã hiện % rồi, tắt showInfo để khỏi lặp số. */}
+                <Progress percent={pct} showInfo={false} strokeColor={{ '0%': '#4F46E5', '100%': '#7C3AED' }} />
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, margin: '14px 0 16px' }}>
                   <div>
@@ -115,15 +118,34 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
                   </div>
                 </div>
 
-                <Button
-                  type={isDone ? 'default' : 'primary'}
-                  block
-                  onClick={() => setDepositGoal(g)}
-                  icon={<Sparkles size={16} />}
-                  style={{ borderRadius: 12 }}
-                >
-                  {isDone ? 'Nộp Thêm Tiết Kiệm' : 'Nộp Tiền Tiết Kiệm'}
-                </Button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Button
+                    type={isDone ? 'default' : 'primary'}
+                    onClick={() => setDepositGoal(g)}
+                    icon={<Sparkles size={16} />}
+                    style={{ borderRadius: 12, flex: 1 }}
+                  >
+                    {isDone ? 'Nộp Thêm Tiết Kiệm' : 'Nộp Tiền Tiết Kiệm'}
+                  </Button>
+                  <Popconfirm
+                    title="Xóa mục tiêu này?"
+                    description={`Toàn bộ tiến độ của "${g.name}" sẽ bị xóa khỏi hệ thống.`}
+                    onConfirm={() => {
+                      deleteGoal(g.id);
+                      message.success(`Đã xóa mục tiêu ${g.name}!`);
+                    }}
+                    okText="Xóa"
+                    cancelText="Hủy"
+                    okButtonProps={{ danger: true }}
+                  >
+                    <Button
+                      danger
+                      aria-label={`Xóa mục tiêu ${g.name}`}
+                      icon={<Trash2 size={16} />}
+                      style={{ borderRadius: 12 }}
+                    />
+                  </Popconfirm>
+                </div>
               </div>
             </div>
           );
@@ -160,7 +182,7 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
       <Modal open={!!depositGoal} onCancel={() => setDepositGoal(null)} title={`Nộp tiền tiết kiệm: ${depositGoal?.name}`} footer={null}>
         <Form form={depositForm} layout="vertical" onFinish={handleDeposit} style={{ marginTop: 16 }}>
           <Form.Item name="amount" label="Số tiền nộp (VNĐ)" rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%', fontSize: 18 }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder="0 VNĐ" min={10000} autoFocus />
+            <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder="0 VNĐ" min={10000} autoFocus />
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>

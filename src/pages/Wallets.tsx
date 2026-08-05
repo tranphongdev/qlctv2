@@ -5,6 +5,37 @@ import type { AppState, Wallet } from '../types';
 import { formatMoney } from '../utils/format';
 import { addWallet, deleteWallet, addTransaction } from '../store/appStore';
 
+const WALLET_TYPE_LABEL: Record<Wallet['type'], string> = {
+  bank: 'Ngân hàng',
+  cash: 'Tiền mặt',
+  e_wallet: 'Ví điện tử',
+  crypto: 'Crypto',
+  usd: 'Ngoại tệ USD',
+};
+
+/** Che số tài khoản theo kiểu thẻ ngân hàng, chỉ để lộ 4 số cuối. */
+function maskAccountNumber(accountNumber?: string): string {
+  const digits = (accountNumber || '').replace(/\D/g, '');
+  if (digits.length < 4) return '•••• •••• •••• ••••';
+  return `•••• •••• •••• ${digits.slice(-4)}`;
+}
+
+/** Biểu tượng thanh toán không tiếp xúc (4 vòng sóng) trên mặt thẻ. */
+const ContactlessIcon: React.FC = () => (
+  <svg width="20" height="22" viewBox="0 0 20 22" fill="none" aria-hidden="true">
+    {[3, 7, 11, 15].map((x, i) => (
+      <path
+        key={x}
+        d={`M${x} ${7 - i * 1.6}a${4 + i * 3} ${4 + i * 3} 0 0 1 0 ${8 + i * 3.2}`}
+        stroke="#ffffff"
+        strokeOpacity={0.85}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    ))}
+  </svg>
+);
+
 interface WalletsProps {
   state: AppState;
   onOpenBankSync?: () => void;
@@ -96,34 +127,27 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
       </div>
 
       {/* Wallet Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+      {/* auto-fill + trần 360px: cột không giãn theo số thẻ nên vài thẻ vẫn xếp sát
+          nhau, phần dư dồn về cuối hàng thay vì thành khoảng hở giữa các thẻ. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 360px))', gap: 16, justifyContent: 'start' }}>
         {wallets.map((w) => (
           <div
             key={w.id}
-            style={{
-              padding: 24,
-              borderRadius: 20,
-              background: `linear-gradient(135deg, ${w.color} 0%, ${w.color}DD 100%)`,
-              color: '#ffffff',
-              boxShadow: `0 10px 25px -5px ${w.color}66`,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              minHeight: 180,
-              cursor: 'pointer',
-              transition: 'transform 0.2s ease',
-              position: 'relative',
-            }}
-            className="wallet-card"
+            className="bank-card"
+            style={{ '--card-color': w.color, '--card-shadow': `${w.color}80` } as React.CSSProperties}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <span style={{ fontSize: 12, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {w.bankName || w.type.toUpperCase()}
-                </span>
-                <div style={{ fontSize: 18, fontWeight: 700, marginTop: 2 }}>{w.name}</div>
+            {/* Hàng trên: tên ngân hàng + tên ví, nút xóa hiện khi hover */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  {w.bankName || WALLET_TYPE_LABEL[w.type]}
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 700, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {w.name}
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+
+              <div className="bank-card__actions">
                 <Popconfirm
                   title="Xóa ví tiền này?"
                   description="Bạn có chắc muốn xóa ví khỏi hệ thống?"
@@ -138,31 +162,38 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
                   <Button
                     type="text"
                     size="small"
+                    aria-label={`Xóa ví ${w.name}`}
                     icon={<Trash2 size={16} color="#ffffff" />}
                     style={{
-                      background: 'rgba(255,255,255,0.2)',
-                      borderRadius: 10,
-                      width: 32,
-                      height: 32,
+                      background: 'rgba(255,255,255,0.22)',
+                      width: 30,
+                      height: 30,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
-                    onClick={(e) => e.stopPropagation()}
                   />
                 </Popconfirm>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {getWalletIcon(w.type)}
-                </div>
               </div>
             </div>
 
-            <div>
-              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 2 }}>
-                STK: {w.accountNumber || '•••• •••• ••••'}
+            {/* Chip + biểu tượng thanh toán không tiếp xúc + icon loại ví */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div className="bank-card__chip" />
+              <ContactlessIcon />
+              <span style={{ marginLeft: 'auto', opacity: 0.9 }}>{getWalletIcon(w.type)}</span>
+            </div>
+
+            <div className="bank-card__number">{maskAccountNumber(w.accountNumber)}</div>
+
+            {/* Hàng dưới: số dư bên trái, loại ví bên phải như dòng hiệu lực trên thẻ */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 8 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 10, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>Số dư</div>
+                <div style={{ fontSize: 21, fontWeight: 800, letterSpacing: '-0.3px' }}>{formatMoney(w.balance)}</div>
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.5px' }}>
-                {formatMoney(w.balance)}
+              <div style={{ fontSize: 10, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '1px', whiteSpace: 'nowrap' }}>
+                {WALLET_TYPE_LABEL[w.type]}
               </div>
             </div>
           </div>

@@ -38,9 +38,12 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [notifOpen, setNotifOpen] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
-  const userName = currentUser ? currentUser.name : 'Khách';
+  // settings là nguồn sự thật vì người dùng sửa được tên và ảnh trong trang Cài đặt;
+  // currentUser chỉ là ảnh chụp lúc đăng nhập nên không phản ánh thay đổi sau đó.
+  const userName = currentUser ? settings.userName || currentUser.name : 'Khách';
+  const avatarUrl = settings.avatarUrl || currentUser?.avatarUrl;
   const { greeting, icon } = currentUser
-    ? getTimeAwareGreeting(currentUser.name)
+    ? getTimeAwareGreeting(userName)
     : { greeting: 'Chào bạn!', icon: '👋' };
 
   const userMenuItems: MenuProps['items'] = [
@@ -109,10 +112,12 @@ export const Header: React.FC<HeaderProps> = ({
           {currentUser ? (
             <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomLeft">
               <Avatar
-                src={currentUser.avatarUrl || settings.avatarUrl}
+                src={avatarUrl}
                 size={36}
                 style={{ border: '2px solid #4F46E5', cursor: 'pointer', flexShrink: 0 }}
-              />
+              >
+                {userName.charAt(0).toUpperCase()}
+              </Avatar>
             </Dropdown>
           ) : (
             <Avatar src={settings.avatarUrl} size={36} style={{ border: '2px solid #94a3b8', cursor: 'pointer', flexShrink: 0 }} onClick={onOpenAuthModal} />
@@ -125,9 +130,6 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 90 }}>{userName}</span>
-              {currentUser && (
-                <span className="desktop-only" style={{ fontSize: 11, padding: '1px 6px', borderRadius: 99, background: 'rgba(79, 70, 229, 0.1)', color: '#4F46E5', fontWeight: 600 }}>PRO</span>
-              )}
             </div>
           </div>
         </div>

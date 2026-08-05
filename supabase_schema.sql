@@ -1,5 +1,5 @@
 -- ====================================================================
--- SUPABASE DATABASE SCHEMA FOR QUẢN LÝ CHI TIÊU CÁ NHÂN (FINANCIAL PRO)
+-- SUPABASE DATABASE SCHEMA FOR QUẢN LÝ CHI TIÊU CÁ NHÂN 
 -- Copy toàn bộ đoạn script này dán vào Supabase SQL Editor và nhấn "Run"
 -- ====================================================================
 

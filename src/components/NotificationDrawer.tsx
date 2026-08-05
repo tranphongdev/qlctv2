@@ -40,7 +40,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
         </div>
       }
       placement="right"
-      width={Math.min(380, typeof window !== 'undefined' ? window.innerWidth : 380)}
+      size={Math.min(380, typeof window !== 'undefined' ? window.innerWidth : 380)}
       onClose={onClose}
       open={open}
     >

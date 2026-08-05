@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Select, DatePicker, TimePicker, Segmented, Upload, Button, message, Space, Tag, Alert } from 'antd';
-import { UploadOutlined, TagOutlined, UserOutlined, EnvironmentOutlined, PlusOutlined } from '@ant-design/icons';
+import { Modal, Form, Input, InputNumber, Select, DatePicker, TimePicker, Segmented, Upload, Button, message, Space, Alert } from 'antd';
+import { UploadOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import type { Category, Transaction, Wallet } from '../types';
 import { addWallet } from '../store/appStore';
@@ -25,15 +25,12 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   const [form] = Form.useForm();
   const [txType, setTxType] = useState<'thu' | 'chi' | 'chuyen'>('chi');
   const [receiptUrl, setReceiptUrl] = useState<string | undefined>(undefined);
-  const [tags, setTags] = useState<string[]>([]);
-  const [inputTag, setInputTag] = useState('');
 
   useEffect(() => {
     if (open) {
       if (initialData) {
         setTxType(initialData.type);
         setReceiptUrl(initialData.receiptUrl);
-        setTags(initialData.tags || []);
         form.setFieldsValue({
           type: initialData.type,
           amount: initialData.amount,
@@ -43,14 +40,11 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           date: dayjs(initialData.date),
           time: initialData.time ? dayjs(initialData.time, 'HH:mm') : dayjs(),
           note: initialData.note,
-          location: initialData.location,
-          counterparty: initialData.counterparty,
           recurring: initialData.recurring || 'none',
         });
       } else {
         setTxType('chi');
         setReceiptUrl(undefined);
-        setTags([]);
         form.resetFields();
         form.setFieldsValue({
           type: 'chi',
@@ -91,9 +85,9 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       time: values.time ? values.time.format('HH:mm') : undefined,
       note: values.note,
       receiptUrl: receiptUrl,
-      tags: tags,
-      location: values.location,
-      counterparty: values.counterparty,
+      tags: initialData?.tags,
+      location: initialData?.location,
+      counterparty: initialData?.counterparty,
       recurring: values.recurring,
       status: 'completed',
     };
@@ -115,17 +109,6 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     }
   };
 
-  const addTag = () => {
-    if (inputTag.trim() && !tags.includes(inputTag.trim())) {
-      setTags([...tags, inputTag.trim()]);
-      setInputTag('');
-    }
-  };
-
-  const removeTag = (removedTag: string) => {
-    setTags(tags.filter((t) => t !== removedTag));
-  };
-
   const filteredCategories = categories.filter((c) => c.type === (txType === 'chuyen' ? 'chi' : txType));
 
   return (
@@ -134,15 +117,15 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       onCancel={onClose}
       title={<span style={{ fontSize: 18, fontWeight: 700 }}>{initialData ? 'Sửa Giao Dịch' : 'Thêm Giao Dịch Mới'}</span>}
       footer={null}
-      width={Math.min(560, typeof window !== 'undefined' ? window.innerWidth : 560)}
-      style={{ top: 20 }}
-      styles={{
-        body: {
-          maxHeight: 'calc(80vh - 40px)',
-          overflowY: 'auto',
-          paddingRight: 8,
-        },
-      }}
+      // width={Math.min(560, typeof window !== 'undefined' ? window.innerWidth : 560)}
+      // style={{ top: 20 }}
+      // styles={{
+      //   body: {
+      //     maxHeight: 'calc(80vh - 40px)',
+      //     overflowY: 'auto',
+      //     paddingRight: 8,
+      //   },
+      // }}
       destroyOnHidden
     >
       {wallets.length === 0 && (
@@ -182,11 +165,10 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           rules={[{ required: true, message: 'Vui lòng nhập số tiền' }]}
         >
           <InputNumber
-            style={{ width: '100%', borderRadius: 14 }}
+            style={{ width: '100%'}}
             placeholder="0 ₫"
             formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
             parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as any}
-            size="large"
             autoFocus
           />
         </Form.Item>
@@ -258,40 +240,6 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           <Input.TextArea rows={2} placeholder="Nhập ghi chú chi tiết..." />
         </Form.Item>
 
-        {/* Location & Counterparty */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12 }}>
-          <Form.Item name="location" label="Địa điểm">
-            <Input prefix={<EnvironmentOutlined color="#94a3b8" />} placeholder="Nhà hàng, TTTM..." />
-          </Form.Item>
-          <Form.Item name="counterparty" label="Người liên quan">
-            <Input prefix={<UserOutlined color="#94a3b8" />} placeholder="Tên bạn bè, chủ nhà..." />
-          </Form.Item>
-        </div>
-
-        {/* Tags */}
-        <Form.Item label="Thẻ (Tags)">
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-            {tags.map((tag) => (
-              <Tag key={tag} closable onClose={() => removeTag(tag)} color="purple">
-                {tag}
-              </Tag>
-            ))}
-          </div>
-          <Space.Compact style={{ width: '100%' }}>
-            <Input
-              prefix={<TagOutlined color="#94a3b8" />}
-              placeholder="Thêm thẻ (Ví dụ: Work, Bạn bè...)"
-              value={inputTag}
-              onChange={(e) => setInputTag(e.target.value)}
-              onPressEnter={(e) => {
-                e.preventDefault();
-                addTag();
-              }}
-            />
-            <Button onClick={addTag}>Thêm</Button>
-          </Space.Compact>
-        </Form.Item>
-
         {/* Image Receipt Upload */}
         <Form.Item label="Ảnh hóa đơn đính kèm">
           <Upload
@@ -317,7 +265,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         <Form.Item style={{ marginBottom: 0, marginTop: 16, textAlign: 'right' }}>
           <Space>
             <Button onClick={onClose}>Hủy</Button>
-            <Button type="primary" htmlType="submit" size="large" style={{ borderRadius: 12, minWidth: 120 }}>
+            <Button type="primary" htmlType="submit">
               Lưu Giao Dịch
             </Button>
           </Space>
