@@ -262,49 +262,54 @@ export const Transactions: React.FC<TransactionsProps> = ({
           <Button icon={<Printer size={16} color="#7C3AED" />} onClick={handlePrintPDF}>
             In Báo cáo
           </Button>
-          <Button type="primary" icon={<Plus size={16} />} size="large" onClick={() => onOpenAddModal()} style={{ borderRadius: 12 }}>
+          <Button type="primary" icon={<Plus size={16} />} onClick={() => onOpenAddModal()}>
             Thêm Giao Dịch
           </Button>
         </Space>
       </div>
 
       {/* Filter & Search Toolbar */}
-      <div className="glass-card" style={{ padding: '12px 14px', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="glass-card" style={{ padding: '12px 16px', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         <Input
           prefix={<Search size={16} color="#94a3b8" />}
           placeholder="Tìm theo ghi chú, danh mục, số tiền..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          style={{ width: '100%', borderRadius: 10 }}
+          style={{ width: 220, flexShrink: 0 }}
           allowClear
         />
 
-        <div style={{ display: 'flex', gap: 6, width: '100%' }}>
-          <Select value={typeFilter} onChange={setTypeFilter} style={{ flex: 1, minWidth: 0 }} size="small">
-            <Select.Option value="all">Tất cả loại</Select.Option>
-            <Select.Option value="thu">🟢 Thu</Select.Option>
-            <Select.Option value="chi">🔴 Chi</Select.Option>
-            <Select.Option value="chuyen">🔄 Chuyển</Select.Option>
-          </Select>
+        <Select
+          value={typeFilter}
+          onChange={setTypeFilter}
+          style={{ width: 140, flexShrink: 0 }}
+          options={[
+            { value: 'all', label: 'Tất cả loại' },
+            { value: 'thu', label: '🟢 Thu' },
+            { value: 'chi', label: '🔴 Chi' },
+            { value: 'chuyen', label: '🔄 Chuyển' },
+          ]}
+        />
 
-          <Select value={catFilter} onChange={setCatFilter} style={{ flex: 1, minWidth: 0 }} size="small">
-            <Select.Option value="all">Tất cả danh mục</Select.Option>
-            {categories.map((c) => (
-              <Select.Option key={c.id} value={c.id}>
-                {c.name}
-              </Select.Option>
-            ))}
-          </Select>
+        <Select
+          value={catFilter}
+          onChange={setCatFilter}
+          style={{ width: 170, flexShrink: 0 }}
+          options={[
+            { value: 'all', label: 'Tất cả danh mục' },
+            ...categories.map((c) => ({ value: c.id, label: c.name })),
+          ]}
+        />
 
-          <Select value={walletFilter} onChange={setWalletFilter} style={{ flex: 1, minWidth: 0 }} size="small">
-            <Select.Option value="all">Tất cả ví</Select.Option>
-            {wallets.map((w) => (
-              <Select.Option key={w.id} value={w.id}>
-                {w.name}
-              </Select.Option>
-            ))}
-          </Select>
-        </div>
+        <Select
+          value={walletFilter}
+          onChange={setWalletFilter}
+          style={{ width: 150, flexShrink: 0 }}
+          options={[
+            { value: 'all', label: 'Tất cả ví' },
+            ...wallets.map((w) => ({ value: w.id, label: w.name })),
+          ]}
+        />
       </div>
 
       {/* Desktop Table List */}

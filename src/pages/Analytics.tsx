@@ -8,23 +8,33 @@ interface AnalyticsProps {
   state: AppState;
 }
 
-export const Analytics: React.FC<AnalyticsProps> = ({ state: _state }) => {
-  // Calculate Financial Health Score (0-100) based on savings rate, debt ratio, and emergency fund
-  const monthlyInc = 31000000;
-  const monthlyExp = 8465000;
-  const savingsRate = Math.round(((monthlyInc - monthlyExp) / monthlyInc) * 100);
+export const Analytics: React.FC<AnalyticsProps> = ({ state }) => {
+  const { transactions } = state;
 
-  // Financial Score Score Calculation algorithm
-  const healthScore = Math.min(100, Math.round(savingsRate * 0.6 + 45));
+  const monthlyInc = transactions.filter((t) => t.type === 'thu').reduce((acc, t) => acc + t.amount, 0);
+  const monthlyExp = transactions.filter((t) => t.type === 'chi').reduce((acc, t) => acc + t.amount, 0);
+  const savingsRate = monthlyInc > 0 ? Math.round(((monthlyInc - monthlyExp) / monthlyInc) * 100) : 0;
 
-  const monthlyComparison = [
-    { month: 'T3', thu: 22000000, chi: 11000000 },
-    { month: 'T4', thu: 24000000, chi: 12500000 },
-    { month: 'T5', thu: 25000000, chi: 10800000 },
-    { month: 'T6', thu: 28000000, chi: 13000000 },
-    { month: 'T7', thu: 30000000, chi: 11500000 },
-    { month: 'T8', thu: 31000000, chi: 8465000 },
-  ];
+  const healthScore = monthlyInc === 0 && monthlyExp === 0 ? 100 : Math.max(0, Math.min(100, Math.round(savingsRate * 0.6 + 40)));
+
+  // Calculate monthly comparison dynamically from transactions
+  const monthMap: Record<string, { thu: number; chi: number }> = {};
+  transactions.forEach((t) => {
+    if (!t.date) return;
+    const m = 'T' + parseInt(t.date.slice(5, 7), 10);
+    if (!monthMap[m]) monthMap[m] = { thu: 0, chi: 0 };
+    if (t.type === 'thu') monthMap[m].thu += t.amount;
+    if (t.type === 'chi') monthMap[m].chi += t.amount;
+  });
+
+  const monthlyComparison = Object.entries(monthMap).map(([month, val]) => ({
+    month,
+    thu: val.thu,
+    chi: val.chi,
+  }));
+
+  const avgMonthlyInc = monthlyComparison.length > 0 ? monthlyInc / monthlyComparison.length : monthlyInc;
+  const avgDailyExp = monthlyExp > 0 ? Math.round(monthlyExp / 30) : 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -52,11 +62,11 @@ export const Analytics: React.FC<AnalyticsProps> = ({ state: _state }) => {
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ background: 'rgba(255,255,255,0.15)', padding: '10px 14px', borderRadius: 12 }}>
             <div style={{ fontSize: 10, opacity: 0.8 }}>Thu nhập TB/tháng</div>
-            <div style={{ fontSize: 15, fontWeight: 700 }}>{formatMoney(26600000)}</div>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>{formatMoney(avgMonthlyInc)}</div>
           </div>
           <div style={{ background: 'rgba(255,255,255,0.15)', padding: '10px 14px', borderRadius: 12 }}>
             <div style={{ fontSize: 10, opacity: 0.8 }}>Chi tiêu TB/ngày</div>
-            <div style={{ fontSize: 15, fontWeight: 700 }}>{formatMoney(380000)}</div>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>{formatMoney(avgDailyExp)}</div>
           </div>
         </div>
       </div>

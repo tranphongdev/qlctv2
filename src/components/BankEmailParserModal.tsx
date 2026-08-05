@@ -183,13 +183,11 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
                   value={selectedWalletId}
                   onChange={setSelectedWalletId}
                   style={{ width: '100%' }}
-                >
-                  {wallets.map((w) => (
-                    <Select.Option key={w.id} value={w.id}>
-                      {w.name} ({w.bankName || w.type})
-                    </Select.Option>
-                  ))}
-                </Select>
+                  options={wallets.map((w) => ({
+                    value: w.id,
+                    label: `${w.name} (${w.bankName || w.type})`,
+                  }))}
+                />
               </div>
 
               <div>
@@ -198,14 +196,16 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
                   value={selectedCategoryId}
                   onChange={setSelectedCategoryId}
                   style={{ width: '100%' }}
-                >
-                  {categories.map((c) => (
-                    <Select.Option key={c.id} value={c.id}>
-                      <span style={{ color: c.color, marginRight: 6 }}>●</span>
-                      {c.name}
-                    </Select.Option>
-                  ))}
-                </Select>
+                  options={categories.map((c) => ({
+                    value: c.id,
+                    label: (
+                      <span>
+                        <span style={{ color: c.color, marginRight: 6 }}>●</span>
+                        {c.name}
+                      </span>
+                    ),
+                  }))}
+                />
               </div>
             </div>
 

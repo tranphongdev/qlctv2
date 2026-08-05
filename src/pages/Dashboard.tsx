@@ -39,25 +39,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
 
   const totalBalance = wallets.reduce((acc, w) => acc + w.balance, 0);
 
-  const currentMonthTxs = transactions.filter((t) => t.date.startsWith('2026-08'));
-  const monthlyIncome = currentMonthTxs
+  const currentMonthStr = new Date().toISOString().slice(0, 7);
+  const currentMonthTxs = transactions.filter((t) => t.date && t.date.startsWith(currentMonthStr));
+  const activeTxs = currentMonthTxs.length > 0 ? currentMonthTxs : transactions;
+
+  const monthlyIncome = activeTxs
     .filter((t) => t.type === 'thu')
     .reduce((acc, t) => acc + t.amount, 0);
-  const monthlyExpense = currentMonthTxs
+  const monthlyExpense = activeTxs
     .filter((t) => t.type === 'chi')
     .reduce((acc, t) => acc + t.amount, 0);
   const monthlySavings = Math.max(0, monthlyIncome - monthlyExpense);
   const savingsRate = monthlyIncome > 0 ? Math.round((monthlySavings / monthlyIncome) * 100) : 0;
 
-  const dailyData = [
-    { day: '01/08', thu: 25000000, chi: 1200000 },
-    { day: '02/08', thu: 0, chi: 5500000 },
-    { day: '03/08', thu: 0, chi: 450000 },
-    { day: '04/08', thu: 6000000, chi: 65000 },
-    { day: '05/08', thu: 0, chi: 1200000 },
-    { day: '06/08', thu: 0, chi: 850000 },
-    { day: '07/08', thu: 2000000, chi: 300000 },
-  ];
+  const dailyMap: Record<string, { thu: number; chi: number }> = {};
+  activeTxs.forEach((t) => {
+    const day = t.date ? `${t.date.slice(8, 10)}/${t.date.slice(5, 7)}` : 'Hôm nay';
+    if (!dailyMap[day]) dailyMap[day] = { thu: 0, chi: 0 };
+    if (t.type === 'thu') dailyMap[day].thu += t.amount;
+    if (t.type === 'chi') dailyMap[day].chi += t.amount;
+  });
+
+  const dailyData = Object.entries(dailyMap)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([day, val]) => ({ day, thu: val.thu, chi: val.chi }));
 
   const categoriesMap = categories.reduce((acc, c) => ({ ...acc, [c.id]: c }), {} as Record<string, any>);
   const categoryExpenses: Record<string, number> = {};

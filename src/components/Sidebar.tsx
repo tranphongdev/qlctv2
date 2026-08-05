@@ -62,24 +62,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
       collapsedWidth={80}
       className="glass-card desktop-only"
       style={{
-        margin: '16px 0 16px 24px',
-        borderRadius: 20,
+        margin: 0,
+        borderRadius: 0,
         overflow: 'hidden',
-        height: 'calc(100vh - 32px)',
+        height: '100vh',
         position: 'sticky',
-        top: 16,
+        top: 0,
+        zIndex: 10,
         display: 'flex',
         flexDirection: 'column',
+        borderRight: '1px solid rgba(148, 163, 184, 0.15)',
       }}
     >
       {/* Brand Header */}
       <div
         style={{
-          padding: collapsed ? '20px 12px' : '20px 24px',
+          height: 64,
+          padding: collapsed ? '0 12px' : '0 20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: collapsed ? 'center' : 'space-between',
           borderBottom: '1px solid rgba(148, 163, 184, 0.15)',
+          flexShrink: 0,
         }}
       >
         {!collapsed ? (

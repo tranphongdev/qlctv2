@@ -1,36 +1,98 @@
 import React, { useState } from 'react';
-import { Avatar, Badge, Button, Input, Space, Tooltip } from 'antd';
-import { Search, Bell, Sun, Moon, Sparkles, Command, Menu as MenuIcon, Mail } from 'lucide-react';
+import { Avatar, Badge, Button, Input, Space, Tooltip, Dropdown } from 'antd';
+import type { MenuProps } from 'antd';
+import { Search, Bell, Sun, Moon, Sparkles, Command, Menu as MenuIcon, Mail, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 import type { UserSettings, NotificationItem } from '../types';
+import type { AuthUser } from '../lib/auth';
 import { getTimeAwareGreeting } from '../utils/format';
 import { NotificationDrawer } from './NotificationDrawer';
 
 interface HeaderProps {
   settings: UserSettings;
+  currentUser: AuthUser | null;
+  sidebarCollapsed?: boolean;
   onToggleTheme: () => void;
   onOpenCommandPalette: () => void;
   notifications: NotificationItem[];
   onMarkRead: () => void;
   onOpenMobileMenu?: () => void;
   onOpenBankSync?: () => void;
+  onOpenAuthModal: () => void;
+  onLogout: () => void;
+  onSelectTab: (tab: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   settings,
+  currentUser,
+  sidebarCollapsed = false,
   onToggleTheme,
   onOpenCommandPalette,
   notifications,
   onMarkRead,
   onOpenMobileMenu,
   onOpenBankSync,
+  onOpenAuthModal,
+  onLogout,
+  onSelectTab,
 }) => {
   const [notifOpen, setNotifOpen] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
-  const { greeting, icon } = getTimeAwareGreeting(settings.userName);
+  const userName = currentUser ? currentUser.name : 'Khách';
+  const { greeting, icon } = currentUser
+    ? getTimeAwareGreeting(currentUser.name)
+    : { greeting: 'Chào bạn!', icon: '👋' };
+
+  const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'user-info',
+      disabled: true,
+      label: (
+        <div style={{ padding: '4px 0', borderBottom: '1px solid #f1f5f9' }}>
+          <div style={{ fontWeight: 700, color: '#1e293b' }}>{userName}</div>
+          <div style={{ fontSize: 11, color: '#64748b' }}>{currentUser?.email || 'Chế độ Demo Khách'}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'profile',
+      icon: <UserIcon size={16} />,
+      label: 'Hồ sơ & Cài đặt',
+      onClick: () => onSelectTab('profile'),
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'logout',
+      icon: <LogOut size={16} color="#EF4444" />,
+      label: <span style={{ color: '#EF4444', fontWeight: 600 }}>Đăng xuất</span>,
+      onClick: onLogout,
+    },
+  ];
 
   return (
-    <header className="glass-card" style={{ padding: '10px 14px', margin: '0 0 12px 0', borderRadius: 20, width: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+    <header
+      className="glass-card header-fixed-bar"
+      style={{
+        position: 'fixed',
+        top: 0,
+        right: 0,
+        left: sidebarCollapsed ? 80 : 240,
+        height: 64,
+        padding: '0 24px',
+        margin: 0,
+        borderRadius: 0,
+        zIndex: 1000,
+        borderBottom: '1px solid rgba(148, 163, 184, 0.15)',
+        display: 'flex',
+        alignItems: 'center',
+        transition: 'left 0.2s ease',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, width: '100%' }}>
         {/* Left: Mobile Hamburger & Avatar Greeting */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
           {onOpenMobileMenu && (
@@ -44,7 +106,17 @@ export const Header: React.FC<HeaderProps> = ({
             />
           )}
 
-          <Avatar src={settings.avatarUrl} size={36} style={{ border: '2px solid #4F46E5', cursor: 'pointer', flexShrink: 0 }} />
+          {currentUser ? (
+            <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomLeft">
+              <Avatar
+                src={currentUser.avatarUrl || settings.avatarUrl}
+                size={36}
+                style={{ border: '2px solid #4F46E5', cursor: 'pointer', flexShrink: 0 }}
+              />
+            </Dropdown>
+          ) : (
+            <Avatar src={settings.avatarUrl} size={36} style={{ border: '2px solid #94a3b8', cursor: 'pointer', flexShrink: 0 }} onClick={onOpenAuthModal} />
+          )}
 
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#64748b', fontWeight: 500 }}>
@@ -52,39 +124,41 @@ export const Header: React.FC<HeaderProps> = ({
               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 90 }}>{greeting}</span>
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 90 }}>{settings.userName}</span>
-              <span className="desktop-only" style={{ fontSize: 11, padding: '1px 6px', borderRadius: 99, background: 'rgba(79, 70, 229, 0.1)', color: '#4F46E5', fontWeight: 600 }}>PRO</span>
+              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 90 }}>{userName}</span>
+              {currentUser && (
+                <span className="desktop-only" style={{ fontSize: 11, padding: '1px 6px', borderRadius: 99, background: 'rgba(79, 70, 229, 0.1)', color: '#4F46E5', fontWeight: 600 }}>PRO</span>
+              )}
             </div>
           </div>
         </div>
 
         {/* Center: Search & Command Palette Trigger (Desktop) */}
-        <div className="desktop-only" style={{ flex: 1, maxWidth: 420 }}>
+        <div className="desktop-only" style={{ width: 220 }}>
           <Input
-            prefix={<Search size={16} color="#94a3b8" />}
+            prefix={<Search size={14} color="#94a3b8" />}
             suffix={
               <div
                 onClick={onOpenCommandPalette}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 4,
-                  fontSize: 11,
-                  padding: '2px 6px',
-                  borderRadius: 6,
+                  gap: 2,
+                  fontSize: 10,
+                  padding: '2px 4px',
+                  borderRadius: 4,
                   background: 'rgba(148, 163, 184, 0.15)',
                   color: '#64748b',
                   cursor: 'pointer',
                 }}
               >
-                <Command size={12} /> K
+                <Command size={10} /> K
               </div>
             }
-            placeholder="Tìm kiếm giao dịch, danh mục, ví tiền..."
+            placeholder="Tìm kiếm..."
             onClick={onOpenCommandPalette}
             style={{
-              borderRadius: 14,
-              padding: '8px 16px',
+              borderRadius: 8,
+              padding: '4px 10px',
               cursor: 'pointer',
             }}
             readOnly
@@ -93,8 +167,25 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right: Actions */}
         <Space size={4} style={{ flexShrink: 0 }}>
+          {!currentUser && (
+            <Button
+              type="primary"
+              icon={<LogIn size={15} />}
+              size="middle"
+              onClick={onOpenAuthModal}
+              style={{
+                borderRadius: 12,
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                border: 'none',
+              }}
+            >
+              Đăng nhập / Đăng ký
+            </Button>
+          )}
+
           {/* Bank Email Sync Button */}
-          <Tooltip title="Đồng bộ Email Ngân hàng (Gmail / iOS)">
+          <Tooltip title="Đồng bộ Email Ngân hàng">
             <Button
               type="text"
               shape="circle"
@@ -152,3 +243,4 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
+

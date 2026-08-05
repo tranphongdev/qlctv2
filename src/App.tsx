@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ConfigProvider, Layout, theme as antdTheme, message, Button } from 'antd';
 import viVN from 'antd/locale/vi_VN';
-import { useAppState, deleteTransaction, bulkDeleteTransactions, restoreTransaction, addTransaction } from './store/appStore';
+import { useAppState, deleteTransaction, bulkDeleteTransactions, restoreTransaction, addTransaction, updateSettings } from './store/appStore';
 import { Header } from './components/Header';
 import { Sidebar, MobileSidebarDrawer } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
@@ -9,6 +9,9 @@ import { CommandPalette } from './components/CommandPalette';
 import { QuickActionFab } from './components/QuickActionFab';
 import { AddTransactionModal } from './components/AddTransactionModal';
 import { BankEmailSyncModal } from './components/BankEmailSyncModal';
+import { AuthPage } from './pages/AuthPage';
+import { onAuthChange, signOutUser } from './lib/auth';
+import type { AuthUser } from './lib/auth';
 import { Dashboard } from './pages/Dashboard';
 import { Transactions } from './pages/Transactions';
 import { Wallets } from './pages/Wallets';
@@ -32,34 +35,39 @@ export default function App() {
   const [cmdOpen, setCmdOpen] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [bankEmailModalOpen, setBankEmailModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
-  const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
-    try {
-      const saved = localStorage.getItem(THEME_KEY);
-      if (saved) return saved as 'light' | 'dark';
-    } catch {
-      /* ignore */
-    }
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  useEffect(() => {
+    const unsubscribe = onAuthChange((user) => {
+      setCurrentUser(user);
+      if (user) {
+        updateSettings({
+          userName: user.name,
+          userEmail: user.email,
+          avatarUrl: user.avatarUrl,
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    const saved = localStorage.getItem(THEME_KEY);
+    return saved ? saved === 'dark' : true;
   });
 
-  const isDark = themeMode === 'dark';
-
   useEffect(() => {
-    try {
-      localStorage.setItem(THEME_KEY, themeMode);
-    } catch {
-      /* ignore */
-    }
     if (isDark) {
       document.body.classList.add('dark-theme');
       document.body.classList.remove('light-theme');
+      localStorage.setItem(THEME_KEY, 'dark');
     } else {
       document.body.classList.add('light-theme');
       document.body.classList.remove('dark-theme');
+      localStorage.setItem(THEME_KEY, 'light');
     }
-  }, [themeMode]);
+  }, [isDark]);
 
   // Keyboard shortcut listener for Ctrl + K / Cmd + K
   useEffect(() => {
@@ -73,19 +81,18 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleToggleTheme = () => {
-    setThemeMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
+  const handleToggleTheme = () => setIsDark((prev) => !prev);
 
-  const handleOpenAddModal = (initialTx?: Transaction) => {
-    setEditingTx(initialTx || null);
+  const handleOpenAddModal = (tx?: Transaction) => {
+    setEditingTx(tx || null);
     setAddModalOpen(true);
   };
 
   const handleDeleteTx = (id: string) => {
-    const deleted = deleteTransaction(id);
+    const deleted = state.transactions.find((t) => t.id === id);
+    deleteTransaction(id);
     if (deleted) {
-      message.success({
+      message.open({
         content: (
           <span>
             Đã xóa giao dịch.{' '}
@@ -116,126 +123,145 @@ export default function App() {
           colorSuccess: '#22C55E',
           colorWarning: '#F59E0B',
           colorError: '#EF4444',
-          borderRadius: 16,
+          borderRadius: 4,
           fontFamily: "'Inter', 'Manrope', -apple-system, sans-serif",
         },
       }}
     >
-      <Layout style={{ minHeight: '100vh', background: 'transparent' }}>
-        <div style={{ display: 'flex', width: '100%', minHeight: '100vh' }}>
-          {/* Desktop Sidebar */}
-          <Sidebar
-            activeTab={activeTab}
-            onSelectTab={setActiveTab}
-            collapsed={sidebarCollapsed}
-            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-          />
-
-          {/* Mobile Sidebar Drawer */}
-          <MobileSidebarDrawer
-            open={mobileDrawerOpen}
-            onClose={() => setMobileDrawerOpen(false)}
-            activeTab={activeTab}
-            onSelectTab={setActiveTab}
-          />
-
-          {/* Main Content Area */}
-          <Layout style={{ flex: 1, minWidth: 0, paddingBottom: 100, overflowX: 'hidden' }}>
-            <Header
-              settings={state.settings}
-              onToggleTheme={handleToggleTheme}
-              onOpenCommandPalette={() => setCmdOpen(true)}
-              notifications={state.notifications}
-              onMarkRead={() => message.success('Đã đọc tất cả thông báo')}
-              onOpenMobileMenu={() => setMobileDrawerOpen(true)}
-              onOpenBankSync={() => setBankEmailModalOpen(true)}
+      {activeTab === 'auth' ? (
+        <AuthPage
+          onSuccess={(user) => {
+            setCurrentUser(user);
+            setActiveTab('dashboard');
+          }}
+        />
+      ) : (
+        <Layout style={{ minHeight: '100vh', background: 'transparent' }}>
+          <div style={{ display: 'flex', width: '100%', minHeight: '100vh' }}>
+            {/* Desktop Sidebar */}
+            <Sidebar
+              activeTab={activeTab}
+              onSelectTab={setActiveTab}
+              collapsed={sidebarCollapsed}
+              onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
             />
 
-            <main style={{ padding: '12px 12px 0', minHeight: '80vh', width: '100%', maxWidth: '100vw', overflowX: 'hidden' }}>
-              {activeTab === 'dashboard' && (
-                <Dashboard
-                  state={state}
-                  onOpenAddModal={() => handleOpenAddModal()}
-                  onSelectTab={setActiveTab}
-                />
-              )}
-              {activeTab === 'transactions' && (
-                <Transactions
-                  state={state}
-                  onOpenAddModal={handleOpenAddModal}
-                  onDeleteTx={handleDeleteTx}
-                  onBulkDelete={bulkDeleteTransactions}
-                  onOpenBankSync={() => setBankEmailModalOpen(true)}
-                />
-              )}
-              {activeTab === 'wallets' && (
-                <Wallets 
-                  state={state} 
-                  onOpenBankSync={() => setBankEmailModalOpen(true)}
-                />
-              )}
-              {activeTab === 'categories' && <CategoriesPage state={state} />}
-              {activeTab === 'budgets' && <Budgets state={state} />}
-              {activeTab === 'goals' && <Goals state={state} />}
-              {activeTab === 'debts' && <Debts state={state} />}
-              {activeTab === 'analytics' && <Analytics state={state} />}
-              {activeTab === 'calendar' && <CalendarView state={state} />}
-              {activeTab === 'ai_insights' && <AIInsights state={state} />}
-              {activeTab === 'profile' && <ProfileSettings settings={state.settings} />}
-            </main>
-          </Layout>
-        </div>
+            {/* Mobile Sidebar Drawer */}
+            <MobileSidebarDrawer
+              open={mobileDrawerOpen}
+              onClose={() => setMobileDrawerOpen(false)}
+              activeTab={activeTab}
+              onSelectTab={setActiveTab}
+            />
 
-        {/* Mobile Navigation */}
-        <BottomNav
-          activeTab={activeTab}
-          onSelectTab={setActiveTab}
-          onOpenAddModal={() => handleOpenAddModal()}
-        />
+            {/* Main Content Area */}
+            <Layout style={{ flex: 1, minWidth: 0, paddingBottom: 100, overflowX: 'hidden' }}>
+              <Header
+                settings={state.settings}
+                currentUser={currentUser}
+                sidebarCollapsed={sidebarCollapsed}
+                onToggleTheme={handleToggleTheme}
+                onOpenCommandPalette={() => setCmdOpen(true)}
+                notifications={state.notifications}
+                onMarkRead={() => message.success('Đã đọc tất cả thông báo')}
+                onOpenMobileMenu={() => setMobileDrawerOpen(true)}
+                onOpenBankSync={() => setBankEmailModalOpen(true)}
+                onOpenAuthModal={() => setActiveTab('auth')}
+                onLogout={async () => {
+                  await signOutUser();
+                  setCurrentUser(null);
+                  setActiveTab('auth');
+                  message.info('Đã đăng xuất tài khoản!');
+                }}
+                onSelectTab={setActiveTab}
+              />
 
-        {/* Quick Floating Action Button */}
-        <QuickActionFab
-          onOpenAddTransaction={() => handleOpenAddModal()}
-          onOpenAddWallet={() => setActiveTab('wallets')}
-          onOpenAddBudget={() => setActiveTab('budgets')}
-          onOpenAddGoal={() => setActiveTab('goals')}
-        />
+              <main style={{ paddingTop: 84, paddingLeft: 24, paddingRight: 24, paddingBottom: 20, minHeight: '80vh', width: '100%', maxWidth: '100vw' }}>
+                {activeTab === 'dashboard' && (
+                  <Dashboard
+                    state={state}
+                    onOpenAddModal={() => handleOpenAddModal()}
+                    onSelectTab={setActiveTab}
+                  />
+                )}
+                {activeTab === 'transactions' && (
+                  <Transactions
+                    state={state}
+                    onOpenAddModal={handleOpenAddModal}
+                    onDeleteTx={handleDeleteTx}
+                    onBulkDelete={bulkDeleteTransactions}
+                    onOpenBankSync={() => setBankEmailModalOpen(true)}
+                  />
+                )}
+                {activeTab === 'wallets' && (
+                  <Wallets 
+                    state={state} 
+                    onOpenBankSync={() => setBankEmailModalOpen(true)}
+                  />
+                )}
+                {activeTab === 'categories' && <CategoriesPage state={state} />}
+                {activeTab === 'budgets' && <Budgets state={state} />}
+                {activeTab === 'goals' && <Goals state={state} />}
+                {activeTab === 'debts' && <Debts state={state} />}
+                {activeTab === 'analytics' && <Analytics state={state} />}
+                {activeTab === 'calendar' && <CalendarView state={state} />}
+                {activeTab === 'ai_insights' && <AIInsights state={state} />}
+                {activeTab === 'profile' && <ProfileSettings settings={state.settings} />}
+              </main>
+            </Layout>
+          </div>
 
-        {/* Command Palette Modal */}
-        <CommandPalette
-          open={cmdOpen}
-          onClose={() => setCmdOpen(false)}
-          onSelectTab={setActiveTab}
-          onOpenAddModal={() => handleOpenAddModal()}
-        />
+          {/* Mobile Navigation */}
+          <BottomNav
+            activeTab={activeTab}
+            onSelectTab={setActiveTab}
+            onOpenAddModal={() => handleOpenAddModal()}
+          />
 
-        {/* Add / Edit Transaction Modal */}
-        <AddTransactionModal
-          open={addModalOpen}
-          onClose={() => setAddModalOpen(false)}
-          onSave={(txData) => {
-            if (editingTx) {
-              // Edit
-              addTransaction(txData);
-            } else {
-              // New
-              addTransaction(txData);
-            }
-          }}
-          wallets={state.wallets}
-          categories={state.categories}
-          initialData={editingTx}
-        />
+          {/* Quick Floating Action Button */}
+          <QuickActionFab
+            onOpenAddTransaction={() => handleOpenAddModal()}
+            onOpenAddWallet={() => setActiveTab('wallets')}
+            onOpenAddBudget={() => setActiveTab('budgets')}
+            onOpenAddGoal={() => setActiveTab('goals')}
+          />
 
-        {/* Bank Email Sync Modal */}
-        <BankEmailSyncModal
-          open={bankEmailModalOpen}
-          onClose={() => setBankEmailModalOpen(false)}
-          onSaveTransaction={(txData) => addTransaction(txData)}
-          wallets={state.wallets}
-          categories={state.categories}
-        />
-      </Layout>
+          {/* Command Palette Modal */}
+          <CommandPalette
+            open={cmdOpen}
+            onClose={() => setCmdOpen(false)}
+            onSelectTab={setActiveTab}
+            onOpenAddModal={() => handleOpenAddModal()}
+          />
+
+          {/* Add / Edit Transaction Modal */}
+          <AddTransactionModal
+            open={addModalOpen}
+            onClose={() => setAddModalOpen(false)}
+            onSave={(txData) => {
+              if (editingTx) {
+                // Edit
+                addTransaction(txData);
+              } else {
+                // New
+                addTransaction(txData);
+              }
+            }}
+            wallets={state.wallets}
+            categories={state.categories}
+            initialData={editingTx}
+          />
+
+          {/* Bank Email Sync Modal */}
+          <BankEmailSyncModal
+            open={bankEmailModalOpen}
+            onClose={() => setBankEmailModalOpen(false)}
+            onSaveTransaction={(txData) => addTransaction(txData)}
+            wallets={state.wallets}
+            categories={state.categories}
+          />
+        </Layout>
+      )}
     </ConfigProvider>
   );
 }

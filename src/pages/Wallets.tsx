@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Button, Modal, Form, Input, InputNumber, Select, message, Space } from 'antd';
-import { Plus, ArrowRightLeft, Building2, Smartphone, Banknote, Bitcoin, Mail } from 'lucide-react';
+import { Button, Modal, Form, Input, InputNumber, Select, message, Space, Popconfirm } from 'antd';
+import { Plus, ArrowRightLeft, Building2, Smartphone, Banknote, Bitcoin, Mail, Trash2 } from 'lucide-react';
 import type { AppState, Wallet } from '../types';
 import { formatMoney } from '../utils/format';
-import { addWallet, addTransaction } from '../store/appStore';
+import { addWallet, deleteWallet, addTransaction } from '../store/appStore';
 
 interface WalletsProps {
   state: AppState;
@@ -89,7 +89,7 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
           <Button icon={<ArrowRightLeft size={16} />} size="middle" onClick={() => setIsTransferOpen(true)}>
             Chuyển tiền ví
           </Button>
-          <Button type="primary" icon={<Plus size={16} />} size="middle" style={{ borderRadius: 12 }} onClick={() => setIsAddOpen(true)}>
+          <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsAddOpen(true)}>
             Thêm ví mới
           </Button>
         </Space>
@@ -112,6 +112,7 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
               minHeight: 180,
               cursor: 'pointer',
               transition: 'transform 0.2s ease',
+              position: 'relative',
             }}
             className="wallet-card"
           >
@@ -122,8 +123,37 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
                 </span>
                 <div style={{ fontSize: 18, fontWeight: 700, marginTop: 2 }}>{w.name}</div>
               </div>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {getWalletIcon(w.type)}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Popconfirm
+                  title="Xóa ví tiền này?"
+                  description="Bạn có chắc muốn xóa ví khỏi hệ thống?"
+                  onConfirm={() => {
+                    deleteWallet(w.id);
+                    message.success(`Đã xóa ví ${w.name}!`);
+                  }}
+                  okText="Xóa"
+                  cancelText="Hủy"
+                  okButtonProps={{ danger: true }}
+                >
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<Trash2 size={16} color="#ffffff" />}
+                    style={{
+                      background: 'rgba(255,255,255,0.2)',
+                      borderRadius: 10,
+                      width: 32,
+                      height: 32,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </Popconfirm>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {getWalletIcon(w.type)}
+                </div>
               </div>
             </div>
 
@@ -147,13 +177,16 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
           </Form.Item>
 
           <Form.Item name="type" label="Loại nguồn tiền" rules={[{ required: true }]}>
-            <Select placeholder="Chọn loại ví">
-              <Select.Option value="bank">Tài khoản Ngân hàng (MB, VCB, TCB...)</Select.Option>
-              <Select.Option value="cash">Tiền mặt</Select.Option>
-              <Select.Option value="e_wallet">Ví điện tử (MoMo, ZaloPay...)</Select.Option>
-              <Select.Option value="crypto">Crypto / Crypto Wallet</Select.Option>
-              <Select.Option value="usd">Ví Ngoại tệ USD</Select.Option>
-            </Select>
+            <Select
+              placeholder="Chọn loại ví"
+              options={[
+                { value: 'bank', label: 'Tài khoản Ngân hàng (MB, VCB, TCB...)' },
+                { value: 'cash', label: 'Tiền mặt' },
+                { value: 'e_wallet', label: 'Ví điện tử (MoMo, ZaloPay...)' },
+                { value: 'crypto', label: 'Crypto / Crypto Wallet' },
+                { value: 'usd', label: 'Ví Ngoại tệ USD' },
+              ]}
+            />
           </Form.Item>
 
           <Form.Item name="bankName" label="Tên ngân hàng / Nhà cung cấp">
@@ -183,23 +216,23 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
       <Modal open={isTransferOpen} onCancel={() => setIsTransferOpen(false)} title="🔄 Chuyển tiền giữa các Ví" footer={null}>
         <Form form={transferForm} layout="vertical" onFinish={handleTransfer} style={{ marginTop: 16 }}>
           <Form.Item name="fromWalletId" label="Ví nguồn (Trừ tiền)" rules={[{ required: true }]}>
-            <Select placeholder="Chọn ví gửi">
-              {wallets.map((w) => (
-                <Select.Option key={w.id} value={w.id}>
-                  {w.name} ({formatMoney(w.balance)})
-                </Select.Option>
-              ))}
-            </Select>
+            <Select
+              placeholder="Chọn ví gửi"
+              options={wallets.map((w) => ({
+                value: w.id,
+                label: `${w.name} (${formatMoney(w.balance)})`,
+              }))}
+            />
           </Form.Item>
 
           <Form.Item name="toWalletId" label="Ví nhận (Cộng tiền)" rules={[{ required: true }]}>
-            <Select placeholder="Chọn ví nhận">
-              {wallets.map((w) => (
-                <Select.Option key={w.id} value={w.id}>
-                  {w.name} ({formatMoney(w.balance)})
-                </Select.Option>
-              ))}
-            </Select>
+            <Select
+              placeholder="Chọn ví nhận"
+              options={wallets.map((w) => ({
+                value: w.id,
+                label: `${w.name} (${formatMoney(w.balance)})`,
+              }))}
+            />
           </Form.Item>
 
           <Form.Item name="amount" label="Số tiền chuyển (VNĐ)" rules={[{ required: true }]}>

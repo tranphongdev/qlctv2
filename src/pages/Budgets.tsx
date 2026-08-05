@@ -110,13 +110,12 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
       <Modal open={isAddOpen} onCancel={() => setIsAddOpen(false)} title="Tạo Ngân sách Chi tiêu Mới" footer={null}>
         <Form form={form} layout="vertical" onFinish={handleCreateBudget} style={{ marginTop: 16 }}>
           <Form.Item name="category" label="Danh mục chi tiêu" rules={[{ required: true, message: 'Chọn danh mục' }]}>
-            <Select placeholder="Chọn danh mục">
-              {categories.filter((c) => c.type === 'chi').map((c) => (
-                <Select.Option key={c.id} value={c.id}>
-                  {c.name}
-                </Select.Option>
-              ))}
-            </Select>
+            <Select
+              placeholder="Chọn danh mục"
+              options={categories
+                .filter((c) => c.type === 'chi')
+                .map((c) => ({ value: c.id, label: c.name }))}
+            />
           </Form.Item>
 
           <Form.Item name="amount" label="Hạn mức chi tiêu (VNĐ)" rules={[{ required: true }]}>

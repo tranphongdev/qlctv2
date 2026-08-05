@@ -85,18 +85,22 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings }) =>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12 }}>
               <Form.Item name="currency" label="Đơn vị tiền tệ chính">
-                <Select>
-                  <Select.Option value="VND">VNĐ (Việt Nam Đồng)</Select.Option>
-                  <Select.Option value="USD">USD (Đô la Mỹ)</Select.Option>
-                  <Select.Option value="EUR">EUR (Euro)</Select.Option>
-                </Select>
+                <Select
+                  options={[
+                    { value: 'VND', label: 'VNĐ (Việt Nam Đồng)' },
+                    { value: 'USD', label: 'USD (Đô la Mỹ)' },
+                    { value: 'EUR', label: 'EUR (Euro)' },
+                  ]}
+                />
               </Form.Item>
 
               <Form.Item name="language" label="Ngôn ngữ hiển thị">
-                <Select>
-                  <Select.Option value="vi">Tiếng Việt (Vietnamese)</Select.Option>
-                  <Select.Option value="en">English</Select.Option>
-                </Select>
+                <Select
+                  options={[
+                    { value: 'vi', label: 'Tiếng Việt (Vietnamese)' },
+                    { value: 'en', label: 'English' },
+                  ]}
+                />
               </Form.Item>
             </div>
 

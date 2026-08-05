@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Select, DatePicker, TimePicker, Segmented, Upload, Button, message, Space, Tag } from 'antd';
-import { UploadOutlined, TagOutlined, UserOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import { Modal, Form, Input, InputNumber, Select, DatePicker, TimePicker, Segmented, Upload, Button, message, Space, Tag, Alert } from 'antd';
+import { UploadOutlined, TagOutlined, UserOutlined, EnvironmentOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import type { Category, Transaction, Wallet } from '../types';
+import { addWallet } from '../store/appStore';
 
 interface AddTransactionModalProps {
   open: boolean;
@@ -62,7 +63,24 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     }
   }, [open, initialData, form, wallets]);
 
+  const handleCreateDefaultWallet = () => {
+    addWallet({
+      name: 'Tiền mặt',
+      type: 'cash',
+      balance: 0,
+      color: '#10B981',
+      icon: 'Banknote',
+      isDefault: true,
+    });
+    message.success('Đã tự động tạo Ví Tiền Mặt mặc định!');
+  };
+
   const handleFinish = (values: any) => {
+    if (wallets.length === 0) {
+      message.error('Vui lòng tạo ít nhất 1 ví tiền trước khi lưu giao dịch!');
+      return;
+    }
+
     const data: Omit<Transaction, 'id'> = {
       type: txType,
       amount: values.amount,
@@ -117,8 +135,30 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       title={<span style={{ fontSize: 18, fontWeight: 700 }}>{initialData ? 'Sửa Giao Dịch' : 'Thêm Giao Dịch Mới'}</span>}
       footer={null}
       width={Math.min(560, typeof window !== 'undefined' ? window.innerWidth : 560)}
-      destroyOnClose
+      style={{ top: 20 }}
+      styles={{
+        body: {
+          maxHeight: 'calc(80vh - 40px)',
+          overflowY: 'auto',
+          paddingRight: 8,
+        },
+      }}
+      destroyOnHidden
     >
+      {wallets.length === 0 && (
+        <Alert
+          type="warning"
+          showIcon
+          title="Bạn chưa có ví tiền nào"
+          description="Để ghi nhận giao dịch, hãy tạo ít nhất một ví tiền mặt hoặc tài khoản ngân hàng."
+          action={
+            <Button size="small" type="primary" icon={<PlusOutlined />} onClick={handleCreateDefaultWallet}>
+              Tạo Ví Tiền Mặt Mặc Định
+            </Button>
+          }
+          style={{ marginBottom: 16, borderRadius: 12 }}
+        />
+      )}
       <Form form={form} layout="vertical" onFinish={handleFinish} style={{ marginTop: 16 }}>
         {/* Type Selector */}
         <Form.Item label="Loại giao dịch">
@@ -159,14 +199,18 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               label="Danh mục"
               rules={[{ required: true, message: 'Chọn danh mục' }]}
             >
-              <Select placeholder="Chọn danh mục">
-                {filteredCategories.map((cat) => (
-                  <Select.Option key={cat.id} value={cat.id}>
-                    <span style={{ color: cat.color, marginRight: 6 }}>●</span>
-                    {cat.name}
-                  </Select.Option>
-                ))}
-              </Select>
+              <Select
+                placeholder="Chọn danh mục"
+                options={filteredCategories.map((cat) => ({
+                  value: cat.id,
+                  label: (
+                    <span>
+                      <span style={{ color: cat.color, marginRight: 6 }}>●</span>
+                      {cat.name}
+                    </span>
+                  ),
+                }))}
+              />
             </Form.Item>
           ) : (
             <Form.Item
@@ -174,13 +218,13 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               label="Ví nhận tiền"
               rules={[{ required: true, message: 'Chọn ví nhận' }]}
             >
-              <Select placeholder="Chọn ví nhận">
-                {wallets.map((w) => (
-                  <Select.Option key={w.id} value={w.id}>
-                    {w.name} ({w.bankName || w.type})
-                  </Select.Option>
-                ))}
-              </Select>
+              <Select
+                placeholder="Chọn ví nhận"
+                options={wallets.map((w) => ({
+                  value: w.id,
+                  label: `${w.name} (${w.bankName || w.type})`,
+                }))}
+              />
             </Form.Item>
           )}
 
@@ -189,13 +233,13 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             label={txType === 'chuyen' ? 'Ví nguồn' : 'Ví / Nguồn tiền'}
             rules={[{ required: true, message: 'Chọn ví tiền' }]}
           >
-            <Select placeholder="Chọn ví">
-              {wallets.map((w) => (
-                <Select.Option key={w.id} value={w.id}>
-                  {w.name}
-                </Select.Option>
-              ))}
-            </Select>
+            <Select
+              placeholder="Chọn ví"
+              options={wallets.map((w) => ({
+                value: w.id,
+                label: w.name,
+              }))}
+            />
           </Form.Item>
         </div>
 

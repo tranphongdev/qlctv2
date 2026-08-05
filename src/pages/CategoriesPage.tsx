@@ -4,6 +4,8 @@ import { Plus } from 'lucide-react';
 import type { AppState } from '../types';
 import { DynamicIcon } from '../components/DynamicIcon';
 
+import { addCategory } from '../store/appStore';
+
 interface CategoriesPageProps {
   state: AppState;
 }
@@ -13,8 +15,15 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [form] = Form.useForm();
 
-  const handleCreateCategory = () => {
-    message.success('Đã thêm danh mục chi tiêu mới!');
+  const handleCreateCategory = (values: any) => {
+    addCategory({
+      name: values.name,
+      type: values.type,
+      color: values.color || '#4F46E5',
+      icon: values.type === 'chi' ? 'ShoppingBag' : 'Coins',
+      order: categories.length + 1,
+    });
+    message.success('Đã thêm danh mục mới!');
     setIsAddOpen(false);
     form.resetFields();
   };
@@ -126,10 +135,13 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
           </Form.Item>
 
           <Form.Item name="type" label="Loại" rules={[{ required: true }]}>
-            <Select placeholder="Chọn loại danh mục">
-              <Select.Option value="chi">🔴 Chi tiêu</Select.Option>
-              <Select.Option value="thu">🟢 Thu nhập</Select.Option>
-            </Select>
+            <Select
+              placeholder="Chọn loại danh mục"
+              options={[
+                { value: 'chi', label: '🔴 Chi tiêu' },
+                { value: 'thu', label: '🟢 Thu nhập' },
+              ]}
+            />
           </Form.Item>
 
           <Form.Item name="color" label="Màu sắc đại diện">

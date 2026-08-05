@@ -191,10 +191,13 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
           </Form.Item>
 
           <Form.Item name="direction" label="Loại nợ" rules={[{ required: true }]}>
-            <Select placeholder="Chọn loại nợ">
-              <Select.Option value="toi_no">🟢 Cho vay (Người khác nợ tôi)</Select.Option>
-              <Select.Option value="no_toi">🔴 Đi vay (Tôi nợ người khác)</Select.Option>
-            </Select>
+            <Select
+              placeholder="Chọn loại nợ"
+              options={[
+                { value: 'toi_no', label: '🟢 Cho vay (Người khác nợ tôi)' },
+                { value: 'no_toi', label: '🔴 Đi vay (Tôi nợ người khác)' },
+              ]}
+            />
           </Form.Item>
 
           <Form.Item name="amount" label="Số tiền nợ (VNĐ)" rules={[{ required: true }]}>

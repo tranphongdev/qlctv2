@@ -27,15 +27,16 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab, on
       className="mobile-only mobile-bottom-nav"
       style={{
         position: 'fixed',
-        bottom: 8,
-        left: 8,
-        right: 8,
+        bottom: 12,
+        left: 12,
+        right: 12,
+        minHeight: 56,
         zIndex: 999,
         background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderRadius: 24,
-        padding: '4px 6px',
+        borderRadius: 28,
+        padding: '8px 12px',
         border: '1px solid rgba(226, 232, 240, 0.8)',
         boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
         display: 'flex',
@@ -51,27 +52,26 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab, on
               onClick={onOpenAddModal}
               style={{
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginTop: -16,
                 cursor: 'pointer',
+                flexShrink: 0,
               }}
             >
               <div
                 style={{
-                  width: 46,
-                  height: 46,
-                  borderRadius: 99,
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
                   background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#ffffff',
-                  boxShadow: '0 6px 16px rgba(79, 70, 229, 0.4)',
+                  boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)',
                 }}
               >
-                <Plus size={24} />
+                <Plus size={20} />
               </div>
             </div>
           );
@@ -86,8 +86,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab, on
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 2,
-              padding: '6px 8px',
+              justifyContent: 'center',
+              padding: '2px 8px',
               borderRadius: 12,
               cursor: 'pointer',
               color: isActive ? '#4F46E5' : '#64748b',
@@ -96,8 +96,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab, on
               minWidth: 56,
             }}
           >
-            <span>{item.icon}</span>
-            <span style={{ fontSize: 10, whiteSpace: 'nowrap' }}>{item.label}</span>
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</span>
+            <span style={{ fontSize: 10, lineHeight: 1, whiteSpace: 'nowrap', marginTop: 3 }}>{item.label}</span>
           </div>
         );
       })}
