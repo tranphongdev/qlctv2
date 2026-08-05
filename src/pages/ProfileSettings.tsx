@@ -1,8 +1,9 @@
 import React from 'react';
-import { Form, Input, Button, Switch, Select, Avatar, Upload, message, Divider } from 'antd';
-import { User, Shield, Database, Download, Upload as UploadIcon } from 'lucide-react';
+import { Form, Input, Button, Switch, Select, Avatar, Upload, message, Divider, Tag, Alert } from 'antd';
+import { User, Shield, Database, Download, Upload as UploadIcon, Server, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { UserSettings } from '../types';
 import { exportBackupJSON, importBackupJSON, updateSettings } from '../store/appStore';
+import { isSupabaseConfigured } from '../lib/supabase';
 
 interface ProfileSettingsProps {
   settings: UserSettings;
@@ -53,7 +54,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings }) =>
       {/* Header */}
       <div className="glass-card" style={{ padding: '20px 24px' }}>
         <div style={{ fontSize: 20, fontWeight: 800 }}>Hồ Sơ Cá Nhân & Cài Đặt Hệ Thống</div>
-        <div style={{ fontSize: 13, color: '#64748b' }}>Quản lý thông tin tài khoản, bảo mật, tùy chỉnh giao diện và sao lưu dữ liệu</div>
+        <div style={{ fontSize: 13, color: '#64748b' }}>Quản lý thông tin tài khoản, bảo mật, kết nối Supabase Database & sao lưu dữ liệu</div>
       </div>
 
       {/* Main Settings Form */}
@@ -122,12 +123,48 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings }) =>
           </Form>
         </div>
 
-        {/* Right: Backup & Restore */}
+        {/* Right: Supabase Database & Backup */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Supabase Connection Card */}
+          <div className="glass-card" style={{ padding: 24 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Server size={20} color="#10B981" />
+                <span>Cấu hình Supabase Database</span>
+              </div>
+              {isSupabaseConfigured ? (
+                <Tag color="green" icon={<CheckCircle2 size={12} />}>Đã kết nối</Tag>
+              ) : (
+                <Tag color="orange" icon={<AlertCircle size={12} />}>LocalStorage</Tag>
+              )}
+            </div>
+
+            {isSupabaseConfigured ? (
+              <Alert
+                message="Đã kết nối Supabase Cloud thành công"
+                description="Tất cả giao dịch, ví tiền, hạn mức ngân sách và mục tiêu tiết kiệm được đồng bộ thời gian thực vào bảng dữ liệu Cloud của bạn."
+                type="success"
+                showIcon
+              />
+            ) : (
+              <Alert
+                message="Đang sử dụng bộ nhớ LocalStorage"
+                description={
+                  <div>
+                    Để đồng bộ Supabase Cloud, mở file <code>.env</code> và dán <code>VITE_SUPABASE_URL</code> & <code>VITE_SUPABASE_ANON_KEY</code> của dự án Supabase. Chạy file SQL <code>supabase_schema.sql</code> để tạo bảng tự động.
+                  </div>
+                }
+                type="warning"
+                showIcon
+              />
+            )}
+          </div>
+
+          {/* Backup JSON Card */}
           <div className="glass-card" style={{ padding: 24 }}>
             <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
               <Database size={20} color="#7C3AED" />
-              <span>Sao lưu & Khôi phục</span>
+              <span>Sao lưu & Khôi phục JSON</span>
             </div>
             <div style={{ fontSize: 13, color: '#64748b', marginBottom: 20, lineHeight: '1.5' }}>
               Tải xuống file sao lưu JSON an toàn của toàn bộ giao dịch, ví tiền, ngân sách & tiết kiệm.

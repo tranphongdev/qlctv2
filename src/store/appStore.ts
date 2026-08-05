@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react';
 import type { AppState, Category, Transaction, Wallet, Budget, Goal, Debt, NotificationItem } from '../types';
 import { DEFAULT_USER_SETTINGS } from '../types';
 import { todayStr } from '../utils/format';
+import {
+  fetchRemoteState,
+  syncTransactionToSupabase,
+  deleteTransactionFromSupabase,
+  syncWalletToSupabase,
+  syncGoalToSupabase,
+  syncDebtToSupabase,
+} from '../lib/supabaseSync';
 
 const STORAGE_KEY = 'quan_ly_chi_tieu_pro_v1';
 
@@ -237,6 +245,17 @@ function notifyListeners() {
   }
 }
 
+// Initial Sync from Supabase if configured
+fetchRemoteState().then((remoteData) => {
+  if (remoteData) {
+    globalState = {
+      ...globalState,
+      ...remoteData,
+    };
+    notifyListeners();
+  }
+});
+
 export function useAppState(): AppState {
   const [state, setState] = useState<AppState>(globalState);
 
@@ -278,6 +297,11 @@ export function addTransaction(tx: Omit<Transaction, 'id'>) {
     wallets: updatedWallets,
   };
   notifyListeners();
+
+  // Sync to Supabase
+  syncTransactionToSupabase(newTx);
+  updatedWallets.forEach((w) => syncWalletToSupabase(w));
+
   return newTx;
 }
 
@@ -287,6 +311,7 @@ export function updateTransaction(tx: Transaction) {
     transactions: globalState.transactions.map((t) => (t.id === tx.id ? tx : t)),
   };
   notifyListeners();
+  syncTransactionToSupabase(tx);
 }
 
 export function deleteTransaction(id: string) {
@@ -309,6 +334,8 @@ export function deleteTransaction(id: string) {
     wallets: updatedWallets,
   };
   notifyListeners();
+
+  deleteTransactionFromSupabase(id);
   return target;
 }
 
@@ -318,6 +345,7 @@ export function bulkDeleteTransactions(ids: string[]) {
     transactions: globalState.transactions.filter((t) => !ids.includes(t.id)),
   };
   notifyListeners();
+  ids.forEach((id) => deleteTransactionFromSupabase(id));
 }
 
 export function restoreTransaction(tx: Transaction) {
@@ -326,26 +354,33 @@ export function restoreTransaction(tx: Transaction) {
     transactions: [tx, ...globalState.transactions],
   };
   notifyListeners();
+  syncTransactionToSupabase(tx);
 }
 
 export function addWallet(wallet: Omit<Wallet, 'id'>) {
   const newW: Wallet = { ...wallet, id: 'w_' + Date.now() };
   globalState = { ...globalState, wallets: [...globalState.wallets, newW] };
   notifyListeners();
+  syncWalletToSupabase(newW);
 }
 
 export function addGoal(goal: Omit<Goal, 'id' | 'saved'>) {
   const newG: Goal = { ...goal, id: 'g_' + Date.now(), saved: 0 };
   globalState = { ...globalState, goals: [...globalState.goals, newG] };
   notifyListeners();
+  syncGoalToSupabase(newG);
 }
 
 export function depositToGoal(goalId: string, amount: number) {
+  const updatedGoals = globalState.goals.map((g) => (g.id === goalId ? { ...g, saved: g.saved + amount } : g));
   globalState = {
     ...globalState,
-    goals: globalState.goals.map((g) => (g.id === goalId ? { ...g, saved: g.saved + amount } : g)),
+    goals: updatedGoals,
   };
   notifyListeners();
+
+  const targetG = updatedGoals.find((g) => g.id === goalId);
+  if (targetG) syncGoalToSupabase(targetG);
 }
 
 export function addBudget(budget: Omit<Budget, 'id'>) {
@@ -364,24 +399,30 @@ export function addDebt(debt: Omit<Debt, 'id' | 'paid' | 'created' | 'status'>) 
   };
   globalState = { ...globalState, debts: [...globalState.debts, newD] };
   notifyListeners();
+  syncDebtToSupabase(newD);
 }
 
 export function payDebt(debtId: string, amount: number) {
+  const updatedDebts: Debt[] = globalState.debts.map((d) => {
+    if (d.id === debtId) {
+      const newPaid = d.paid + amount;
+      return {
+        ...d,
+        paid: newPaid,
+        status: (newPaid >= d.amount ? 'settled' : 'active') as 'active' | 'settled',
+      };
+    }
+    return d;
+  });
+
   globalState = {
     ...globalState,
-    debts: globalState.debts.map((d) => {
-      if (d.id === debtId) {
-        const newPaid = d.paid + amount;
-        return {
-          ...d,
-          paid: newPaid,
-          status: newPaid >= d.amount ? 'settled' : 'active',
-        };
-      }
-      return d;
-    }),
+    debts: updatedDebts,
   };
   notifyListeners();
+
+  const targetD = updatedDebts.find((d) => d.id === debtId);
+  if (targetD) syncDebtToSupabase(targetD);
 }
 
 export function updateSettings(newSettings: Partial<AppState['settings']>) {
