@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Form, Input, Button, Tabs, message } from 'antd';
+import { Modal, Form, Input, Button, Tabs } from 'antd';
+import { message } from '../lib/antdApp';
 import { LogIn, UserPlus, Lock, Mail, User, ShieldCheck } from 'lucide-react';
 import { signInWithEmail, signUpWithEmail } from '../lib/auth';
 import type { AuthUser } from '../lib/auth';

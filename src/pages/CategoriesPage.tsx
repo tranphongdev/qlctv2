@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Button, Modal, Form, Input, Select, message } from 'antd';
+import { Button, Modal, Form, Input, Select } from 'antd';
+import { message } from '../lib/antdApp';
 import { Plus } from 'lucide-react';
 import type { AppState } from '../types';
 import { DynamicIcon } from '../components/DynamicIcon';

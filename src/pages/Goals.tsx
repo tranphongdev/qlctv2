@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Progress, Button, Tag, Modal, Form, Input, InputNumber, DatePicker, message, Popconfirm } from 'antd';
+import { Progress, Button, Tag, Modal, Form, Input, InputNumber, DatePicker, Popconfirm } from 'antd';
+import { message } from '../lib/antdApp';
 import { Plus, Sparkles, CheckCircle2, Trash2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { AppState, Goal } from '../types';

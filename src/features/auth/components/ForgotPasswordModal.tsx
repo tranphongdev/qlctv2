@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Form, Input, Button, Alert, message } from 'antd';
+import { Modal, Form, Input, Button, Alert } from 'antd';
+import { message } from '../../../lib/antdApp';
 import { Mail, KeyRound, CheckCircle2 } from 'lucide-react';
 import { forgotPasswordSchema } from '../schemas';
 

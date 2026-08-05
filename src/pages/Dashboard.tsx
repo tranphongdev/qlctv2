@@ -358,9 +358,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
               <Button icon={<Plus size={14} />} type="primary" onClick={onOpenAddModal}>
                 Thêm mới
               </Button>
-              <Button type="text" icon={<ChevronRight size={16} />} onClick={() => onSelectTab('transactions')}>
-                Tất cả
-              </Button>
             </Space>
           </div>
 

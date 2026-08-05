@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Table, Button, Tag, Modal, Form, Input, InputNumber, Select, DatePicker, message } from 'antd';
+import { Table, Button, Tag, Modal, Form, Input, InputNumber, Select, DatePicker } from 'antd';
+import { message } from '../lib/antdApp';
 import { Plus, CheckCircle, Clock } from 'lucide-react';
 import type { AppState, Debt } from '../types';
 import { formatMoney } from '../utils/format';

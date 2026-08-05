@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { Modal, Slider, Button, message } from 'antd';
+import { Modal, Slider, Button } from 'antd';
+import { message } from '../lib/antdApp';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import { ZoomIn } from 'lucide-react';

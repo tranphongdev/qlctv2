@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Checkbox, Select, message } from 'antd';
+import { Form, Input, Button, Checkbox, Select } from 'antd';
+import { message } from '../../../lib/antdApp';
 import { Mail, Lock, User, Coins } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { registerSchema } from '../schemas';

@@ -137,7 +137,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ state }) => {
       {/* Financial Health Score Banner */}
       <div className="gradient-card-primary" style={{ padding: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <Progress type="dashboard" percent={healthScore} size={90} strokeColor="#ffffff" trailColor="rgba(255,255,255,0.2)" format={(p) => <span style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>{p}</span>} />
+          <Progress type="dashboard" percent={healthScore} size={90} strokeColor="#ffffff" railColor="rgba(255,255,255,0.2)" format={(p) => <span style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>{p}</span>} />
           <div>
             <div style={{ fontSize: 11, opacity: 0.8, textTransform: 'uppercase', fontWeight: 600 }}>Điểm Sức Khỏe Tài Chính</div>
             <div style={{ fontSize: 20, fontWeight: 800, margin: '2px 0' }}>Xếp hạng: {healthRank}</div>

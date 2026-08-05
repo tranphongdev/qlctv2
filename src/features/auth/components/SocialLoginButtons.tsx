@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Space, message } from 'antd';
+import { Button, Space } from 'antd';
+import { message } from '../../../lib/antdApp';
 import { motion } from 'framer-motion';
 
 export const SocialLoginButtons: React.FC = () => {

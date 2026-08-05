@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Progress, Button, Tag, Modal, Form, Select, InputNumber, message } from 'antd';
+import { Progress, Button, Tag, Modal, Form, Select, InputNumber } from 'antd';
+import { message } from '../lib/antdApp';
 import { Plus, AlertTriangle, CheckCircle, ShieldAlert } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { AppState, Category } from '../types';

@@ -1,15 +1,6 @@
 import React, { useState } from 'react';
-import {
-  Table,
-  Button,
-  Input,
-  Select,
-  Space,
-  Tag,
-  Modal,
-  message,
-  Popconfirm,
-} from 'antd';
+import { Table, Button, Input, Select, Space, Tag, Modal, Popconfirm } from 'antd';
+import { message } from '../lib/antdApp';
 import {
   Plus,
   Search,

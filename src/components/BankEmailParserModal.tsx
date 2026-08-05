@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Input, Button, Tag, Space, Select, message } from 'antd';
+import { Modal, Input, Button, Tag, Space, Select } from 'antd';
+import { message } from '../lib/antdApp';
 import { Mail, Sparkles, CheckCircle, Copy } from 'lucide-react';
 import { parseBankEmailOrText, SAMPLE_BANK_EMAILS } from '../utils/bankEmailParser';
 import type { ParsedBankTransaction } from '../utils/bankEmailParser';

@@ -120,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
               </Avatar>
             </Dropdown>
           ) : (
-            <Avatar src={settings.avatarUrl} size={36} style={{ border: '2px solid #94a3b8', cursor: 'pointer', flexShrink: 0 }} onClick={onOpenAuthModal} />
+            <Avatar src={settings.avatarUrl || undefined} size={36} style={{ border: '2px solid #94a3b8', cursor: 'pointer', flexShrink: 0 }} onClick={onOpenAuthModal} />
           )}
 
           <div style={{ minWidth: 0 }}>

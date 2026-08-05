@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { ConfigProvider, Layout, theme as antdTheme, message, Button } from 'antd';
+import { ConfigProvider, Layout, theme as antdTheme, Button, App as AntdApp } from 'antd';
+import { message, AntdStaticBridge } from './lib/antdApp';
 import { antdLocale, setActiveLang } from './i18n';
 import { setActiveCurrency } from './utils/currency';
 import { useAppState, deleteTransaction, bulkDeleteTransactions, restoreTransaction, addTransaction, updateTransaction, syncAuthProfile } from './store/appStore';
@@ -143,6 +144,10 @@ export default function App() {
         },
       }}
     >
+      {/* AntdApp cấp context cho message/notification/modal; AntdStaticBridge lấy
+          instance đó ra cho các chỗ gọi message.* ngoài phạm vi hook. */}
+      <AntdApp>
+      <AntdStaticBridge />
       {location.pathname === TAB_PATHS.auth ? (
         <AuthPage
           onSuccess={(user) => {
@@ -276,6 +281,7 @@ export default function App() {
           />
         </Layout>
       )}
+      </AntdApp>
     </ConfigProvider>
   );
 }

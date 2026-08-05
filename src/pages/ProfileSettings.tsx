@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, Select, Avatar, Upload, message, Divider, Tag, Alert, Modal, Popconfirm, Space, Spin } from 'antd';
+import { Form, Input, Button, Select, Avatar, Upload, Divider, Tag, Alert, Modal, Popconfirm, Space, Spin } from 'antd';
+import { message } from '../lib/antdApp';
 import { User, Shield, Database, Download, Upload as UploadIcon, Server, CheckCircle2, AlertCircle, Camera, Trash2, KeyRound } from 'lucide-react';
 import type { UserSettings } from '../types';
 import { exportBackupJSON, importBackupJSON, updateSettings } from '../store/appStore';
@@ -176,7 +177,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
 
           {/* Ảnh đại diện */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
-            <Avatar src={settings.avatarUrl} size={64} style={{ border: '3px solid #4F46E5', flexShrink: 0 }}>
+            <Avatar src={settings.avatarUrl || undefined} size={64} style={{ border: '3px solid #4F46E5', flexShrink: 0 }}>
               {settings.userName?.charAt(0)?.toUpperCase()}
             </Avatar>
             <div style={{ minWidth: 0 }}>

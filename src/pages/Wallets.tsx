@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Button, Modal, Form, Input, InputNumber, Select, message, Space, Popconfirm } from 'antd';
+import { Button, Modal, Form, Input, InputNumber, Select, Space, Popconfirm } from 'antd';
+import { message } from '../lib/antdApp';
 import { Plus, ArrowRightLeft, Building2, Smartphone, Banknote, Bitcoin, Mail, Trash2 } from 'lucide-react';
 import type { AppState, Wallet } from '../types';
 import { formatMoney } from '../utils/format';
