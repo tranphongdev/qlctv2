@@ -191,7 +191,7 @@ export default function App() {
                 onSelectTab={setActiveTab}
               />
 
-              <main style={{ paddingTop: 84, paddingLeft: 24, paddingRight: 24, paddingBottom: 20, minHeight: '80vh', width: '100%', maxWidth: '100vw' }}>
+              <main className="app-main" style={{ paddingTop: 84, paddingLeft: 24, paddingRight: 24, paddingBottom: 20, minHeight: '80vh', width: '100%', maxWidth: '100vw' }}>
                 <Routes>
                   <Route
                     path={TAB_PATHS.dashboard}

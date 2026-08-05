@@ -17,7 +17,7 @@ import type { ChartData, ChartOptions } from 'chart.js';
 import { legendStyle, tooltipStyle } from '../utils/chartSetup';
 import type { AppState } from '../types';
 import { CounterAnimation } from '../components/CounterAnimation';
-import { formatMoney, formatCompactNumber } from '../utils/format';
+import { formatMoney, formatCompactNumber, formatDate } from '../utils/format';
 import { DynamicIcon } from '../components/DynamicIcon';
 
 /** Số tháng hiển thị trên chart xu hướng. Ít cột -> cột dày và dễ đọc hơn. */
@@ -350,8 +350,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
         {/* Recent Transactions List */}
         <div className="glass-card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <div style={{ fontSize: 16, fontWeight: 700 }}>Giao dịch gần đây</div>
+          {/* flexWrap + nowrap ở tiêu đề: màn hẹp thì cả cụm nút xuống dòng dưới,
+              thay vì bóp tiêu đề vỡ thành hai dòng cạnh nút. */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>Giao dịch gần đây</div>
             <Space>
               <Button icon={<Plus size={14} />} type="primary" onClick={onOpenAddModal}>
                 Thêm mới
@@ -379,12 +381,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                     border: '1px solid rgba(226, 232, 240, 0.6)',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  {/* minWidth: 0 để hai dòng chữ được phép co lại và cắt bằng ellipsis,
+                      nếu không chúng sẽ đẩy cột số tiền ra khỏi thẻ trên màn hẹp. */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
                     <div
                       style={{
                         width: 42,
                         height: 42,
                         borderRadius: 12,
+                        flexShrink: 0,
                         background: cat?.color ? `${cat.color}15` : '#4F46E515',
                         display: 'flex',
                         alignItems: 'center',
@@ -393,16 +398,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                     >
                       <DynamicIcon name={cat?.icon || 'CircleDollarSign'} color={cat?.color || '#4F46E5'} size={22} />
                     </div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>{tx.note || cat?.name || 'Giao dịch'}</div>
-                      <div style={{ fontSize: 12, color: '#64748b' }}>
-                        {tx.date} • {cat?.name}
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {tx.note || cat?.name || 'Giao dịch'}
+                      </div>
+                      <div style={{ fontSize: 12, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {formatDate(tx.date)} • {cat?.name}
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: isThu ? '#16A34A' : '#DC2626' }}>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap', color: isThu ? '#16A34A' : '#DC2626' }}>
                       {isThu ? '+' : '-'}{formatMoney(tx.amount)}
                     </div>
                     <div style={{ fontSize: 11, color: '#94a3b8' }}>{weekdayOf(tx.date)}</div>
@@ -415,8 +422,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
 
         {/* Savings Goals Widget */}
         <div className="glass-card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <div style={{ fontSize: 16, fontWeight: 700 }}>Mục tiêu tiết kiệm</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 8 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>Mục tiêu tiết kiệm</div>
             <Button type="link" size="small" onClick={() => onSelectTab('goals')}>
               Xem thêm
             </Button>
@@ -431,8 +438,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                     <span style={{ fontWeight: 600, fontSize: 14 }}>{goal.name}</span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: '#7C3AED' }}>{pct}%</span>
                   </div>
-                  <Progress percent={pct} strokeColor={{ '0%': '#4F46E5', '100%': '#7C3AED' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748b', marginTop: 6 }}>
+                  {/* Phần trăm đã hiện ở tiêu đề, tắt showInfo để khỏi lặp số. */}
+                  <Progress percent={pct} showInfo={false} strokeColor={{ '0%': '#4F46E5', '100%': '#7C3AED' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4, fontSize: 12, color: '#64748b', marginTop: 6 }}>
                     <span>Đã tiết kiệm: {formatMoney(goal.saved)}</span>
                     <span>Mục tiêu: {formatMoney(goal.target)}</span>
                   </div>

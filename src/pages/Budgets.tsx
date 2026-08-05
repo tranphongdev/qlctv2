@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import { Progress, Button, Tag, Modal, Form, Select, InputNumber, message } from 'antd';
 import { Plus, AlertTriangle, CheckCircle, ShieldAlert } from 'lucide-react';
+import dayjs from 'dayjs';
 import type { AppState, Category } from '../types';
 import { formatMoney } from '../utils/format';
 import { addBudget } from '../store/appStore';
+
+/** "2026-08" -> "08/2026". Trả về chuỗi gốc nếu khoá tháng không đúng định dạng. */
+function formatMonthKey(monthKey: string): string {
+  const [year, month] = (monthKey || '').split('-');
+  return year && month ? `${month}/${year}` : monthKey;
+}
 
 interface BudgetsProps {
   state: AppState;
@@ -41,7 +48,7 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800 }}>Quản lý Ngân sách Chi tiêu</div>
-          <div style={{ fontSize: 13, color: '#64748b' }}>Hạn mức chi tiêu tháng 08/2026 với cảnh báo tự động 50%, 80%, 100% & 120%</div>
+          <div style={{ fontSize: 13, color: '#64748b' }}>Hạn mức chi tiêu tháng {dayjs().format('MM/YYYY')} với cảnh báo tự động 50%, 80%, 100% & 120%</div>
         </div>
 
         <Button type="primary" icon={<Plus size={16} />} size="middle" style={{ borderRadius: 12 }} onClick={() => setIsAddOpen(true)}>
@@ -50,7 +57,8 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
       </div>
 
       {/* Budgets Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+      {/* Trần 380px: một ngân sách vẫn giữ dáng thẻ thay vì kéo dài hết chiều ngang. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 380px))', gap: 16, justifyContent: 'start' }}>
         {budgets.map((b) => {
           const cat = categoriesMap[b.category];
           const spent = spentMap[b.category] || 0;
@@ -73,7 +81,7 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: cat?.color || '#4F46E5' }}>{cat?.name || b.category}</div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Tháng 08/2026</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Tháng {formatMonthKey(b.monthKey)}</div>
                 </div>
                 {alertTag}
               </div>
@@ -95,12 +103,6 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
                   </div>
                 </div>
               </div>
-
-              <Progress
-                percent={Math.min(pct, 100)}
-                strokeColor={pct >= 100 ? '#EF4444' : pct >= 80 ? '#F59E0B' : '#4F46E5'}
-                showInfo={false}
-              />
             </div>
           );
         })}
