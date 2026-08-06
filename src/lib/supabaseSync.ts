@@ -228,11 +228,29 @@ export async function syncProfileToSupabase(settings: UserSettings) {
   reportError('ghi profiles', error);
 }
 
+/**
+ * Ghi bộ danh mục mặc định cho tài khoản hiện tại.
+ *
+ * Một lệnh cho cả 14 dòng thay vì 14 vòng lặp tuần tự: đây là việc chạy ngay ở
+ * lần đăng nhập đầu, mỗi vòng là một chuyến đi mạng nên người dùng mới phải ngồi
+ * chờ trắng màn hình lâu hơn hẳn. Gộp lại cũng khiến kết quả rõ ràng — hoặc vào
+ * hết, hoặc hỏng hết kèm một dòng lỗi, chứ không còn cảnh vào được một nửa.
+ */
 export async function seedDefaultCategories() {
-  if (!canSync()) return;
-  for (const cat of defaultCategories()) {
-    await syncCategoryToSupabase(cat);
-  }
+  if (!canSync() || !supabase) return;
+
+  const rows = defaultCategories().map((cat) => ({
+    id: cat.id,
+    user_id: currentUserId,
+    name: cat.name,
+    type: cat.type,
+    icon: cat.icon,
+    color: cat.color,
+    order_index: cat.order ?? 0,
+  }));
+
+  const { error } = await supabase.from('categories').upsert(rows);
+  reportError('gieo danh mục mặc định', error);
 }
 
 /**

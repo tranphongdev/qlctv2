@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from './supabase';
 import { t } from '../i18n';
+import { TAB_PATHS } from '../routes';
 import type { Session } from '@supabase/supabase-js';
 
 export interface AuthUser {
@@ -144,8 +145,23 @@ export async function signUpWithUsername(username: string, pass: string, display
     if (/already registered|already exists/i.test(error.message)) {
       throw new Error(t('auth.username_taken'));
     }
+    // Hạn mức gửi thư chỉ bị đụng tới khi dự án đang bật xác nhận email: mỗi
+    // lần đăng ký, Supabase cố gửi thư tới <username>@internal.local — địa chỉ
+    // không có thật — và chỉ vài lần là hết hạn mức của SMTP mặc định.
+    if ((error as { code?: string }).code === 'over_email_send_rate_limit' || /email rate limit/i.test(error.message)) {
+      throw new Error(t('auth.email_confirmation_on'));
+    }
     throw error;
   }
+
+  // Tắt xác nhận email thì signUp trả về phiên đăng nhập luôn. Không có phiên
+  // nghĩa là dự án vẫn đang chờ người dùng bấm vào thư xác nhận — thứ sẽ không
+  // bao giờ tới. Phải báo lỗi ở đây, nếu không app sẽ hiện giao diện "đã đăng
+  // nhập" trong khi mọi lệnh đọc/ghi Supabase đều bị RLS chặn.
+  if (data.user && !data.session) {
+    throw new Error(t('auth.email_confirmation_on'));
+  }
+
   return data;
 }
 
@@ -162,6 +178,36 @@ export async function signInWithUsername(username: string, pass: string) {
     throw error;
   }
   return data;
+}
+
+/** Nhà cung cấp đăng nhập ngoài mà giao diện có nút bấm sẵn. */
+export type OAuthProvider = 'google' | 'github';
+
+/**
+ * Bật/tắt khối đăng nhập qua Google & GitHub.
+ *
+ * Mặc định TẮT vì hai nút này chỉ chạy được sau khi bật đúng provider trong
+ * Supabase Dashboard (Authentication → Providers) và khai redirect URL; chưa bật
+ * mà vẫn hiện nút thì người dùng bấm vào chỉ nhận lỗi "provider is not enabled".
+ */
+export const isOAuthEnabled = import.meta.env.VITE_ENABLE_OAUTH === 'true' && isSupabaseConfigured;
+
+/**
+ * Chuyển hướng sang trang đăng nhập của nhà cung cấp.
+ *
+ * Không trả về AuthUser: trình duyệt rời khỏi trang và quay lại qua redirect,
+ * phiên mới được onAuthChange bắt lại. Người dùng tạo theo đường này không có
+ * username do mình đặt — toAuthUser lấy tạm phần trước @ của email làm username.
+ */
+export async function signInWithProvider(provider: OAuthProvider) {
+  const client = requireClient();
+
+  const { error } = await client.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: `${window.location.origin}${TAB_PATHS.auth}` },
+  });
+
+  if (error) throw error;
 }
 
 /**

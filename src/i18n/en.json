@@ -59,8 +59,9 @@
   "mfa.disable_confirm_desc": "Your account will only be protected by a password.",
   "mfa.invalid_code": "The verification code is incorrect or has expired.",
 
-  "auth.tab_login": "Sign in",
-  "auth.tab_register": "Sign up",
+  "auth.social_divider": "or continue with",
+  "auth.social_continue": "Continue with {provider}",
+  "auth.social_failed": "Could not reach the provider. Please try again!",
   "auth.login_title": "Welcome back",
   "auth.login_subtitle": "Sign in to keep managing your finances.",
   "auth.email_label": "Email address",
@@ -76,8 +77,6 @@
 
   "auth.register_title": "Create a new account",
   "auth.register_subtitle": "Start taking charge of your personal finances today.",
-  "auth.name_label": "Full name",
-  "auth.name_placeholder": "e.g. John Smith",
   "auth.confirm_password_label": "Confirm password",
   "auth.confirm_password_placeholder": "Re-enter your password",
   "auth.currency_label": "Default currency",
@@ -140,7 +139,11 @@
   "hero.tagline_1": "Control your finances.",
   "hero.tagline_2": "Own your future.",
   "hero.description": "Real-time bank sync, automatic transaction email parsing and best-in-class financial reporting.",
+  "hero.point_secure": "Encrypted data only you can read.",
+  "hero.point_insight": "Real-time spending reports and trends.",
+  "hero.point_automation": "Transactions parsed straight from bank emails.",
   "hero.balance_label": "August Balance",
+  "hero.budget_label": "This month's budget",
   "hero.demo_tx_title": "Automatic email parsing",
   "hero.just_now": "Just now",
 
@@ -645,6 +648,7 @@
   "auth.username_label": "Username",
   "auth.username_placeholder": "e.g. tranphong",
   "auth.username_taken": "That username is already taken!",
+  "auth.email_confirmation_on": "Email confirmation is enabled on the Supabase project. Accounts sign in by username and use an internal address that cannot receive mail. Open Supabase Dashboard → Authentication → Sign In / Providers → Email and turn off \"Confirm email\".",
   "auth.username_hint": "Letters, numbers, dots, hyphens and underscores only. Cannot be changed later.",
   "validation.username_required": "Please enter a username",
   "validation.username_min": "Username must be at least 3 characters",
@@ -657,6 +661,5 @@
   "settings.email_placeholder": "example@gmail.com",
   "settings.email_saved": "Email address saved!",
   "settings.email_pending": "Contact email saved. Supabase needs you to confirm it by email before it can be used to sign in.",
-  "settings.email_none": "No email added",
-  "auth.name_label_optional": "Full name (optional)"
+  "settings.email_none": "No email added"
 }

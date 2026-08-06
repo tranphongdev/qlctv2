@@ -59,8 +59,9 @@
   "mfa.disable_confirm_desc": "Tài khoản sẽ chỉ còn được bảo vệ bằng mật khẩu.",
   "mfa.invalid_code": "Mã xác thực không đúng hoặc đã hết hạn.",
 
-  "auth.tab_login": "Đăng nhập",
-  "auth.tab_register": "Đăng ký",
+  "auth.social_divider": "hoặc tiếp tục với",
+  "auth.social_continue": "Tiếp tục với {provider}",
+  "auth.social_failed": "Không kết nối được tới nhà cung cấp. Vui lòng thử lại!",
   "auth.login_title": "Chào mừng trở lại",
   "auth.login_subtitle": "Đăng nhập để tiếp tục quản lý tài chính của bạn.",
   "auth.email_label": "Địa chỉ Email",
@@ -76,8 +77,6 @@
 
   "auth.register_title": "Tạo tài khoản mới",
   "auth.register_subtitle": "Bắt đầu hành trình làm chủ tài chính cá nhân ngay hôm nay.",
-  "auth.name_label": "Họ và tên",
-  "auth.name_placeholder": "Ví dụ: Trần Phong",
   "auth.confirm_password_label": "Xác nhận mật khẩu",
   "auth.confirm_password_placeholder": "Nhập lại mật khẩu",
   "auth.currency_label": "Đơn vị tiền tệ mặc định",
@@ -140,7 +139,11 @@
   "hero.tagline_1": "Kiểm soát tài chính.",
   "hero.tagline_2": "Làm chủ tương lai.",
   "hero.description": "Tự động đồng bộ ngân hàng thời gian thực, bóc tách email giao dịch và báo cáo tài chính trực quan hàng đầu.",
+  "hero.point_secure": "Dữ liệu mã hoá, chỉ mình bạn xem được.",
+  "hero.point_insight": "Báo cáo thu chi và xu hướng theo thời gian thực.",
+  "hero.point_automation": "Tự động bóc tách giao dịch từ email ngân hàng.",
   "hero.balance_label": "Số Dư Tháng 8",
+  "hero.budget_label": "Ngân sách tháng này",
   "hero.demo_tx_title": "Tự động bóc tách Email",
   "hero.just_now": "Vừa xong",
 
@@ -645,6 +648,7 @@
   "auth.username_label": "Tên đăng nhập",
   "auth.username_placeholder": "vidu: tranphong",
   "auth.username_taken": "Tên đăng nhập này đã có người sử dụng!",
+  "auth.email_confirmation_on": "Dự án Supabase đang bật xác nhận email. App đăng nhập bằng tên đăng nhập nên tài khoản dùng địa chỉ nội bộ không nhận được thư. Vào Supabase Dashboard → Authentication → Sign In / Providers → Email và tắt \"Confirm email\".",
   "auth.username_hint": "Chỉ dùng chữ không dấu, số, dấu chấm, gạch ngang và gạch dưới. Không đổi được sau khi tạo.",
   "validation.username_required": "Vui lòng nhập tên đăng nhập",
   "validation.username_min": "Tên đăng nhập phải có ít nhất 3 ký tự",
@@ -657,6 +661,5 @@
   "settings.email_placeholder": "example@gmail.com",
   "settings.email_saved": "Đã lưu địa chỉ Email!",
   "settings.email_pending": "Đã lưu Email liên hệ. Supabase cần bạn xác nhận qua thư trước khi dùng địa chỉ này để đăng nhập.",
-  "settings.email_none": "Chưa thêm email",
-  "auth.name_label_optional": "Họ và tên (tuỳ chọn)"
+  "settings.email_none": "Chưa thêm email"
 }

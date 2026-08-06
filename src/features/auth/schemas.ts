@@ -36,9 +36,8 @@ export const registerSchema = () =>
   z
     .object({
       username: usernameField(),
-      // Tên hiển thị là tuỳ chọn: bắt buộc theo spec chỉ có username, mật khẩu và
-      // xác nhận mật khẩu. Bỏ trống thì lấy username làm tên hiển thị.
-      name: z.string().trim().optional(),
+      // Form đăng ký chỉ hỏi username, mật khẩu và xác nhận mật khẩu. Tên hiển
+      // thị mặc định lấy luôn username, sửa sau trong trang Hồ sơ.
       password: z.string().min(6, { message: t('validation.password_min') }),
       confirmPassword: z.string().min(1, { message: t('validation.confirm_required') }),
       currency: z.enum(['VND', 'USD', 'EUR'], {

@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { LogIn, UserPlus } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import type { AuthUser } from '../lib/auth';
 import { HeroSection } from '../features/auth/components/HeroSection';
 import { LoginForm } from '../features/auth/components/LoginForm';
 import { RegisterForm } from '../features/auth/components/RegisterForm';
 import { ForgotPasswordModal } from '../features/auth/components/ForgotPasswordModal';
-import { t } from '../i18n';
 import type { AuthMode } from '../features/auth/types';
 
 interface AuthPageProps {
@@ -18,134 +16,46 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        width: '100vw',
-        background: 'var(--glass-bg-light)',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        overflowX: 'hidden',
-        padding: 0,
-        /* Khi mở từ app đã cài, trang chạy sát mép trên nên phải né thanh trạng thái. */
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-        margin: 0,
-      }}
-    >
-      {/* Main Full-Bleed Edge-to-Edge Auth Layout */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
-        style={{
-          width: '100%',
-          minHeight: '100vh',
-          borderRadius: 0,
-          boxShadow: 'none',
-          background: 'var(--glass-bg-light)',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-        }}
-      >
-        {/* Left Column: Hero Graphic Section (Desktop / Tablet) */}
-        <HeroSection />
+    <div className="auth-shell">
+      {/* Cột trái: giới thiệu sản phẩm (rút thành dải hẹp ở màn nhỏ) */}
+      <HeroSection />
 
-        {/* Right Column: Auth Form Card */}
-        <div
-          className="auth-card-scroll"
-          style={{
-            padding: '32px 36px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            background: 'var(--glass-bg-light)',
-            minHeight: 640,
-            height: '100%',
-            overflowY: 'auto',
-          }}
+      {/* Cột phải: thẻ xác thực */}
+      <div className="auth-pane">
+        <motion.div
+          className="auth-card"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
         >
-          {/* Mode Switcher Pills */}
-          <div
-            style={{
-              display: 'flex',
-              background: 'rgba(148, 163, 184, 0.12)',
-              borderRadius: 4,
-              padding: 4,
-              marginBottom: 24,
-              flexShrink: 0,
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setMode('login')}
-              style={{
-                flex: 1,
-                border: 'none',
-                background: mode === 'login' ? '#ffffff' : 'transparent',
-                color: mode === 'login' ? '#1677FF' : '#64748B',
-                borderRadius: 4,
-                padding: '8px 16px',
-                fontWeight: 700,
-                fontSize: 14,
-                cursor: 'pointer',
-                boxShadow: mode === 'login' ? '0 4px 12px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-              }}
-            >
-              <LogIn size={16} /> {t('auth.tab_login')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode('register')}
-              style={{
-                flex: 1,
-                border: 'none',
-                background: mode === 'register' ? '#ffffff' : 'transparent',
-                color: mode === 'register' ? '#1677FF' : '#64748B',
-                borderRadius: 4,
-                padding: '8px 16px',
-                fontWeight: 700,
-                fontSize: 14,
-                cursor: 'pointer',
-                boxShadow: mode === 'register' ? '0 4px 12px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-              }}
-            >
-              <UserPlus size={16} /> {t('auth.tab_register')}
-            </button>
-          </div>
+          {/* Chuyển chế độ chỉ bằng liên kết ở chân thẻ. Không có thêm cặp tab ở
+              đầu thẻ: hai lối vào cùng một việc chỉ làm loãng nút hành động
+              chính, mà tiêu đề thẻ đã nói rõ đang ở màn nào.
 
-          {/* Form Content - Stable Height Container */}
-          <div style={{ flex: 1, minHeight: 480 }}>
-            <div style={{ display: mode === 'login' ? 'block' : 'none' }}>
-              <LoginForm
-                key="login-form"
-                onSuccess={onSuccess}
-                onSwitchRegister={() => setMode('register')}
-                onForgotPassword={() => setForgotModalOpen(true)}
-              />
-            </div>
-            <div style={{ display: mode === 'register' ? 'block' : 'none' }}>
-              <RegisterForm
-                key="register-form"
-                onSuccess={onSuccess}
-                onSwitchLogin={() => setMode('login')}
-              />
-            </div>
-          </div>
-        </div>
-      </motion.div>
+              mode="wait" cho form cũ mờ hẳn rồi form mới mới hiện: hai form
+              chồng nhau trong lúc chuyển sẽ làm thẻ giật chiều cao. */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+            >
+              {mode === 'login' ? (
+                <LoginForm
+                  onSuccess={onSuccess}
+                  onSwitchRegister={() => setMode('register')}
+                  onForgotPassword={() => setForgotModalOpen(true)}
+                />
+              ) : (
+                <RegisterForm onSuccess={onSuccess} onSwitchLogin={() => setMode('login')} />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+      </div>
 
-      {/* Forgot Password Modal */}
       <ForgotPasswordModal open={forgotModalOpen} onClose={() => setForgotModalOpen(false)} />
     </div>
   );

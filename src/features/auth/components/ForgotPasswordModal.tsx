@@ -51,10 +51,19 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
       onCancel={handleCloseModal}
       footer={null}
       width={420}
-      centered
+      // KHÔNG dùng prop `centered`: nó thêm pseudo-element ::before cao 100% vào
+      // .ant-modal-wrap, mà wrap đang là flex column (xem index.css) nên pseudo
+      // đó thành một flex item nuốt trọn chiều cao và đẩy modal xuống đáy màn
+      // hình. Quy tắc chung ở index.css đã canh giữa mọi modal rồi.
+      //
+      // Trang xác thực chạy ở bảng màu sáng; class dưới ghim modal theo cùng bộ
+      // token (xem .auth-modal-wrap trong index.css).
+      wrapClassName="auth-modal-wrap"
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <KeyRound size={20} color="#1677FF" />
+          {/* Hex chứ không var(--primary-color): lucide đổ giá trị này vào thuộc
+              tính stroke của SVG, mà var() chỉ hoạt động trong thuộc tính CSS. */}
+          <KeyRound size={20} color="#4F46E5" />
           <span style={{ fontWeight: 700, fontSize: 16 }}>{t('forgot.title')}</span>
         </div>
       }
@@ -66,8 +75,8 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
               width: 54,
               height: 54,
               borderRadius: 16,
-              background: 'rgba(82, 196, 26, 0.1)',
-              color: '#52C41A',
+              background: 'var(--tint-income)',
+              color: 'var(--success-color)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -86,16 +95,16 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
                 {t('forgot.sent_desc_prefix')} <b>{sentEmail}</b>. {t('forgot.sent_desc_suffix')}
               </div>
             }
-            style={{ borderRadius: 12, marginBottom: 20, textAlign: 'left' }}
+            style={{ marginBottom: 20, textAlign: 'left' }}
           />
 
-          <Button type="primary" onClick={handleCloseModal} block style={{ borderRadius: 12, fontWeight: 700 }}>
+          <Button type="primary" onClick={handleCloseModal} block style={{ fontWeight: 700 }}>
             {t('forgot.done')}
           </Button>
         </div>
       ) : (
         <Form form={form} layout="vertical" onFinish={handleResetPassword} style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 13, color: '#64748b', marginBottom: 16, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.5 }}>
             {t('forgot.description')}
           </div>
 
@@ -107,24 +116,11 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
               { type: 'email', message: t('validation.email_format') },
             ]}
           >
-            <Input prefix={<Mail size={16} color="#94a3b8" />} placeholder="example@gmail.com" size="large" style={{ borderRadius: 12 }} />
+            <Input prefix={<Mail size={16} color="#94A3B8" style={{ marginRight: 6 }} />} placeholder="example@gmail.com" size="large" style={{ height: 46 }} />
           </Form.Item>
 
           <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              block
-              size="large"
-              style={{
-                borderRadius: 12,
-                height: 48,
-                fontWeight: 700,
-                background: 'linear-gradient(135deg, #1677FF 0%, #0958D9 100%)',
-                border: 'none',
-              }}
-            >
+            <Button type="primary" htmlType="submit" loading={loading} block size="large" className="auth-submit">
               {t('forgot.submit')}
             </Button>
           </Form.Item>

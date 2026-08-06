@@ -284,3 +284,47 @@ SET username   = COALESCE(username, split_part(user_email, '@', 1)),
 WHERE username IS NULL
   AND user_email IS NOT NULL
   AND user_email <> '';
+
+-- ============================================================================
+-- 9. KHOÁ CHÍNH GHÉP (user_id, id) — chạy được nhiều lần
+-- ============================================================================
+-- Các bảng dữ liệu ở trên khai `id TEXT PRIMARY KEY`, tức id phải là duy nhất
+-- trên TOÀN HỆ THỐNG, trong khi id lại do phía client tự đặt và chỉ có nghĩa
+-- trong phạm vi một tài khoản. Hai chuyện đó không thể cùng đúng.
+--
+-- Chỗ vỡ rõ nhất là bảng categories: 14 danh mục mặc định mang id cố định
+-- ('cat_an_uong', 'cat_cafe', ...) GIỐNG HỆT NHAU ở mọi tài khoản. Người đầu
+-- tiên đăng ký chiếm hết các id đó. Từ tài khoản thứ hai trở đi, lệnh gieo danh
+-- mục đụng khoá chính; ON CONFLICT DO UPDATE lại không qua nổi RLS vì dòng đang
+-- thuộc về người khác — nên lệnh ghi hỏng và tài khoản mới thiếu danh mục.
+-- Danh mục người dùng tự thêm (id 'cat_' + timestamp) vẫn lưu được, nên kết quả
+-- là một danh sách khuyết chứ không phải trống trơn.
+--
+-- Sửa đúng chỗ: id chỉ cần duy nhất TRONG một tài khoản.
+DO $$
+DECLARE
+  tbl     TEXT;
+  pk_name TEXT;
+  pk_cols INT;
+BEGIN
+  FOREACH tbl IN ARRAY ARRAY['wallets','categories','transactions',
+                             'budgets','goals','debts','notifications']
+  LOOP
+    SELECT conname, array_length(conkey, 1)
+      INTO pk_name, pk_cols
+      FROM pg_constraint
+     WHERE conrelid = format('public.%I', tbl)::regclass
+       AND contype  = 'p';
+
+    -- Chỉ đổi khi khoá chính vẫn còn là một cột; chạy lại lần hai sẽ bỏ qua.
+    IF pk_name IS NOT NULL AND pk_cols = 1 THEN
+      EXECUTE format('ALTER TABLE public.%I DROP CONSTRAINT %I', tbl, pk_name);
+      EXECUTE format('ALTER TABLE public.%I ADD PRIMARY KEY (user_id, id)', tbl);
+      RAISE NOTICE 'Đã đổi khoá chính của % sang (user_id, id)', tbl;
+    END IF;
+  END LOOP;
+END $$;
+
+-- PostgREST suy ra cột ON CONFLICT của lệnh upsert từ khoá chính, nên phải nạp
+-- lại lược đồ; không thì các lệnh ghi tiếp theo vẫn chạy theo khoá cũ.
+NOTIFY pgrst, 'reload schema';
