@@ -83,6 +83,31 @@ function loadStoredState(): AppState {
 let globalState: AppState = loadStoredState();
 const listeners = new Set<() => void>();
 
+/** Đang kéo dữ liệu lần đầu cho tài khoản vừa đăng nhập. */
+let loadingRemote = false;
+
+/**
+ * Cho biết có đang tải dữ liệu ban đầu hay không.
+ *
+ * Tách khỏi AppState thay vì thêm một trường vào đó, vì AppState là hình dạng dữ
+ * liệu được truyền xuống mọi trang — nhét cờ tiến trình vào sẽ khiến mọi nơi phải
+ * quan tâm tới một thứ chỉ App cần biết.
+ */
+export function useRemoteLoading(): boolean {
+  const [loading, setLoading] = useState(loadingRemote);
+
+  useEffect(() => {
+    const listener = () => setLoading(loadingRemote);
+    listener();
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  }, []);
+
+  return loading;
+}
+
 function notifyListeners() {
   listeners.forEach((l) => l());
   try {
@@ -117,15 +142,24 @@ export async function startRemoteSync(
     notifyListeners();
   }
 
-  const remoteData = await fetchRemoteState();
-  if (remoteData) {
-    const { profile, ...tables } = remoteData;
-    globalState = {
-      ...globalState,
-      ...tables,
-      // Trộn chứ không thay: bảng profiles chỉ giữ một phần UserSettings.
-      settings: { ...globalState.settings, ...profile },
-    };
+  loadingRemote = true;
+  notifyListeners();
+
+  try {
+    const remoteData = await fetchRemoteState();
+    if (remoteData) {
+      const { profile, ...tables } = remoteData;
+      globalState = {
+        ...globalState,
+        ...tables,
+        // Trộn chứ không thay: bảng profiles chỉ giữ một phần UserSettings.
+        settings: { ...globalState.settings, ...profile },
+      };
+    }
+  } finally {
+    // finally chứ không đặt sau await: fetchRemoteState có thể ném ra ngoài, và
+    // cờ kẹt ở true sẽ treo người dùng vĩnh viễn ở màn hình chờ.
+    loadingRemote = false;
     notifyListeners();
   }
 

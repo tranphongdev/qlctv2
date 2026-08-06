@@ -86,6 +86,128 @@ body.dark-theme {
   --tint-savings: rgba(167, 139, 250, 0.18);
 }
 
+/* ===== Màn hình chờ & màn hình lỗi toàn trang =====
+   Viết bằng CSS thuần thay vì component antd: hai màn này phải hiển thị được cả
+   khi cây React đã đổ hoặc khi chưa có ConfigProvider bao ngoài. */
+.app-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.app-screen__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tint-expense);
+  color: var(--color-expense);
+  margin-bottom: 4px;
+}
+
+.app-screen__title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 0;
+}
+
+.app-screen__message {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 420px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.app-screen__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.app-screen__button {
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 9px 20px;
+  min-height: 40px;
+  border-radius: 4px;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-subtle);
+  color: var(--text-body);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.app-screen__button--primary {
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.app-screen__button:hover {
+  opacity: 0.88;
+}
+
+.app-screen__details {
+  margin-top: 10px;
+  max-width: min(680px, 100%);
+  text-align: left;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.app-screen__details summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 6px 0;
+}
+
+.app-screen__details pre {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 4px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--surface-border);
+  /* Stack lỗi dài không được đẩy ngang cả trang trên màn hẹp. */
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.app-spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid var(--surface-border);
+  border-top-color: #4F46E5;
+  animation: appSpin 0.8s linear infinite;
+}
+
+@keyframes appSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Tôn trọng cài đặt giảm chuyển động của hệ điều hành. */
+@media (prefers-reduced-motion: reduce) {
+  .app-spinner {
+    animation-duration: 2.4s;
+  }
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

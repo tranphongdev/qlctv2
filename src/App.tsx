@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { ConfigProvider, Layout, Button, Spin, App as AntdApp } from 'antd';
+import { ConfigProvider, Layout, Button, App as AntdApp } from 'antd';
+import { LoadingScreen } from './components/LoadingScreen';
 import { getAppTheme } from './theme';
 import { isSupabaseConfigured } from './lib/supabase';
 import { message, AntdStaticBridge } from './lib/antdApp';
 import { antdLocale, setActiveLang } from './i18n';
 import { setActiveCurrency } from './utils/currency';
-import { useAppState, deleteTransaction, bulkDeleteTransactions, restoreTransaction, addTransaction, updateTransaction, startRemoteSync, stopRemoteSync } from './store/appStore';
+import { useAppState, deleteTransaction, bulkDeleteTransactions, restoreTransaction, addTransaction, updateTransaction, startRemoteSync, stopRemoteSync, useRemoteLoading } from './store/appStore';
 import { Header } from './components/Header';
 import { Sidebar, MobileSidebarDrawer } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
@@ -34,6 +35,7 @@ const THEME_KEY = 'quan_ly_chi_tieu_pro_theme';
 
 export default function App() {
   const state = useAppState();
+  const loadingRemote = useRemoteLoading();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -151,23 +153,13 @@ export default function App() {
   const requireAuth = isSupabaseConfigured && !currentUser;
 
   if (checkingSession) {
-    return (
-      <ConfigProvider locale={antdLocale(state.settings.language)} theme={getAppTheme(isDark)}>
-        <div
-          style={{
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 16,
-          }}
-        >
-          <Spin size="large" />
-          <span style={{ color: '#94A3B8', fontSize: 14 }}>Đang khôi phục phiên đăng nhập...</span>
-        </div>
-      </ConfigProvider>
-    );
+    return <LoadingScreen message="Đang khôi phục phiên đăng nhập..." />;
+  }
+
+  // Trong lúc kéo dữ liệu lần đầu, kho cục bộ đã bị dọn về rỗng nên dashboard sẽ
+  // hiện ra như thể mất sạch số liệu. Che bằng màn chờ cho tới khi có dữ liệu thật.
+  if (loadingRemote) {
+    return <LoadingScreen message="Đang tải dữ liệu của bạn..." />;
   }
 
   return (
