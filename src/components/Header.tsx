@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Avatar, Badge, Button, Input, Space, Tooltip, Dropdown } from 'antd';
+import { Avatar, Badge, Button, Input, Space, Dropdown } from 'antd';
+import { HintTooltip } from './HintTooltip';
 import type { MenuProps } from 'antd';
 import { Search, Bell, Sun, Moon, Sparkles, Command, Menu as MenuIcon, Mail, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 import type { UserSettings, NotificationItem } from '../types';
@@ -11,6 +12,9 @@ interface HeaderProps {
   settings: UserSettings;
   currentUser: AuthUser | null;
   sidebarCollapsed?: boolean;
+  /** Trạng thái giao diện thật, do App giữ. Không đọc settings.theme: trường đó
+   *  chưa bao giờ được ghi nên icon sẽ đứng im dù người dùng bấm đổi giao diện. */
+  isDark: boolean;
   onToggleTheme: () => void;
   onOpenCommandPalette: () => void;
   notifications: NotificationItem[];
@@ -26,6 +30,7 @@ export const Header: React.FC<HeaderProps> = ({
   settings,
   currentUser,
   sidebarCollapsed = false,
+  isDark,
   onToggleTheme,
   onOpenCommandPalette,
   notifications,
@@ -52,8 +57,8 @@ export const Header: React.FC<HeaderProps> = ({
       disabled: true,
       label: (
         <div style={{ padding: '4px 0', borderBottom: '1px solid #f1f5f9' }}>
-          <div style={{ fontWeight: 700, color: '#1e293b' }}>{userName}</div>
-          <div style={{ fontSize: 11, color: '#64748b' }}>{currentUser?.email || 'Chế độ Demo Khách'}</div>
+          <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{userName}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{currentUser?.email || 'Chế độ Demo Khách'}</div>
         </div>
       ),
     },
@@ -124,7 +129,7 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#64748b', fontWeight: 500 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>
               <span>{icon}</span>
               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 90 }}>{greeting}</span>
             </div>
@@ -137,7 +142,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Center: Search & Command Palette Trigger (Desktop) */}
         <div className="desktop-only" style={{ width: 220 }}>
           <Input
-            prefix={<Search size={14} color="#94a3b8" />}
+            prefix={<Search size={14} />}
             suffix={
               <div
                 onClick={onOpenCommandPalette}
@@ -149,7 +154,7 @@ export const Header: React.FC<HeaderProps> = ({
                   padding: '2px 4px',
                   borderRadius: 4,
                   background: 'rgba(148, 163, 184, 0.15)',
-                  color: '#64748b',
+                  color: 'var(--text-muted)',
                   cursor: 'pointer',
                 }}
               >
@@ -187,7 +192,7 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           {/* Bank Email Sync Button */}
-          <Tooltip title="Đồng bộ Email Ngân hàng">
+          <HintTooltip title="Đồng bộ Email Ngân hàng">
             <Button
               type="text"
               shape="circle"
@@ -195,29 +200,29 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onOpenBankSync}
               style={{ width: 34, height: 34 }}
             />
-          </Tooltip>
+          </HintTooltip>
 
           {/* Mobile Search Button */}
           <Button
             type="text"
             shape="circle"
-            icon={<Search size={18} color="#64748b" />}
+            icon={<Search size={18} />}
             onClick={onOpenCommandPalette}
             className="mobile-only"
             style={{ width: 34, height: 34 }}
           />
 
-          <Tooltip title="Chuyển giao diện Sáng / Tối">
+          <HintTooltip title="Chuyển giao diện Sáng / Tối">
             <Button
               type="text"
               shape="circle"
-              icon={settings.theme === 'dark' ? <Sun size={18} color="#F59E0B" /> : <Moon size={18} color="#4F46E5" />}
+              icon={isDark ? <Sun size={18} color="#F59E0B" /> : <Moon size={18} color="#4F46E5" />}
               onClick={onToggleTheme}
               style={{ width: 34, height: 34 }}
             />
-          </Tooltip>
+          </HintTooltip>
 
-          <Tooltip title="Thông báo hệ thống">
+          <HintTooltip title="Thông báo hệ thống">
             <Badge count={unreadCount} overflowCount={99} offset={[-4, 4]}>
               <Button
                 type="text"
@@ -227,7 +232,7 @@ export const Header: React.FC<HeaderProps> = ({
                 style={{ width: 34, height: 34 }}
               />
             </Badge>
-          </Tooltip>
+          </HintTooltip>
 
           <div className="desktop-only" style={{ alignItems: 'center', gap: 6, padding: '4px 12px', background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(124, 58, 237, 0.1))', borderRadius: 99, border: '1px solid rgba(79, 70, 229, 0.2)' }}>
             <Sparkles size={14} color="#7C3AED" />

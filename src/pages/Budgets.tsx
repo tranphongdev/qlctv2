@@ -49,7 +49,7 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800 }}>Quản lý Ngân sách Chi tiêu</div>
-          <div style={{ fontSize: 13, color: '#64748b' }}>Hạn mức chi tiêu tháng {dayjs().format('MM/YYYY')} với cảnh báo tự động 50%, 80%, 100% & 120%</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Hạn mức chi tiêu tháng {dayjs().format('MM/YYYY')} với cảnh báo tự động 50%, 80%, 100% & 120%</div>
         </div>
 
         <Button type="primary" icon={<Plus size={16} />} size="middle" style={{ borderRadius: 12 }} onClick={() => setIsAddOpen(true)}>
@@ -82,7 +82,7 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: cat?.color || '#4F46E5' }}>{cat?.name || b.category}</div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Tháng {formatMonthKey(b.monthKey)}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Tháng {formatMonthKey(b.monthKey)}</div>
                 </div>
                 {alertTag}
               </div>
@@ -95,11 +95,11 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
                   strokeColor={pct >= 100 ? '#EF4444' : pct >= 80 ? '#F59E0B' : '#4F46E5'}
                 />
                 <div>
-                  <div style={{ fontSize: 12, color: '#64748b' }}>Đã chi tiêu</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: isOver ? '#EF4444' : '#1e293b' }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Đã chi tiêu</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: isOver ? '#EF4444' : 'var(--text-heading)' }}>
                     {formatMoney(spent)}
                   </div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                     Hạn mức: {formatMoney(b.amount)}
                   </div>
                 </div>

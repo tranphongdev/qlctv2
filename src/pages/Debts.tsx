@@ -50,7 +50,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
       render: (name: string, record: Debt) => (
         <div>
           <div style={{ fontWeight: 600, fontSize: 14 }}>{name}</div>
-          <div style={{ fontSize: 11, color: '#64748b' }}>{record.note || 'Không có ghi chú'}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{record.note || 'Không có ghi chú'}</div>
         </div>
       ),
     },
@@ -113,7 +113,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800 }}>Sổ Nợ & Cho Vay</div>
-          <div style={{ fontSize: 13, color: '#64748b' }}>Theo dõi người khác nợ bạn (Cho vay) và các khoản bạn nợ (Đi vay)</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Theo dõi người khác nợ bạn (Cho vay) và các khoản bạn nợ (Đi vay)</div>
         </div>
 
         <Button type="primary" icon={<Plus size={16} />} size="middle" style={{ borderRadius: 12 }} onClick={() => setIsAddOpen(true)}>
@@ -135,12 +135,12 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
             {lendingList.map((d) => {
               const rem = Math.max(0, d.amount - d.paid);
               return (
-                <div key={d.id} style={{ padding: 14, borderRadius: 14, background: 'rgba(248, 250, 252, 0.6)', border: '1px solid #e2e8f0' }}>
+                <div key={d.id} style={{ padding: 14, borderRadius: 14, background: 'var(--surface-subtle)', border: '1px solid var(--surface-border)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontWeight: 700, fontSize: 15 }}>{d.name}</span>
                     <span style={{ color: rem > 0 ? '#DC2626' : '#16A34A', fontWeight: 700 }}>{formatMoney(rem)}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>{d.note || 'Không có ghi chú'}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{d.note || 'Không có ghi chú'}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontSize: 11, color: '#94a3b8' }}>Tổng: {formatMoney(d.amount)}</div>
                     <Button size="small" type="primary" disabled={d.status === 'settled'} onClick={() => setPayTarget(d)}>
@@ -165,12 +165,12 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
             {borrowingList.map((d) => {
               const rem = Math.max(0, d.amount - d.paid);
               return (
-                <div key={d.id} style={{ padding: 14, borderRadius: 14, background: 'rgba(248, 250, 252, 0.6)', border: '1px solid #e2e8f0' }}>
+                <div key={d.id} style={{ padding: 14, borderRadius: 14, background: 'var(--surface-subtle)', border: '1px solid var(--surface-border)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontWeight: 700, fontSize: 15 }}>{d.name}</span>
                     <span style={{ color: rem > 0 ? '#DC2626' : '#16A34A', fontWeight: 700 }}>{formatMoney(rem)}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>{d.note || 'Không có ghi chú'}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{d.note || 'Không có ghi chú'}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontSize: 11, color: '#94a3b8' }}>Tổng: {formatMoney(d.amount)}</div>
                     <Button size="small" type="primary" disabled={d.status === 'settled'} onClick={() => setPayTarget(d)}>

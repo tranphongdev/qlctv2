@@ -1,5 +1,6 @@
 import React from 'react';
-import { Layout, Button, Tooltip, Drawer } from 'antd';
+import { Layout, Button, Drawer } from 'antd';
+import { HintTooltip } from './HintTooltip';
 import { t } from '../i18n';
 import {
   LayoutDashboard,
@@ -143,7 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           const isActive = activeTab === item.key;
           return (
             <div key={item.key} style={{ marginBottom: 4 }}>
-              <Tooltip title={collapsed ? item.label : ''} placement="right">
+              <HintTooltip title={collapsed ? item.label : ''} placement="right">
                 <div
                   onClick={() => onSelectTab(item.key)}
                   style={{
@@ -156,7 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     background: isActive
                       ? 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)'
                       : 'transparent',
-                    color: isActive ? '#ffffff' : '#64748b',
+                    color: isActive ? '#ffffff' : 'var(--text-muted)',
                     fontWeight: isActive ? 600 : 500,
                     transition: 'all 0.2s ease',
                     boxShadow: isActive ? '0 6px 16px rgba(79, 70, 229, 0.35)' : 'none',
@@ -182,7 +183,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </span>
                   )}
                 </div>
-              </Tooltip>
+              </HintTooltip>
             </div>
           );
         })}
@@ -202,7 +203,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           shape="circle"
           onClick={onToggleCollapse}
           icon={collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          style={{ width: 36, height: 36, color: '#64748b' }}
+          style={{ width: 36, height: 36, color: 'var(--text-muted)' }}
         />
       </div>
     </Sider>
@@ -282,7 +283,7 @@ export const MobileSidebarDrawer: React.FC<MobileSidebarDrawerProps> = ({
                 background: isActive
                   ? 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)'
                   : 'transparent',
-                color: isActive ? '#ffffff' : '#64748b',
+                color: isActive ? '#ffffff' : 'var(--text-muted)',
                 fontWeight: isActive ? 600 : 500,
               }}
             >

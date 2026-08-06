@@ -118,7 +118,7 @@ export const AvatarCropModal: React.FC<AvatarCropModalProps> = ({ src, onCancel,
         <div style={{ fontSize: 12, color: '#94a3b8', margin: '12px 0 4px' }}>{t('avatar.crop_hint')}</div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <ZoomIn size={16} color="#64748b" />
+          <ZoomIn size={16} />
           <Slider
             style={{ flex: 1 }}
             min={1}

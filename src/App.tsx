@@ -221,6 +221,7 @@ export default function App() {
                 settings={state.settings}
                 currentUser={currentUser}
                 sidebarCollapsed={sidebarCollapsed}
+                isDark={isDark}
                 onToggleTheme={handleToggleTheme}
                 onOpenCommandPalette={() => setCmdOpen(true)}
                 notifications={state.notifications}

@@ -19,6 +19,18 @@
   --radius-md: 4px;
   --radius-lg: 4px;
   --radius-xl: 4px;
+
+  /* Màu chữ mặc định (giao diện sáng); body.dark-theme ghi đè bộ này. */
+  --text-heading: #1E293B;
+  --text-body: #334155;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+
+  /* Bề mặt nổi đặt trên nền trang (thanh điều hướng dưới cùng trên mobile). */
+  --surface-elevated: rgba(255, 255, 255, 0.95);
+  /* Ô nhỏ chìm bên trong thẻ: chip icon, hàng danh sách, chân bảng lệnh. */
+  --surface-subtle: rgba(248, 250, 252, 0.7);
+  --surface-border: rgba(226, 232, 240, 0.8);
 }
 
 * {
@@ -44,6 +56,15 @@ body.light-theme {
 body.dark-theme {
   background: var(--bg-gradient-dark);
   color: #F8FAFC;
+
+  --text-heading: #F1F5F9;
+  --text-body: #E2E8F0;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+
+  --surface-elevated: rgba(15, 23, 42, 0.95);
+  --surface-subtle: rgba(148, 163, 184, 0.12);
+  --surface-border: rgba(51, 65, 85, 0.7);
 }
 
 /* Custom Scrollbar */

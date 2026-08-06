@@ -163,7 +163,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
       {/* Header */}
       <div className="glass-card" style={{ padding: '20px 24px' }}>
         <div style={{ fontSize: 20, fontWeight: 800 }}>{t('settings.title')}</div>
-        <div style={{ fontSize: 13, color: '#64748b' }}>{t('settings.subtitle')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('settings.subtitle')}</div>
       </div>
 
       {/* Main Settings Form */}
@@ -182,7 +182,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
             </Avatar>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: 16 }}>{settings.userName}</div>
-              <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>{settings.userEmail}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{settings.userEmail}</div>
               <Space wrap size={8}>
                 <Upload beforeUpload={handleAvatarSelect} showUploadList={false} accept={AVATAR_MIME.join(',')}>
                   <Button size="small" icon={<Camera size={14} />}>
@@ -259,7 +259,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
             )}
           </div>
 
-          <div style={{ fontSize: 13, color: '#64748b', marginBottom: 14, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.5 }}>
             {t('mfa.description')}
           </div>
 
@@ -332,7 +332,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
               <Database size={20} color="#7C3AED" />
               <span>Sao lưu & Khôi phục JSON</span>
             </div>
-            <div style={{ fontSize: 13, color: '#64748b', marginBottom: 20, lineHeight: '1.5' }}>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, lineHeight: '1.5' }}>
               Tải xuống file sao lưu JSON an toàn của toàn bộ giao dịch, ví tiền, ngân sách & tiết kiệm.
             </div>
 
@@ -367,7 +367,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
         destroyOnHidden
       >
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 13, color: '#64748b', marginBottom: 12 }}>{t('mfa.step_scan')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>{t('mfa.step_scan')}</div>
 
           {enrollment && (
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
@@ -379,7 +379,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
             </div>
           )}
 
-          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>{t('mfa.manual_key')}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>{t('mfa.manual_key')}</div>
           <Input.TextArea value={enrollment?.secret} readOnly autoSize style={{ marginBottom: 16, fontFamily: 'monospace' }} />
 
           <Form form={mfaForm} layout="vertical" onFinish={handleVerifyEnrollment}>

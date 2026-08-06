@@ -109,7 +109,7 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800 }}>Quản lý Ví & Tài khoản</div>
-          <div style={{ fontSize: 13, color: '#64748b' }}>Quản lý {wallets.length} ví tiền mặt, tài khoản ngân hàng và ví điện tử</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Quản lý {wallets.length} ví tiền mặt, tài khoản ngân hàng và ví điện tử</div>
         </div>
 
         <Space wrap>

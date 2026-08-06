@@ -59,7 +59,7 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800 }}>Mục tiêu Tiết kiệm</div>
-          <div style={{ fontSize: 13, color: '#64748b' }}>Theo dõi tiến độ tiết kiệm mua sắm, du lịch & dự phòng tài chính</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Theo dõi tiến độ tiết kiệm mua sắm, du lịch & dự phòng tài chính</div>
         </div>
 
         <Button type="primary" icon={<Plus size={16} />} size="middle" style={{ borderRadius: 12 }} onClick={() => setIsAddOpen(true)}>
@@ -101,7 +101,7 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
               {/* Body */}
               <div style={{ padding: 20 }}>
                 <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{g.name}</div>
-                <div style={{ fontSize: 12, color: '#64748b', marginBottom: 16 }}>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
                   Hạn chót: {g.deadline || 'Không giới hạn'}
                 </div>
 
@@ -110,12 +110,12 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, margin: '14px 0 16px' }}>
                   <div>
-                    <span style={{ color: '#64748b', fontSize: 11 }}>Đã nộp:</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>Đã nộp:</span>
                     <div style={{ fontWeight: 700, color: '#4F46E5' }}>{formatMoney(g.saved)}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ color: '#64748b', fontSize: 11 }}>Mục tiêu:</span>
-                    <div style={{ fontWeight: 700, color: '#1e293b' }}>{formatMoney(g.target)}</div>
+                    <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>Mục tiêu:</span>
+                    <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{formatMoney(g.target)}</div>
                   </div>
                 </div>
 

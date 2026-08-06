@@ -45,7 +45,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
       open={open}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>
+        <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
           {unreadCount > 0 ? `${unreadCount} thông báo mới` : 'Tất cả thông báo'}
         </span>
         {notifications.length > 0 && (
@@ -84,7 +84,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                   width: 36,
                   height: 36,
                   borderRadius: 12,
-                  background: 'rgba(255, 255, 255, 0.9)',
+                  background: 'var(--surface-subtle)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -95,8 +95,8 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                 {getIcon(item.type)}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 2, color: '#1e293b' }}>{item.title}</div>
-                <div style={{ fontSize: 12, color: '#475569', lineHeight: '1.4' }}>{item.message}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 2, color: 'var(--text-heading)' }}>{item.title}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: '1.4' }}>{item.message}</div>
                 <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>{item.date}</div>
               </div>
             </List.Item>

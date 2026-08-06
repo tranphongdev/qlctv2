@@ -1,22 +1,75 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import type { AppState, Transaction, Wallet, Goal, Debt, Budget, Category, NotificationItem } from '../types';
+import type { AppState, UserSettings, Transaction, Wallet, Goal, Debt, Budget, Category, NotificationItem } from '../types';
 import { DEFAULT_CATEGORIES } from '../store/appStore';
 
-export async function fetchRemoteState(): Promise<Partial<AppState> | null> {
-  if (!isSupabaseConfigured || !supabase) return null;
+/**
+ * Id của người dùng đang đăng nhập, dùng làm khoá phân vùng dữ liệu.
+ *
+ * Trước đây không lệnh ghi nào gắn user_id nên mọi dòng đều rơi vào giá trị mặc
+ * định 'default_user' của schema, và mọi lệnh đọc đều `select('*')` không lọc —
+ * tức là mọi tài khoản dùng chung một kho dữ liệu. Từ nay mọi lệnh đọc / ghi đều
+ * bắt buộc đi qua giá trị này; chưa đăng nhập thì không đọc ghi gì hết.
+ */
+let currentUserId: string | null = null;
+
+export function setSyncUserId(userId: string | null) {
+  currentUserId = userId;
+}
+
+export function getSyncUserId(): string | null {
+  return currentUserId;
+}
+
+/** true khi đủ điều kiện nói chuyện với Supabase: có cấu hình và đã đăng nhập. */
+function canSync(): boolean {
+  return Boolean(isSupabaseConfigured && supabase && currentUserId);
+}
+
+/**
+ * Ghi log lỗi kèm tên thao tác.
+ *
+ * supabase-js không ném exception mà trả lỗi trong `{ error }`. Toàn bộ hàm sync
+ * trước đây vứt luôn kết quả trả về, nên ghi hỏng vẫn im lặng và người dùng vẫn
+ * thấy báo "thành công".
+ */
+function reportError(operation: string, error: unknown) {
+  if (error) console.error(`[Supabase] ${operation} thất bại:`, error);
+}
+
+/**
+ * Hồ sơ tách riêng khỏi `Partial<AppState>` vì bảng profiles chỉ chứa một phần
+ * các trường của UserSettings; phần còn lại (accentColor, weekStart...) do cục bộ
+ * giữ nên người gọi phải trộn chứ không được thay nguyên khối.
+ */
+export interface RemoteState extends Partial<AppState> {
+  profile?: Partial<UserSettings>;
+}
+
+export async function fetchRemoteState(): Promise<RemoteState | null> {
+  if (!canSync() || !supabase) return null;
+  const uid = currentUserId;
 
   try {
-    const [txRes, walletRes, goalRes, debtRes, catRes, budgetRes, notifRes] = await Promise.all([
-      supabase.from('transactions').select('*').order('date', { ascending: false }),
-      supabase.from('wallets').select('*'),
-      supabase.from('goals').select('*'),
-      supabase.from('debts').select('*'),
-      supabase.from('categories').select('*').order('order_index', { ascending: true }),
-      supabase.from('budgets').select('*'),
-      supabase.from('notifications').select('*').order('date', { ascending: false }),
+    const [txRes, walletRes, goalRes, debtRes, catRes, budgetRes, notifRes, profileRes] = await Promise.all([
+      supabase.from('transactions').select('*').eq('user_id', uid).order('date', { ascending: false }),
+      supabase.from('wallets').select('*').eq('user_id', uid),
+      supabase.from('goals').select('*').eq('user_id', uid),
+      supabase.from('debts').select('*').eq('user_id', uid),
+      supabase.from('categories').select('*').eq('user_id', uid).order('order_index', { ascending: true }),
+      supabase.from('budgets').select('*').eq('user_id', uid),
+      supabase.from('notifications').select('*').eq('user_id', uid).order('date', { ascending: false }),
+      supabase.from('profiles').select('*').eq('user_id', uid).maybeSingle(),
     ]);
 
-    const result: Partial<AppState> = {
+    for (const [name, res] of [
+      ['đọc transactions', txRes], ['đọc wallets', walletRes], ['đọc goals', goalRes],
+      ['đọc debts', debtRes], ['đọc categories', catRes], ['đọc budgets', budgetRes],
+      ['đọc notifications', notifRes], ['đọc profiles', profileRes],
+    ] as const) {
+      reportError(name, res.error);
+    }
+
+    const result: RemoteState = {
       transactions: txRes.data
         ? txRes.data.map((t) => ({
             id: t.id,
@@ -106,6 +159,12 @@ export async function fetchRemoteState(): Promise<Partial<AppState> | null> {
         : [],
     };
 
+    // Hồ sơ chỉ ghi đè khi DB thực sự có dòng; chưa có thì giữ nguyên cài đặt cục
+    // bộ để lần lưu kế tiếp đẩy lên, tránh xoá trắng tên và ảnh người dùng đã đặt.
+    if (profileRes.data) {
+      result.profile = mapProfileRow(profileRes.data);
+    }
+
     // If categories table in DB is empty, seed default categories
     if (catRes.data && catRes.data.length === 0) {
       seedDefaultCategories();
@@ -118,8 +177,43 @@ export async function fetchRemoteState(): Promise<Partial<AppState> | null> {
   }
 }
 
+/** Chỉ lấy các cột hồ sơ có trong bảng; phần còn lại của UserSettings do cục bộ giữ. */
+function mapProfileRow(row: Record<string, unknown>): Partial<UserSettings> {
+  return {
+    userName: row.user_name as string,
+    userEmail: row.user_email as string,
+    avatarUrl: (row.avatar_url as string) ?? '',
+    currency: row.currency as UserSettings['currency'],
+    language: row.language as UserSettings['language'],
+    timezone: row.timezone as string,
+  };
+}
+
+/**
+ * Đẩy hồ sơ lên bảng profiles. Khoá trùng là user_id (UNIQUE trong schema) chứ
+ * không phải id, nên phải chỉ rõ onConflict — mặc định upsert dùng primary key,
+ * mà id ở đây là uuid sinh tự động nên lần nào cũng sẽ chèn thêm dòng mới.
+ */
+export async function syncProfileToSupabase(settings: UserSettings) {
+  if (!canSync() || !supabase) return;
+  const { error } = await supabase.from('profiles').upsert(
+    {
+      user_id: currentUserId,
+      user_name: settings.userName,
+      user_email: settings.userEmail,
+      avatar_url: settings.avatarUrl,
+      currency: settings.currency,
+      language: settings.language,
+      timezone: settings.timezone,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' },
+  );
+  reportError('ghi profiles', error);
+}
+
 export async function seedDefaultCategories() {
-  if (!isSupabaseConfigured || !supabase) return;
+  if (!canSync()) return;
   for (const cat of DEFAULT_CATEGORIES) {
     await syncCategoryToSupabase(cat);
   }

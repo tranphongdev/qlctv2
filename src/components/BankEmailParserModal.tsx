@@ -94,7 +94,7 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
           </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 700 }}>Tự Động Bóc Tách Email / SMS Ngân Hàng</div>
-            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 400 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 400 }}>
               Dán nội dung Email biến động số dư để AI tự động trích xuất số tiền, ngày giờ và danh mục
             </div>
           </div>
@@ -107,7 +107,7 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
         {/* Sample Templates Quick Select */}
         <div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginBottom: 6 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>
             Thử mẫu Email biến động số dư ngân hàng:
           </div>
           <Space wrap>
@@ -159,7 +159,7 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div>
-                <div style={{ fontSize: 12, color: '#64748b' }}>Số tiền bóc tách:</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Số tiền bóc tách:</div>
                 <div
                   style={{
                     fontSize: 22,
@@ -172,14 +172,14 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
               </div>
 
               <div>
-                <div style={{ fontSize: 12, color: '#64748b' }}>Ngân hàng nhận dạng:</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#1e293b' }}>{parsedResult.bankName}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Ngân hàng nhận dạng:</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-heading)' }}>{parsedResult.bankName}</div>
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div>
-                <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Chọn Ví ghi nhận:</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Chọn Ví ghi nhận:</div>
                 <Select
                   value={selectedWalletId}
                   onChange={setSelectedWalletId}
@@ -192,7 +192,7 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
               </div>
 
               <div>
-                <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Gợi ý Danh mục:</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Gợi ý Danh mục:</div>
                 <Select
                   value={selectedCategoryId}
                   onChange={setSelectedCategoryId}
@@ -210,7 +210,7 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
               </div>
             </div>
 
-            <div style={{ fontSize: 13, color: '#475569', background: '#ffffff', padding: '10px 14px', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', background: 'rgba(148, 163, 184, 0.12)', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(148, 163, 184, 0.25)' }}>
               <div><b>Ghi chú:</b> {parsedResult.note}</div>
               <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
                 Thời gian: {parsedResult.date} {parsedResult.time} {parsedResult.accountNumber ? `| TK: ${parsedResult.accountNumber}` : ''}

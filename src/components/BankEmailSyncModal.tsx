@@ -100,7 +100,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
           </div>
           <div>
             <div style={{ fontSize: 17, fontWeight: 800 }}>Đồng bộ Email Ngân hàng (iOS / Gmail)</div>
-            <div style={{ fontSize: 11, color: '#64748b', fontWeight: 400 }}>Tự động bóc tách số tiền bị trừ / cộng từ thông báo Email</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 400 }}>Tự động bóc tách số tiền bị trừ / cộng từ thông báo Email</div>
           </div>
         </div>
       }
@@ -164,7 +164,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginBottom: 12 }}>
                       <div>
-                        <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>Ví nộp / trừ tiền:</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Ví nộp / trừ tiền:</div>
                         <Select
                           value={selectedWalletId}
                           onChange={setSelectedWalletId}
@@ -178,7 +178,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
                       </div>
 
                       <div>
-                        <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>Gợi ý Danh mục:</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Gợi ý Danh mục:</div>
                         <Select
                           value={selectedCategoryId}
                           onChange={setSelectedCategoryId}
@@ -198,7 +198,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
                     </div>
 
                     <div style={{ marginBottom: 14 }}>
-                      <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>Ghi chú giao dịch:</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Ghi chú giao dịch:</div>
                       <Input
                         value={customNote}
                         onChange={(e) => setCustomNote(e.target.value)}
@@ -238,7 +238,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
             ),
             children: (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 8 }}>
-                <div style={{ fontSize: 12, color: '#64748b' }}>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                   Bấm vào 1 trong các mẫu Email thông báo từ Ngân hàng dưới đây để trải nghiệm bóc tách tự động:
                 </div>
 
@@ -254,7 +254,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
                       <span style={{ fontWeight: 700, fontSize: 13 }}>{sample.title}</span>
                       <Tag color="purple" style={{ margin: 0, fontSize: 10 }}>{sample.bank}</Tag>
                     </div>
-                    <pre style={{ fontSize: 11, color: '#64748b', background: '#f8fafc', padding: 8, borderRadius: 8, margin: 0, whiteSpace: 'pre-wrap' }}>
+                    <pre style={{ fontSize: 11, color: 'var(--text-muted)', background: 'rgba(148, 163, 184, 0.12)', padding: 8, borderRadius: 8, margin: 0, whiteSpace: 'pre-wrap' }}>
                       {sample.rawText}
                     </pre>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
@@ -284,7 +284,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
                 </div>
 
                 <div style={{ fontSize: 13, fontWeight: 700 }}>Các bước thiết lập (chỉ 2 phút):</div>
-                <ol style={{ fontSize: 12, color: '#475569', paddingLeft: 20, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <ol style={{ fontSize: 12, color: 'var(--text-secondary)', paddingLeft: 20, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <li>Truy cập <a href="https://script.google.com" target="_blank" rel="noreferrer">script.google.com</a> trên trình duyệt.</li>
                   <li>Tạo một <b>New Project</b> mới.</li>
                   <li>Dán đoạn mã dưới đây và chọn lưu kịch bản.</li>

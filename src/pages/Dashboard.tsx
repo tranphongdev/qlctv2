@@ -241,7 +241,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
         {/* Card 2: Monthly Income */}
         <div className="glass-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Thu nhập tháng này
             </span>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(34, 197, 94, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -251,7 +251,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           <div style={{ fontSize: 26, fontWeight: 800, margin: '14px 0 6px', color: '#16A34A', letterSpacing: '-0.5px' }}>
             +<CounterAnimation value={monthlyIncome} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
             <ArrowUpRight size={16} color="#16A34A" />
             <span>{incomeSourceCount > 0 ? `${incomeSourceCount} nguồn thu nhập` : 'Chưa có khoản thu nào'}</span>
           </div>
@@ -260,7 +260,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
         {/* Card 3: Monthly Expense */}
         <div className="glass-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Chi tiêu tháng này
             </span>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -270,7 +270,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           <div style={{ fontSize: 26, fontWeight: 800, margin: '14px 0 6px', color: '#DC2626', letterSpacing: '-0.5px' }}>
             -<CounterAnimation value={monthlyExpense} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
             <ArrowDownRight size={16} color="#DC2626" />
             <span>{expenseCategoryCount > 0 ? `${expenseCategoryCount} danh mục chi tiêu` : 'Chưa có khoản chi nào'}</span>
           </div>
@@ -279,7 +279,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
         {/* Card 4: Savings */}
         <div className="glass-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Tiết kiệm ròng
             </span>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(124, 58, 237, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -290,7 +290,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
             +<CounterAnimation value={monthlySavings} />
           </div>
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#64748b', marginBottom: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>
               <span>Tỷ lệ tiết kiệm</span>
               <span style={{ fontWeight: 700, color: '#7C3AED' }}>{savingsRate}%</span>
             </div>
@@ -306,7 +306,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <div>
               <div style={{ fontSize: 16, fontWeight: 700 }}>Xu hướng Chi tiêu & Thu nhập</div>
-              <div style={{ fontSize: 12, color: '#64748b' }}>Phân tích {TREND_MONTHS} tháng gần nhất</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Phân tích {TREND_MONTHS} tháng gần nhất</div>
             </div>
             <Button size="small" icon={<CalendarIcon size={14} />} onClick={() => onSelectTab('calendar')}>
               Xem chi tiết
@@ -373,7 +373,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                     justifyContent: 'space-between',
                     padding: '12px 16px',
                     borderRadius: 14,
-                    background: 'rgba(248, 250, 252, 0.6)',
+                    background: 'var(--surface-subtle)',
                     border: '1px solid rgba(226, 232, 240, 0.6)',
                   }}
                 >
@@ -398,7 +398,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                       <div style={{ fontWeight: 600, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {tx.note || cat?.name || 'Giao dịch'}
                       </div>
-                      <div style={{ fontSize: 12, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {formatDate(tx.date)} • {cat?.name}
                       </div>
                     </div>
@@ -429,14 +429,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
             {goals.slice(0, 2).map((goal) => {
               const pct = Math.round((goal.saved / goal.target) * 100);
               return (
-                <div key={goal.id} style={{ padding: 14, borderRadius: 14, background: 'rgba(248, 250, 252, 0.6)', border: '1px solid #e2e8f0' }}>
+                <div key={goal.id} style={{ padding: 14, borderRadius: 14, background: 'var(--surface-subtle)', border: '1px solid var(--surface-border)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                     <span style={{ fontWeight: 600, fontSize: 14 }}>{goal.name}</span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: '#7C3AED' }}>{pct}%</span>
                   </div>
                   {/* Phần trăm đã hiện ở tiêu đề, tắt showInfo để khỏi lặp số. */}
                   <Progress percent={pct} showInfo={false} strokeColor={{ '0%': '#4F46E5', '100%': '#7C3AED' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4, fontSize: 12, color: '#64748b', marginTop: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4, fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
                     <span>Đã tiết kiệm: {formatMoney(goal.saved)}</span>
                     <span>Mục tiêu: {formatMoney(goal.target)}</span>
                   </div>

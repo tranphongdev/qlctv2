@@ -128,7 +128,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ state }) => {
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800 }}>Phân tích & Thống kê Tài chính</div>
-          <div style={{ fontSize: 13, color: '#64748b' }}>Báo cáo chuyên sâu về cash flow, tỷ lệ tiết kiệm và sức khỏe tài chính</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Báo cáo chuyên sâu về cash flow, tỷ lệ tiết kiệm và sức khỏe tài chính</div>
         </div>
 
         <Segmented options={['Tháng này', 'Quý này', 'Năm nay']} defaultValue="Tháng này" />

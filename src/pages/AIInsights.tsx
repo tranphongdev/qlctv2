@@ -46,7 +46,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
           </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800 }}>AI Financial Insights & Advisor</div>
-            <div style={{ fontSize: 12, color: '#64748b' }}>Phân tích thông minh & tư vấn tối ưu chi tiêu</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Phân tích thông minh & tư vấn tối ưu chi tiêu</div>
           </div>
         </div>
         <Tag color="purple" style={{ padding: '2px 8px', fontSize: 11, fontWeight: 600 }}>Gemini Financial v3.6</Tag>
@@ -60,7 +60,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
             <TrendingUp size={20} color="#EF4444" />
             <span style={{ fontWeight: 700, fontSize: 15 }}>Danh mục tăng mạnh nhất</span>
           </div>
-          <div style={{ fontSize: 13, color: '#475569', lineHeight: '1.5' }}>
+          <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: '1.5' }}>
             Chi tiêu cho <b>Tiền nhà</b> và <b>Ăn uống ngoài</b> chiếm 65% tổng chi tiêu tháng này (5.950.000 VNĐ).
           </div>
         </div>
@@ -71,7 +71,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
             <Lightbulb size={20} color="#F59E0B" />
             <span style={{ fontWeight: 700, fontSize: 15 }}>Gợi ý tiết kiệm 15%</span>
           </div>
-          <div style={{ fontSize: 13, color: '#475569', lineHeight: '1.5' }}>
+          <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: '1.5' }}>
             Chuyển bớt 2.000.000 VNĐ dư thừa từ ví MoMo sang gửi tiết kiệm ngắn hạn để nhận lãi suất 5.2%/năm.
           </div>
         </div>
@@ -82,7 +82,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
             <Sparkles size={20} color="#22C55E" />
             <span style={{ fontWeight: 700, fontSize: 15 }}>Dự đoán cuối tháng</span>
           </div>
-          <div style={{ fontSize: 13, color: '#475569', lineHeight: '1.5' }}>
+          <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: '1.5' }}>
             Dựa trên tốc độ chi tiêu 380k/ngày, dự kiến bạn sẽ dư ra <b>18.500.000 VNĐ</b> vào cuối tháng 8/2026.
           </div>
         </div>

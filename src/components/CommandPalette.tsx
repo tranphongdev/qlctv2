@@ -151,7 +151,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       id: 'nav_profile',
       title: 'Mở Cài đặt & Sao lưu',
       subtitle: 'Tùy chỉnh giao diện, sao lưu & khôi phục dữ liệu JSON',
-      icon: <User size={18} color="#64748b" />,
+      icon: <User size={18} />,
       action: () => {
         onClose();
         onSelectTab('profile');
@@ -215,7 +215,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       width: 36,
                       height: 36,
                       borderRadius: 10,
-                      background: 'rgba(241, 245, 249, 0.8)',
+                      background: 'var(--surface-subtle)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -224,14 +224,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     {item.icon}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: '#1e293b' }}>{item.title}</div>
-                    <div style={{ fontSize: 12, color: '#64748b' }}>{item.subtitle}</div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-heading)' }}>{item.title}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{item.subtitle}</div>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Tag color="blue">{item.category}</Tag>
-                  <ArrowRight size={16} color="#94a3b8" />
+                  <ArrowRight size={16} />
                 </div>
               </div>
             </List.Item>
@@ -243,7 +243,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         style={{
           padding: '10px 20px',
           borderTop: '1px solid rgba(148, 163, 184, 0.15)',
-          background: 'rgba(248, 250, 252, 0.5)',
+          background: 'var(--surface-subtle)',
           fontSize: 12,
           color: '#94a3b8',
           display: 'flex',
@@ -251,7 +251,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         }}
       >
         <span>
-          Nhấn <kbd style={{ background: '#e2e8f0', padding: '2px 6px', borderRadius: 4, color: '#334155' }}>ESC</kbd> để thoát
+          Nhấn <kbd style={{ background: 'rgba(148, 163, 184, 0.25)', padding: '2px 6px', borderRadius: 4, color: 'var(--text-body)' }}>ESC</kbd> để thoát
         </span>
         <span>Command Palette</span>
       </div>

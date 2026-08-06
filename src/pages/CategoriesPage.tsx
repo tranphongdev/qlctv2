@@ -37,7 +37,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800 }}>Quản lý Danh mục Chi tiêu & Thu nhập</div>
-          <div style={{ fontSize: 13, color: '#64748b' }}>Tùy chỉnh màu sắc, biểu tượng và sắp xếp danh mục</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Tùy chỉnh màu sắc, biểu tượng và sắp xếp danh mục</div>
         </div>
 
         <Button type="primary" icon={<Plus size={16} />} size="middle" style={{ borderRadius: 12 }} onClick={() => setIsAddOpen(true)}>
@@ -57,8 +57,8 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
               style={{
                 padding: '12px 14px',
                 borderRadius: 14,
-                background: 'rgba(248, 250, 252, 0.6)',
-                border: '1px solid #e2e8f0',
+                background: 'var(--surface-subtle)',
+                border: '1px solid var(--surface-border)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
@@ -99,8 +99,8 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
               style={{
                 padding: '14px 16px',
                 borderRadius: 14,
-                background: 'rgba(248, 250, 252, 0.6)',
-                border: '1px solid #e2e8f0',
+                background: 'var(--surface-subtle)',
+                border: '1px solid var(--surface-border)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,

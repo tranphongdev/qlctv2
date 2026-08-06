@@ -36,7 +36,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ state }) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div className="glass-card" style={{ padding: '20px 24px' }}>
         <div style={{ fontSize: 20, fontWeight: 800 }}>Xem Giao Dịch Theo Lịch</div>
-        <div style={{ fontSize: 13, color: '#64748b' }}>Nhấp vào ngày bất kỳ trên lịch để xem danh sách giao dịch thu chi</div>
+        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Nhấp vào ngày bất kỳ trên lịch để xem danh sách giao dịch thu chi</div>
       </div>
 
       <div className="glass-card" style={{ padding: 20 }}>

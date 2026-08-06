@@ -131,7 +131,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
       key: 'note',
       render: (note: string, record: Transaction) => (
         <div>
-          <div style={{ fontWeight: 500, fontSize: 13, color: '#1e293b' }}>{note || 'Không có ghi chú'}</div>
+          <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--text-heading)' }}>{note || 'Không có ghi chú'}</div>
           {record.tags && record.tags.length > 0 && (
             <div style={{ marginTop: 4, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
               {record.tags.map((tag) => (
@@ -215,7 +215,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
       <div className="glass-card" style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div style={{ fontSize: 18, fontWeight: 800 }}>Quản lý Giao dịch</div>
-          <div style={{ fontSize: 12, color: '#64748b' }}>Tổng số {filteredData.length} giao dịch được ghi nhận</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Tổng số {filteredData.length} giao dịch được ghi nhận</div>
         </div>
 
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', width: '100%', justifyContent: 'flex-start' }} className="mobile-only">
@@ -262,7 +262,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
       {/* Filter & Search Toolbar */}
       <div className="glass-card" style={{ padding: '12px 16px', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         <Input
-          prefix={<Search size={16} color="#94a3b8" />}
+          prefix={<Search size={16} />}
           placeholder="Tìm theo ghi chú, danh mục, số tiền..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
