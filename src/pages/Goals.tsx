@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Progress, Button, Tag, Modal, Form, Input, InputNumber, DatePicker, Popconfirm, Empty } from 'antd';
+import { Progress, Button, Tag, Modal, Form, Input, InputNumber, DatePicker, Popconfirm, Empty, Select } from 'antd';
 import { message } from '~/lib/antdApp';
 import { Plus, Sparkles, CheckCircle2, Trash2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -12,12 +12,21 @@ interface GoalsProps {
   state: AppState;
 }
 
+/**
+ * Giá trị của lựa chọn "không trừ ví nào" trong ô chọn nguồn tiền. Không dùng
+ * chuỗi rỗng hay undefined để ô chọn vẫn là bắt buộc: người dùng phải nói rõ tiền
+ * đến từ đâu chứ không được lướt qua ô này.
+ */
+const MANUAL_SOURCE = '__manual__';
+
 export const Goals: React.FC<GoalsProps> = ({ state }) => {
-  const { goals } = state;
+  const { goals, wallets } = state;
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [depositGoal, setDepositGoal] = useState<Goal | null>(null);
   const [form] = Form.useForm();
-  const [depositForm] = Form.useForm();
+
+  /** Ví mặc định của người dùng, không có thì lấy ví đầu tiên. */
+  const defaultSourceId = (wallets.find((w) => w.isDefault) ?? wallets[0])?.id ?? MANUAL_SOURCE;
 
   const handleCreateGoal = (values: any) => {
     addGoal({
@@ -36,8 +45,27 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
     if (!depositGoal) return;
     const depositAmount = values.amount;
     const newTotal = depositGoal.saved + depositAmount;
+    const sourceWallet = wallets.find((w) => w.id === values.walletId);
 
-    depositToGoal(depositGoal.id, depositAmount);
+    // Chặn ở đây chứ không để addTransaction kẹp số dư về 0: kẹp thì ví âm bao
+    // nhiêu cũng thành 0 và người dùng mất tiền mà không hề được báo.
+    if (sourceWallet && sourceWallet.balance < depositAmount) {
+      message.error(
+        t('goals.insufficient', { name: sourceWallet.name, balance: formatMoney(sourceWallet.balance) }),
+      );
+      return;
+    }
+
+    depositToGoal(
+      depositGoal.id,
+      depositAmount,
+      sourceWallet
+        ? {
+            walletId: sourceWallet.id,
+            note: values.note?.trim() || t('goals.deposit_default_note', { name: depositGoal.name }),
+          }
+        : undefined,
+    );
 
     if (newTotal >= depositGoal.target) {
       confetti({
@@ -53,7 +81,6 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
     }
 
     setDepositGoal(null);
-    depositForm.resetFields();
   };
 
   return (
@@ -192,10 +219,42 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
       </Modal>
 
       {/* Deposit Modal */}
-      <Modal open={!!depositGoal} onCancel={() => setDepositGoal(null)} title={t('goals.deposit_modal_title', { name: depositGoal?.name ?? '' })} footer={null}>
-        <Form form={depositForm} layout="vertical" onFinish={handleDeposit} style={{ marginTop: 16 }}>
+      {/* destroyOnHidden để initialValues được áp lại mỗi lần mở: không có nó thì
+          ví nguồn và ghi chú của lần nộp trước còn nguyên trong form. */}
+      <Modal
+        open={!!depositGoal}
+        onCancel={() => setDepositGoal(null)}
+        title={t('goals.deposit_modal_title', { name: depositGoal?.name ?? '' })}
+        footer={null}
+        destroyOnHidden
+      >
+        <Form
+          layout="vertical"
+          onFinish={handleDeposit}
+          initialValues={{ walletId: defaultSourceId }}
+          style={{ marginTop: 16 }}
+        >
           <Form.Item name="amount" label={t('goals.deposit_amount_label')} rules={[{ required: true }]}>
             <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder={t('common.amount_placeholder')} min={10000} autoFocus />
+          </Form.Item>
+
+          <Form.Item
+            name="walletId"
+            label={t('goals.deposit_wallet_label')}
+            rules={[{ required: true, message: t('goals.deposit_wallet_required') }]}
+            extra={t('goals.deposit_wallet_hint')}
+          >
+            <Select
+              placeholder={t('goals.deposit_wallet_placeholder')}
+              options={[
+                ...wallets.map((w) => ({ value: w.id, label: `${w.name} (${formatMoney(w.balance)})` })),
+                { value: MANUAL_SOURCE, label: t('goals.deposit_wallet_none') },
+              ]}
+            />
+          </Form.Item>
+
+          <Form.Item name="note" label={t('goals.deposit_note_label')}>
+            <Input placeholder={t('goals.deposit_note_placeholder', { name: depositGoal?.name ?? '' })} />
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>

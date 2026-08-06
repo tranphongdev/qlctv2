@@ -5,6 +5,7 @@ import { UploadOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import type { Category, Transaction, Wallet } from '~/types';
 import { addWallet } from '~/store/appStore';
+import { TRANSFER_CATEGORY_ID } from '~/utils/categories';
 import { t } from '~/i18n';
 
 interface AddTransactionModalProps {
@@ -80,7 +81,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     const data: Omit<Transaction, 'id'> = {
       type: txType,
       amount: values.amount,
-      category: txType === 'chuyen' ? 'cat_chuyen_khoan' : values.category,
+      category: txType === 'chuyen' ? TRANSFER_CATEGORY_ID : values.category,
       walletId: values.walletId,
       toWalletId: txType === 'chuyen' ? values.toWalletId : undefined,
       date: values.date.format('YYYY-MM-DD'),

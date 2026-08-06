@@ -4,6 +4,7 @@ import { message } from '~/lib/antdApp';
 import { Plus, ArrowRightLeft, Building2, Smartphone, Banknote, Bitcoin, Trash2, Pencil } from 'lucide-react';
 import type { AppState, Wallet } from '~/types';
 import { formatMoney } from '~/utils/format';
+import { TRANSFER_CATEGORY_ID } from '~/utils/categories';
 import { addWallet, updateWallet, deleteWallet, addTransaction } from '~/store/appStore';
 import { t } from '~/i18n';
 
@@ -125,7 +126,7 @@ export const Wallets: React.FC<WalletsProps> = ({ state }) => {
     addTransaction({
       type: 'chuyen',
       amount: values.amount,
-      category: 'cat_chuyen_khoan',
+      category: TRANSFER_CATEGORY_ID,
       walletId: values.fromWalletId,
       toWalletId: values.toWalletId,
       date: new Date().toISOString().slice(0, 10),

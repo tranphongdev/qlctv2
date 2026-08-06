@@ -18,6 +18,7 @@ import { useIsDarkTheme } from '~/hooks/useIsDarkTheme';
 import type { AppState } from '~/types';
 import { CounterAnimation } from '~/components/CounterAnimation';
 import { formatMoney, formatCompactNumber, formatDate } from '~/utils/format';
+import { resolveCategory } from '~/utils/categories';
 import { DynamicIcon } from '~/components/DynamicIcon';
 import { t } from '~/i18n';
 
@@ -375,7 +376,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
               />
             )}
             {transactions.slice(0, 5).map((tx) => {
-              const cat = categoriesMap[tx.category];
+              const cat = resolveCategory(tx.category, categoriesMap);
               const isThu = tx.type === 'thu';
               return (
                 <div

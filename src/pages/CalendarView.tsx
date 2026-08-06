@@ -3,6 +3,7 @@ import { Calendar, Drawer, List } from 'antd';
 import type { Dayjs } from 'dayjs';
 import type { AppState, Category } from '~/types';
 import { formatMoney } from '~/utils/format';
+import { resolveCategory } from '~/utils/categories';
 import { DynamicIcon } from '~/components/DynamicIcon';
 import { t } from '~/i18n';
 
@@ -61,7 +62,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ state }) => {
           <List
             dataSource={selectedTxs}
             renderItem={(tx) => {
-              const cat = categoriesMap[tx.category];
+              const cat = resolveCategory(tx.category, categoriesMap);
               const isThu = tx.type === 'thu';
               return (
                 <List.Item style={{ padding: '12px 0' }}>

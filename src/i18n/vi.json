@@ -294,6 +294,15 @@
   "goals.submit_create": "Tạo Mục Tiêu",
   "goals.deposit_modal_title": "Nộp tiền tiết kiệm: {name}",
   "goals.deposit_amount_label": "Số tiền nộp (VNĐ)",
+  "goals.deposit_wallet_label": "Chuyển tiền từ ví",
+  "goals.deposit_wallet_placeholder": "Chọn ví nguồn",
+  "goals.deposit_wallet_required": "Chọn nguồn tiền cho khoản nộp này",
+  "goals.deposit_wallet_none": "Không trừ ví nào (chỉ ghi nhận tiến độ)",
+  "goals.deposit_wallet_hint": "Số tiền sẽ được trừ khỏi ví và ghi lại thành một giao dịch chuyển tiền.",
+  "goals.deposit_note_label": "Ghi chú",
+  "goals.deposit_note_placeholder": "Nộp tiết kiệm: {name}",
+  "goals.deposit_default_note": "Nộp tiết kiệm: {name}",
+  "goals.insufficient": "Ví {name} chỉ còn {balance}, không đủ để nộp khoản này!",
   "goals.deposit_submit": "Xác Nhận Nộp",
 
   "dash.income_label": "Thu nhập",
@@ -560,6 +569,9 @@
   "seed.cat_freelance": "Freelance",
   "seed.cat_dau_tu": "Đầu tư & Lãi",
   "seed.cat_thu_khac": "Thu nhập khác",
+
+  "category.transfer": "Chuyển khoản",
+  "category.savings": "Nộp tiết kiệm",
 
   "export.col_date": "Ngày",
   "export.col_time": "Giờ",

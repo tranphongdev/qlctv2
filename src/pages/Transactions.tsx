@@ -14,6 +14,7 @@ import {
 import type { AppState, Category, Transaction, Wallet } from '~/types';
 import { formatMoney, removeAccents } from '~/utils/format';
 import { compareTxNewestFirst } from '~/utils/transactionOrder';
+import { resolveCategory } from '~/utils/categories';
 import { DynamicIcon } from '~/components/DynamicIcon';
 import { exportTransactionsToExcel, exportTransactionsToCSV, printFinancialReport } from '~/utils/export';
 import { t } from '~/i18n';
@@ -67,7 +68,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
     if (searchText) {
       const q = removeAccents(searchText);
       const note = removeAccents(tx.note || '');
-      const catName = removeAccents(categoriesMap[tx.category]?.name || '');
+      const catName = removeAccents(resolveCategory(tx.category, categoriesMap).name);
       const walletName = removeAccents(walletsMap[tx.walletId]?.name || '');
       const amountStr = tx.amount.toString();
       return note.includes(q) || catName.includes(q) || walletName.includes(q) || amountStr.includes(q);
@@ -119,7 +120,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
       dataIndex: 'category',
       key: 'category',
       render: (catId: string) => {
-        const cat = categoriesMap[catId];
+        const cat = resolveCategory(catId, categoriesMap);
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div
@@ -127,15 +128,15 @@ export const Transactions: React.FC<TransactionsProps> = ({
                 width: 32,
                 height: 32,
                 borderRadius: 10,
-                background: cat?.color ? `${cat.color}15` : '#e2e8f0',
+                background: `${cat.color}15`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <DynamicIcon name={cat?.icon || 'CircleDollarSign'} color={cat?.color || '#4F46E5'} size={16} />
+              <DynamicIcon name={cat.icon} color={cat.color} size={16} />
             </div>
-            <span style={{ fontWeight: 600, fontSize: 13 }}>{cat?.name || catId}</span>
+            <span style={{ fontWeight: 600, fontSize: 13 }}>{cat.name}</span>
           </div>
         );
       },
@@ -341,7 +342,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
           </div>
         ) : (
           filteredData.map((tx) => {
-            const cat = categoriesMap[tx.category];
+            const cat = resolveCategory(tx.category, categoriesMap);
             const wallet = walletsMap[tx.walletId];
             const isThu = tx.type === 'thu';
             return (

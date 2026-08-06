@@ -294,6 +294,15 @@
   "goals.submit_create": "Create goal",
   "goals.deposit_modal_title": "Deposit savings: {name}",
   "goals.deposit_amount_label": "Deposit amount (VND)",
+  "goals.deposit_wallet_label": "Transfer from wallet",
+  "goals.deposit_wallet_placeholder": "Pick a source wallet",
+  "goals.deposit_wallet_required": "Choose where this money comes from",
+  "goals.deposit_wallet_none": "Don't deduct any wallet (track progress only)",
+  "goals.deposit_wallet_hint": "The amount is deducted from the wallet and recorded as a transfer transaction.",
+  "goals.deposit_note_label": "Note",
+  "goals.deposit_note_placeholder": "Savings deposit: {name}",
+  "goals.deposit_default_note": "Savings deposit: {name}",
+  "goals.insufficient": "Wallet {name} only has {balance} left — not enough for this deposit!",
   "goals.deposit_submit": "Confirm deposit",
 
   "dash.income_label": "Income",
@@ -560,6 +569,9 @@
   "seed.cat_freelance": "Freelance",
   "seed.cat_dau_tu": "Investments & Interest",
   "seed.cat_thu_khac": "Other income",
+
+  "category.transfer": "Transfer",
+  "category.savings": "Savings deposit",
 
   "export.col_date": "Date",
   "export.col_time": "Time",

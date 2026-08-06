@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { AppState, Category, Transaction, Wallet, Budget, Goal, Debt, NotificationItem, UserSettings } from '~/types';
 import { DEFAULT_USER_SETTINGS } from '~/types';
 import { todayStr } from '~/utils/format';
+import { SAVINGS_CATEGORY_ID } from '~/utils/categories';
 import { sortTxNewestFirst } from '~/utils/transactionOrder';
 import {
   fetchRemoteState,
@@ -385,7 +386,20 @@ export function deleteGoal(id: string) {
   deleteGoalFromSupabase(id);
 }
 
-export function depositToGoal(goalId: string, amount: number) {
+/**
+ * Nộp tiền vào một mục tiêu tiết kiệm.
+ *
+ * `source` là ví bị trừ tiền. Tiền tiết kiệm phải rời khỏi một ví có thật, nếu
+ * không tổng tài sản trong app tự phình lên: mục tiêu tăng mà không ví nào giảm.
+ *
+ * Bút toán được ghi dạng 'chuyen' và cố tình bỏ trống `toWalletId`: tiền rời ví
+ * nhưng không phải khoản chi tiêu, nên các báo cáo thu/chi (vốn chỉ lọc 'thu' và
+ * 'chi') không tính nhầm khoản tiết kiệm thành tiêu xài.
+ *
+ * Bỏ trống `source` khi người dùng chỉ muốn ghi nhận tiến độ thủ công — tiền đã
+ * nằm ngoài hệ thống ví, ví dụ sổ tiết kiệm mở ở ngân hàng chưa khai trong app.
+ */
+export function depositToGoal(goalId: string, amount: number, source?: { walletId: string; note?: string }) {
   const updatedGoals = globalState.goals.map((g) => (g.id === goalId ? { ...g, saved: g.saved + amount } : g));
   globalState = {
     ...globalState,
@@ -395,6 +409,19 @@ export function depositToGoal(goalId: string, amount: number) {
 
   const targetG = updatedGoals.find((g) => g.id === goalId);
   if (targetG) syncGoalToSupabase(targetG);
+
+  // addTransaction lo hết phần còn lại: trừ số dư ví, xếp lại danh sách giao dịch
+  // và đẩy cả bút toán lẫn ví lên Supabase.
+  if (source) {
+    addTransaction({
+      type: 'chuyen',
+      amount,
+      category: SAVINGS_CATEGORY_ID,
+      walletId: source.walletId,
+      date: todayStr(),
+      note: source.note,
+    });
+  }
 }
 
 export function addBudget(budget: Omit<Budget, 'id'>) {

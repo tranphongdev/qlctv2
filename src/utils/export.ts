@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import type { Transaction, Wallet, Category } from '~/types';
 import { formatMoney } from './format';
+import { resolveCategory } from './categories';
 import { t } from '~/i18n';
 
 export function exportTransactionsToExcel(
@@ -13,7 +14,7 @@ export function exportTransactionsToExcel(
     [t('export.col_date')]: tx.date,
     [t('export.col_time')]: tx.time || '',
     [t('export.col_type')]: tx.type === 'thu' ? t('export.type_income') : tx.type === 'chi' ? t('export.type_expense') : t('export.type_transfer'),
-    [t('export.col_category')]: categoriesMap[tx.category]?.name || tx.category,
+    [t('export.col_category')]: resolveCategory(tx.category, categoriesMap).name,
     [t('export.col_amount')]: tx.amount,
     [t('export.col_wallet')]: walletsMap[tx.walletId]?.name || tx.walletId,
     [t('export.col_note')]: tx.note || '',
@@ -38,7 +39,7 @@ export function exportTransactionsToCSV(
     i + 1,
     tx.date,
     tx.type,
-    `"${categoriesMap[tx.category]?.name || tx.category}"`,
+    `"${resolveCategory(tx.category, categoriesMap).name}"`,
     tx.amount,
     `"${walletsMap[tx.walletId]?.name || tx.walletId}"`,
     `"${(tx.note || '').replace(/"/g, '""')}"`
