@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, Modal, Form, Input, Select, Empty } from 'antd';
 import { message } from '~/lib/antdApp';
 import { Plus } from 'lucide-react';
-import type { AppState } from '~/types';
+import { TX_TYPE, type AppState } from '~/types';
 import { DynamicIcon } from '~/components/DynamicIcon';
 
 import { addCategory } from '~/store/appStore';
@@ -22,7 +22,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
       name: values.name,
       type: values.type,
       color: values.color || '#4F46E5',
-      icon: values.type === 'chi' ? 'ShoppingBag' : 'Coins',
+      icon: values.type === TX_TYPE.EXPENSE ? 'ShoppingBag' : 'Coins',
       order: categories.length + 1,
     });
     message.success(t('cats.added'));
@@ -30,8 +30,8 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
     form.resetFields();
   };
 
-  const expCategories = categories.filter((c) => c.type === 'chi');
-  const incCategories = categories.filter((c) => c.type === 'thu');
+  const expCategories = categories.filter((c) => c.type === TX_TYPE.EXPENSE);
+  const incCategories = categories.filter((c) => c.type === TX_TYPE.INCOME);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -146,8 +146,8 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
             <Select
               placeholder={t('cats.field_type_placeholder')}
               options={[
-                { value: 'chi', label: t('cats.opt_expense') },
-                { value: 'thu', label: t('cats.opt_income') },
+                { value: TX_TYPE.EXPENSE, label: t('cats.opt_expense') },
+                { value: TX_TYPE.INCOME, label: t('cats.opt_income') },
               ]}
             />
           </Form.Item>

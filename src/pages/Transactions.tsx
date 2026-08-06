@@ -11,7 +11,7 @@ import {
   Edit,
   Eye,
 } from 'lucide-react';
-import type { AppState, Category, Transaction, Wallet } from '~/types';
+import { TX_TYPE, type AppState, type Category, type Transaction, type Wallet } from '~/types';
 import { formatMoney, removeAccents } from '~/utils/format';
 import { compareTxNewestFirst } from '~/utils/transactionOrder';
 import { resolveCategory } from '~/utils/categories';
@@ -87,8 +87,8 @@ export const Transactions: React.FC<TransactionsProps> = ({
   };
 
   const handlePrintPDF = () => {
-    const inc = filteredData.filter((tx) => tx.type === 'thu').reduce((a, b) => a + b.amount, 0);
-    const exp = filteredData.filter((tx) => tx.type === 'chi').reduce((a, b) => a + b.amount, 0);
+    const inc = filteredData.filter((tx) => tx.type === TX_TYPE.INCOME).reduce((a, b) => a + b.amount, 0);
+    const exp = filteredData.filter((tx) => tx.type === TX_TYPE.EXPENSE).reduce((a, b) => a + b.amount, 0);
     printFinancialReport(t('tx.report_title'), { income: inc, expense: exp, balance: inc - exp }, filteredData);
   };
 
@@ -175,7 +175,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
       key: 'amount',
       sorter: (a: Transaction, b: Transaction) => a.amount - b.amount,
       render: (val: number, record: Transaction) => {
-        const isThu = record.type === 'thu';
+        const isThu = record.type === TX_TYPE.INCOME;
         return (
           <span style={{ fontSize: 15, fontWeight: 700, color: isThu ? '#16A34A' : '#DC2626' }}>
             {isThu ? '+' : '-'}{formatMoney(val)}
@@ -284,9 +284,9 @@ export const Transactions: React.FC<TransactionsProps> = ({
           style={{ width: 140, flexShrink: 0 }}
           options={[
             { value: 'all', label: t('tx.filter_all_types') },
-            { value: 'thu', label: t('tx.type_income') },
-            { value: 'chi', label: t('tx.type_expense') },
-            { value: 'chuyen', label: t('tx.type_transfer') },
+            { value: TX_TYPE.INCOME, label: t('tx.type_income') },
+            { value: TX_TYPE.EXPENSE, label: t('tx.type_expense') },
+            { value: TX_TYPE.TRANSFER, label: t('tx.type_transfer') },
           ]}
         />
 
@@ -344,7 +344,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
           filteredData.map((tx) => {
             const cat = resolveCategory(tx.category, categoriesMap);
             const wallet = walletsMap[tx.walletId];
-            const isThu = tx.type === 'thu';
+            const isThu = tx.type === TX_TYPE.INCOME;
             return (
               <div key={tx.id} className="glass-card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

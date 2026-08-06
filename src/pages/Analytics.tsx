@@ -5,7 +5,7 @@ import { Bar } from 'react-chartjs-2';
 import type { ChartData, ChartOptions } from 'chart.js';
 import { tooltipStyle, chartTheme } from '~/utils/chartSetup';
 import { useIsDarkTheme } from '~/hooks/useIsDarkTheme';
-import type { AppState } from '~/types';
+import { TX_TYPE, type AppState } from '~/types';
 import { formatMoney, formatCompactNumber } from '~/utils/format';
 import { t } from '~/i18n';
 
@@ -27,8 +27,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ state }) => {
   const chart = chartTheme(useIsDarkTheme());
   const { transactions } = state;
 
-  const monthlyInc = transactions.filter((t) => t.type === 'thu').reduce((acc, t) => acc + t.amount, 0);
-  const monthlyExp = transactions.filter((t) => t.type === 'chi').reduce((acc, t) => acc + t.amount, 0);
+  const monthlyInc = transactions.filter((t) => t.type === TX_TYPE.INCOME).reduce((acc, t) => acc + t.amount, 0);
+  const monthlyExp = transactions.filter((t) => t.type === TX_TYPE.EXPENSE).reduce((acc, t) => acc + t.amount, 0);
   const savingsRate = monthlyInc > 0 ? Math.round(((monthlyInc - monthlyExp) / monthlyInc) * 100) : 0;
 
   const healthScore = monthlyInc === 0 && monthlyExp === 0 ? 100 : Math.max(0, Math.min(100, Math.round(savingsRate * 0.6 + 40)));
@@ -51,8 +51,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ state }) => {
     if (!t.date) return;
     const key = t.date.slice(0, 7);
     if (!monthMap[key]) monthMap[key] = { thu: 0, chi: 0 };
-    if (t.type === 'thu') monthMap[key].thu += t.amount;
-    if (t.type === 'chi') monthMap[key].chi += t.amount;
+    if (t.type === TX_TYPE.INCOME) monthMap[key].thu += t.amount;
+    if (t.type === TX_TYPE.EXPENSE) monthMap[key].chi += t.amount;
   });
 
   // Luôn vẽ đủ 6 tháng gần nhất. Nếu chỉ vẽ những tháng có giao dịch, chart 1-2 cột

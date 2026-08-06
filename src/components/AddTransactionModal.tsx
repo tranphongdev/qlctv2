@@ -3,7 +3,7 @@ import { Modal, Form, Input, InputNumber, Select, DatePicker, TimePicker, Segmen
 import { message } from '~/lib/antdApp';
 import { UploadOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import type { Category, Transaction, Wallet } from '~/types';
+import { TX_TYPE, WALLET_TYPE, type Category, type Transaction, type TxType, type Wallet } from '~/types';
 import { addWallet } from '~/store/appStore';
 import { TRANSFER_CATEGORY_ID } from '~/utils/categories';
 import { t } from '~/i18n';
@@ -26,7 +26,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   initialData,
 }) => {
   const [form] = Form.useForm();
-  const [txType, setTxType] = useState<'thu' | 'chi' | 'chuyen'>('chi');
+  const [txType, setTxType] = useState<TxType>(TX_TYPE.EXPENSE);
   const [receiptUrl, setReceiptUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -46,11 +46,11 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           recurring: initialData.recurring || 'none',
         });
       } else {
-        setTxType('chi');
+        setTxType(TX_TYPE.EXPENSE);
         setReceiptUrl(undefined);
         form.resetFields();
         form.setFieldsValue({
-          type: 'chi',
+          type: TX_TYPE.EXPENSE,
           walletId: wallets[0]?.id || '',
           date: dayjs(),
           time: dayjs(),
@@ -63,7 +63,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   const handleCreateDefaultWallet = () => {
     addWallet({
       name: t('atm.default_wallet_name'),
-      type: 'cash',
+      type: WALLET_TYPE.CASH,
       balance: 0,
       color: '#10B981',
       icon: 'Banknote',
@@ -81,9 +81,9 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     const data: Omit<Transaction, 'id'> = {
       type: txType,
       amount: values.amount,
-      category: txType === 'chuyen' ? TRANSFER_CATEGORY_ID : values.category,
+      category: txType === TX_TYPE.TRANSFER ? TRANSFER_CATEGORY_ID : values.category,
       walletId: values.walletId,
-      toWalletId: txType === 'chuyen' ? values.toWalletId : undefined,
+      toWalletId: txType === TX_TYPE.TRANSFER ? values.toWalletId : undefined,
       date: values.date.format('YYYY-MM-DD'),
       time: values.time ? values.time.format('HH:mm') : undefined,
       note: values.note,
@@ -112,7 +112,9 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     }
   };
 
-  const filteredCategories = categories.filter((c) => c.type === (txType === 'chuyen' ? 'chi' : txType));
+  const filteredCategories = categories.filter(
+    (c) => c.type === (txType === TX_TYPE.TRANSFER ? TX_TYPE.EXPENSE : txType),
+  );
 
   return (
     <Modal
@@ -150,12 +152,12 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         <Form.Item label={t('atm.type_label')}>
           <Segmented
             options={[
-              { label: t('atm.type_expense'), value: 'chi' },
-              { label: t('atm.type_income'), value: 'thu' },
-              { label: t('atm.type_transfer'), value: 'chuyen' },
+              { label: t('atm.type_expense'), value: TX_TYPE.EXPENSE },
+              { label: t('atm.type_income'), value: TX_TYPE.INCOME },
+              { label: t('atm.type_transfer'), value: TX_TYPE.TRANSFER },
             ]}
             value={txType}
-            onChange={(val) => setTxType(val as any)}
+            onChange={(val) => setTxType(val as TxType)}
             block
             style={{ padding: 4 }}
           />
@@ -178,7 +180,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
         {/* Category & Wallet */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12 }}>
-          {txType !== 'chuyen' ? (
+          {txType !== TX_TYPE.TRANSFER ? (
             <Form.Item
               name="category"
               label={t('atm.category_label')}
@@ -215,7 +217,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
           <Form.Item
             name="walletId"
-            label={txType === 'chuyen' ? t('atm.from_wallet_label') : t('atm.wallet_label')}
+            label={txType === TX_TYPE.TRANSFER ? t('atm.from_wallet_label') : t('atm.wallet_label')}
             rules={[{ required: true, message: t('atm.wallet_required') }]}
           >
             <Select

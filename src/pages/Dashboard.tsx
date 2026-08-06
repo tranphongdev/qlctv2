@@ -15,7 +15,7 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 import type { ChartData, ChartOptions } from 'chart.js';
 import { tooltipStyle, chartTheme } from '~/utils/chartSetup';
 import { useIsDarkTheme } from '~/hooks/useIsDarkTheme';
-import type { AppState } from '~/types';
+import { TX_TYPE, type AppState } from '~/types';
 import { CounterAnimation } from '~/components/CounterAnimation';
 import { formatMoney, formatCompactNumber, formatDate } from '~/utils/format';
 import { resolveCategory } from '~/utils/categories';
@@ -49,10 +49,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
   const activeTxs = currentMonthTxs.length > 0 ? currentMonthTxs : transactions;
 
   const monthlyIncome = activeTxs
-    .filter((t) => t.type === 'thu')
+    .filter((t) => t.type === TX_TYPE.INCOME)
     .reduce((acc, t) => acc + t.amount, 0);
   const monthlyExpense = activeTxs
-    .filter((t) => t.type === 'chi')
+    .filter((t) => t.type === TX_TYPE.EXPENSE)
     .reduce((acc, t) => acc + t.amount, 0);
   const monthlySavings = Math.max(0, monthlyIncome - monthlyExpense);
   const savingsRate = monthlyIncome > 0 ? Math.round((monthlySavings / monthlyIncome) * 100) : 0;
@@ -66,10 +66,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
     currentMonthTxs.length > 0 && openingBalance > 0 ? (netCashFlow / openingBalance) * 100 : null;
 
   const incomeSourceCount = new Set(
-    activeTxs.filter((t) => t.type === 'thu').map((t) => t.category),
+    activeTxs.filter((t) => t.type === TX_TYPE.INCOME).map((t) => t.category),
   ).size;
   const expenseCategoryCount = new Set(
-    activeTxs.filter((t) => t.type === 'chi').map((t) => t.category),
+    activeTxs.filter((t) => t.type === TX_TYPE.EXPENSE).map((t) => t.category),
   ).size;
 
   // Gom theo tháng, khoá YYYY-MM để không gộp nhầm cùng tháng khác năm.
@@ -78,8 +78,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
     if (!t.date) return;
     const key = t.date.slice(0, 7);
     if (!monthMap[key]) monthMap[key] = { thu: 0, chi: 0 };
-    if (t.type === 'thu') monthMap[key].thu += t.amount;
-    if (t.type === 'chi') monthMap[key].chi += t.amount;
+    if (t.type === TX_TYPE.INCOME) monthMap[key].thu += t.amount;
+    if (t.type === TX_TYPE.EXPENSE) monthMap[key].chi += t.amount;
   });
 
   // Trục hoành là TREND_MONTHS tháng liên tục kết thúc ở tháng hiện tại, kể cả tháng
@@ -97,7 +97,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
   const categoriesMap = categories.reduce((acc, c) => ({ ...acc, [c.id]: c }), {} as Record<string, any>);
   const categoryExpenses: Record<string, number> = {};
   currentMonthTxs.forEach((t) => {
-    if (t.type === 'chi') {
+    if (t.type === TX_TYPE.EXPENSE) {
       categoryExpenses[t.category] = (categoryExpenses[t.category] || 0) + t.amount;
     }
   });
@@ -377,7 +377,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
             )}
             {transactions.slice(0, 5).map((tx) => {
               const cat = resolveCategory(tx.category, categoriesMap);
-              const isThu = tx.type === 'thu';
+              const isThu = tx.type === TX_TYPE.INCOME;
               return (
                 <div
                   key={tx.id}

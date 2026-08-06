@@ -1,4 +1,12 @@
-export type TxType = 'thu' | 'chi' | 'chuyen';
+export const TX_TYPE = {
+  INCOME: 'thu',
+  EXPENSE: 'chi',
+  TRANSFER: 'chuyen',
+} as const;
+
+export type TxType = (typeof TX_TYPE)[keyof typeof TX_TYPE];
+
+export type CategoryType = typeof TX_TYPE.INCOME | typeof TX_TYPE.EXPENSE;
 
 export interface Transaction {
   id: string;
@@ -6,7 +14,7 @@ export interface Transaction {
   amount: number;
   category: string;
   walletId: string;
-  toWalletId?: string; // Used when type === 'chuyen'
+  toWalletId?: string; // Chỉ dùng khi type === TX_TYPE.TRANSFER
   date: string; // YYYY-MM-DD
   time?: string; // HH:mm
   note?: string;
@@ -18,7 +26,15 @@ export interface Transaction {
   status?: 'completed' | 'pending';
 }
 
-export type WalletType = 'cash' | 'bank' | 'e_wallet' | 'crypto' | 'usd';
+export const WALLET_TYPE = {
+  CASH: 'cash',
+  BANK: 'bank',
+  E_WALLET: 'e_wallet',
+  CRYPTO: 'crypto',
+  USD: 'usd',
+} as const;
+
+export type WalletType = (typeof WALLET_TYPE)[keyof typeof WALLET_TYPE];
 
 export interface Wallet {
   id: string;
@@ -35,7 +51,7 @@ export interface Wallet {
 export interface Category {
   id: string;
   name: string;
-  type: 'thu' | 'chi';
+  type: CategoryType;
   icon: string; // Lucide icon name
   color: string;
   isArchived?: boolean;
@@ -65,7 +81,19 @@ export interface Goal {
   category?: string;
 }
 
-export type DebtDirection = 'toi_no' | 'no_toi'; // toi_no: Cho vay (Lending), no_toi: Đi vay (Borrowing)
+export const DEBT_DIRECTION = {
+  LENDING: 'toi_no',
+  BORROWING: 'no_toi',
+} as const;
+
+export type DebtDirection = (typeof DEBT_DIRECTION)[keyof typeof DEBT_DIRECTION];
+
+export const DEBT_STATUS = {
+  ACTIVE: 'active',
+  SETTLED: 'settled',
+} as const;
+
+export type DebtStatus = (typeof DEBT_STATUS)[keyof typeof DEBT_STATUS];
 
 export interface Debt {
   id: string;
@@ -77,7 +105,7 @@ export interface Debt {
   note?: string;
   phone?: string;
   created: string;
-  status: 'active' | 'settled';
+  status: DebtStatus;
 }
 
 export interface NotificationItem {

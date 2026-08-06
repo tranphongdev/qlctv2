@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Drawer, List } from 'antd';
 import type { Dayjs } from 'dayjs';
-import type { AppState, Category } from '~/types';
+import { TX_TYPE, type AppState, type Category } from '~/types';
 import { formatMoney } from '~/utils/format';
 import { resolveCategory } from '~/utils/categories';
 import { DynamicIcon } from '~/components/DynamicIcon';
@@ -21,8 +21,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ state }) => {
     const dayTxs = transactions.filter((t) => t.date === dateStr);
     if (dayTxs.length === 0) return null;
 
-    const inc = dayTxs.filter((t) => t.type === 'thu').reduce((a, b) => a + b.amount, 0);
-    const exp = dayTxs.filter((t) => t.type === 'chi').reduce((a, b) => a + b.amount, 0);
+    const inc = dayTxs.filter((t) => t.type === TX_TYPE.INCOME).reduce((a, b) => a + b.amount, 0);
+    const exp = dayTxs.filter((t) => t.type === TX_TYPE.EXPENSE).reduce((a, b) => a + b.amount, 0);
 
     return (
       <div style={{ fontSize: 10 }}>
@@ -63,7 +63,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ state }) => {
             dataSource={selectedTxs}
             renderItem={(tx) => {
               const cat = resolveCategory(tx.category, categoriesMap);
-              const isThu = tx.type === 'thu';
+              const isThu = tx.type === TX_TYPE.INCOME;
               return (
                 <List.Item style={{ padding: '12px 0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>

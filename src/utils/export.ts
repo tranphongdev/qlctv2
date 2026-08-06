@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import type { Transaction, Wallet, Category } from '~/types';
+import { TX_TYPE, type Transaction, type Wallet, type Category } from '~/types';
 import { formatMoney } from './format';
 import { resolveCategory } from './categories';
 import { t } from '~/i18n';
@@ -13,7 +13,12 @@ export function exportTransactionsToExcel(
     'STT': index + 1,
     [t('export.col_date')]: tx.date,
     [t('export.col_time')]: tx.time || '',
-    [t('export.col_type')]: tx.type === 'thu' ? t('export.type_income') : tx.type === 'chi' ? t('export.type_expense') : t('export.type_transfer'),
+    [t('export.col_type')]:
+      tx.type === TX_TYPE.INCOME
+        ? t('export.type_income')
+        : tx.type === TX_TYPE.EXPENSE
+          ? t('export.type_expense')
+          : t('export.type_transfer'),
     [t('export.col_category')]: resolveCategory(tx.category, categoriesMap).name,
     [t('export.col_amount')]: tx.amount,
     [t('export.col_wallet')]: walletsMap[tx.walletId]?.name || tx.walletId,
@@ -113,10 +118,10 @@ export function printFinancialReport(title: string, summary: { income: number; e
           ${transactions.map(tx => `
             <tr>
               <td>${tx.date}</td>
-              <td>${tx.type === 'thu' ? t('export.type_income') : t('export.type_expense')}</td>
+              <td>${tx.type === TX_TYPE.INCOME ? t('export.type_income') : t('export.type_expense')}</td>
               <td>${tx.category}</td>
               <td>${tx.note || ''}</td>
-              <td class="amount-${tx.type}">${tx.type === 'thu' ? '+' : '-'}${formatMoney(tx.amount)}</td>
+              <td class="amount-${tx.type}">${tx.type === TX_TYPE.INCOME ? '+' : '-'}${formatMoney(tx.amount)}</td>
             </tr>
           `).join('')}
         </tbody>

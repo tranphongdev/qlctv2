@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import type { AppState, UserSettings, Transaction, Wallet, Goal, Debt, Budget, Category, NotificationItem } from '~/types';
+import type { AppState, UserSettings, Transaction, Wallet, Goal, Debt, DebtStatus, Budget, Category, NotificationItem } from '~/types';
 import { defaultCategories } from '~/store/appStore';
 import { sortTxNewestFirst } from '~/utils/transactionOrder';
 
@@ -137,7 +137,7 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
             note: d.note,
             phone: d.phone,
             created: d.created_at ? d.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10),
-            status: d.status as 'active' | 'settled',
+            status: d.status as DebtStatus,
           }))
         : [],
       categories:

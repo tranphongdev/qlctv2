@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { AppState, Category, Transaction, Wallet, Budget, Goal, Debt, NotificationItem, UserSettings } from '~/types';
-import { DEFAULT_USER_SETTINGS } from '~/types';
+import { DEBT_STATUS, DEFAULT_USER_SETTINGS, TX_TYPE } from '~/types';
 import { todayStr } from '~/utils/format';
 import { SAVINGS_CATEGORY_ID } from '~/utils/categories';
 import { sortTxNewestFirst } from '~/utils/transactionOrder';
@@ -41,20 +41,20 @@ const OWNER_KEY = 'quan_ly_chi_tieu_pro_owner';
  * trước cả khi App kịp đọc cài đặt ngôn ngữ của người dùng.
  */
 const DEFAULT_CATEGORY_SEEDS: Array<Omit<Category, 'name'>> = [
-  { id: 'cat_an_uong', type: 'chi', icon: 'Utensils', color: '#EF4444', order: 1 },
-  { id: 'cat_cafe', type: 'chi', icon: 'Coffee', color: '#F59E0B', order: 2 },
-  { id: 'cat_mua_sam', type: 'chi', icon: 'ShoppingBag', color: '#EC4899', order: 3 },
-  { id: 'cat_tien_nha', type: 'chi', icon: 'Home', color: '#6366F1', order: 4 },
-  { id: 'cat_dien', type: 'chi', icon: 'Zap', color: '#3B82F6', order: 5 },
-  { id: 'cat_internet', type: 'chi', icon: 'Wifi', color: '#06B6D4', order: 6 },
-  { id: 'cat_du_lich', type: 'chi', icon: 'Plane', color: '#10B981', order: 7 },
-  { id: 'cat_giai_tri', type: 'chi', icon: 'Gamepad2', color: '#8B5CF6', order: 8 },
-  { id: 'cat_hoc_tap', type: 'chi', icon: 'GraduationCap', color: '#14B8A6', order: 9 },
-  { id: 'cat_y_te', type: 'chi', icon: 'HeartPulse', color: '#F43F5E', order: 10 },
-  { id: 'cat_luong', type: 'thu', icon: 'WalletCards', color: '#22C55E', order: 11 },
-  { id: 'cat_freelance', type: 'thu', icon: 'Laptop', color: '#10B981', order: 12 },
-  { id: 'cat_dau_tu', type: 'thu', icon: 'TrendingUp', color: '#3B82F6', order: 13 },
-  { id: 'cat_thu_khac', type: 'thu', icon: 'Coins', color: '#8B5CF6', order: 14 },
+  { id: 'cat_an_uong', type: TX_TYPE.EXPENSE, icon: 'Utensils', color: '#EF4444', order: 1 },
+  { id: 'cat_cafe', type: TX_TYPE.EXPENSE, icon: 'Coffee', color: '#F59E0B', order: 2 },
+  { id: 'cat_mua_sam', type: TX_TYPE.EXPENSE, icon: 'ShoppingBag', color: '#EC4899', order: 3 },
+  { id: 'cat_tien_nha', type: TX_TYPE.EXPENSE, icon: 'Home', color: '#6366F1', order: 4 },
+  { id: 'cat_dien', type: TX_TYPE.EXPENSE, icon: 'Zap', color: '#3B82F6', order: 5 },
+  { id: 'cat_internet', type: TX_TYPE.EXPENSE, icon: 'Wifi', color: '#06B6D4', order: 6 },
+  { id: 'cat_du_lich', type: TX_TYPE.EXPENSE, icon: 'Plane', color: '#10B981', order: 7 },
+  { id: 'cat_giai_tri', type: TX_TYPE.EXPENSE, icon: 'Gamepad2', color: '#8B5CF6', order: 8 },
+  { id: 'cat_hoc_tap', type: TX_TYPE.EXPENSE, icon: 'GraduationCap', color: '#14B8A6', order: 9 },
+  { id: 'cat_y_te', type: TX_TYPE.EXPENSE, icon: 'HeartPulse', color: '#F43F5E', order: 10 },
+  { id: 'cat_luong', type: TX_TYPE.INCOME, icon: 'WalletCards', color: '#22C55E', order: 11 },
+  { id: 'cat_freelance', type: TX_TYPE.INCOME, icon: 'Laptop', color: '#10B981', order: 12 },
+  { id: 'cat_dau_tu', type: TX_TYPE.INCOME, icon: 'TrendingUp', color: '#3B82F6', order: 13 },
+  { id: 'cat_thu_khac', type: TX_TYPE.INCOME, icon: 'Coins', color: '#8B5CF6', order: 14 },
 ];
 
 export function defaultCategories(): Category[] {
@@ -241,13 +241,13 @@ export function useAppState(): AppState {
 function applyTxToWallets(wallets: Wallet[], tx: Pick<Transaction, 'type' | 'amount' | 'walletId' | 'toWalletId'>, sign: 1 | -1): Wallet[] {
   const delta = sign * tx.amount;
   return wallets.map((w) => {
-    if (tx.type === 'thu' && w.id === tx.walletId) {
+    if (tx.type === TX_TYPE.INCOME && w.id === tx.walletId) {
       return { ...w, balance: w.balance + delta };
     }
-    if (tx.type === 'chi' && w.id === tx.walletId) {
+    if (tx.type === TX_TYPE.EXPENSE && w.id === tx.walletId) {
       return { ...w, balance: w.balance - delta };
     }
-    if (tx.type === 'chuyen') {
+    if (tx.type === TX_TYPE.TRANSFER) {
       if (w.id === tx.walletId) return { ...w, balance: w.balance - delta };
       if (w.id === tx.toWalletId) return { ...w, balance: w.balance + delta };
     }
@@ -308,10 +308,10 @@ export function deleteTransaction(id: string) {
   if (!target) return;
 
   const updatedWallets = globalState.wallets.map((w) => {
-    if (target.type === 'thu' && w.id === target.walletId) {
+    if (target.type === TX_TYPE.INCOME && w.id === target.walletId) {
       return { ...w, balance: Math.max(0, w.balance - target.amount) };
     }
-    if (target.type === 'chi' && w.id === target.walletId) {
+    if (target.type === TX_TYPE.EXPENSE && w.id === target.walletId) {
       return { ...w, balance: w.balance + target.amount };
     }
     return w;
@@ -392,9 +392,9 @@ export function deleteGoal(id: string) {
  * `source` là ví bị trừ tiền. Tiền tiết kiệm phải rời khỏi một ví có thật, nếu
  * không tổng tài sản trong app tự phình lên: mục tiêu tăng mà không ví nào giảm.
  *
- * Bút toán được ghi dạng 'chuyen' và cố tình bỏ trống `toWalletId`: tiền rời ví
- * nhưng không phải khoản chi tiêu, nên các báo cáo thu/chi (vốn chỉ lọc 'thu' và
- * 'chi') không tính nhầm khoản tiết kiệm thành tiêu xài.
+ * Bút toán được ghi dạng TRANSFER và cố tình bỏ trống `toWalletId`: tiền rời ví
+ * nhưng không phải khoản chi tiêu, nên các báo cáo thu/chi (vốn chỉ lọc INCOME và
+ * EXPENSE) không tính nhầm khoản tiết kiệm thành tiêu xài.
  *
  * Bỏ trống `source` khi người dùng chỉ muốn ghi nhận tiến độ thủ công — tiền đã
  * nằm ngoài hệ thống ví, ví dụ sổ tiết kiệm mở ở ngân hàng chưa khai trong app.
@@ -414,7 +414,7 @@ export function depositToGoal(goalId: string, amount: number, source?: { walletI
   // và đẩy cả bút toán lẫn ví lên Supabase.
   if (source) {
     addTransaction({
-      type: 'chuyen',
+      type: TX_TYPE.TRANSFER,
       amount,
       category: SAVINGS_CATEGORY_ID,
       walletId: source.walletId,
@@ -443,7 +443,7 @@ export function addDebt(debt: Omit<Debt, 'id' | 'paid' | 'created' | 'status'>) 
     id: 'd_' + Date.now(),
     paid: 0,
     created: todayStr(),
-    status: 'active',
+    status: DEBT_STATUS.ACTIVE,
   };
   globalState = { ...globalState, debts: [...globalState.debts, newD] };
   notifyListeners();
@@ -480,7 +480,7 @@ export function payDebt(debtId: string, amount: number) {
       return {
         ...d,
         paid: newPaid,
-        status: (newPaid >= d.amount ? 'settled' : 'active') as 'active' | 'settled',
+        status: newPaid >= d.amount ? DEBT_STATUS.SETTLED : DEBT_STATUS.ACTIVE,
       };
     }
     return d;

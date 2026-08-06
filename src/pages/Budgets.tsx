@@ -3,7 +3,7 @@ import { Progress, Button, Tag, Modal, Form, Select, InputNumber, Popconfirm, Em
 import { message } from '~/lib/antdApp';
 import { Plus, AlertTriangle, CheckCircle, ShieldAlert, Trash2 } from 'lucide-react';
 import dayjs from 'dayjs';
-import type { AppState, Category } from '~/types';
+import { TX_TYPE, type AppState, type Category } from '~/types';
 import { formatMoney } from '~/utils/format';
 import { addBudget, deleteBudget } from '~/store/appStore';
 import { t } from '~/i18n';
@@ -26,7 +26,7 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
   const categoriesMap = categories.reduce((acc, c) => ({ ...acc, [c.id]: c }), {} as Record<string, Category>);
 
   // Compute spent amount for current month per category
-  const currentMonthTxs = transactions.filter((t) => t.date.startsWith('2026-08') && t.type === 'chi');
+  const currentMonthTxs = transactions.filter((t) => t.date.startsWith('2026-08') && t.type === TX_TYPE.EXPENSE);
   const spentMap: Record<string, number> = {};
   currentMonthTxs.forEach((t) => {
     spentMap[t.category] = (spentMap[t.category] || 0) + t.amount;
@@ -150,7 +150,7 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
             <Select
               placeholder={t('budgets.field_category_required')}
               options={categories
-                .filter((c) => c.type === 'chi')
+                .filter((c) => c.type === TX_TYPE.EXPENSE)
                 .map((c) => ({ value: c.id, label: c.name }))}
             />
           </Form.Item>

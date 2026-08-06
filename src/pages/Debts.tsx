@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Table, Button, Tag, Modal, Form, Input, InputNumber, Select, DatePicker, Empty } from 'antd';
 import { message } from '~/lib/antdApp';
 import { Plus, CheckCircle, Clock } from 'lucide-react';
-import type { AppState, Debt } from '~/types';
+import { DEBT_DIRECTION, DEBT_STATUS, type AppState, type Debt } from '~/types';
 import { formatMoney } from '~/utils/format';
 import { addDebt, payDebt } from '~/store/appStore';
 import { t } from '~/i18n';
@@ -40,8 +40,8 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
     payForm.resetFields();
   };
 
-  const lendingList = debts.filter((d) => d.direction === 'toi_no');
-  const borrowingList = debts.filter((d) => d.direction === 'no_toi');
+  const lendingList = debts.filter((d) => d.direction === DEBT_DIRECTION.LENDING);
+  const borrowingList = debts.filter((d) => d.direction === DEBT_DIRECTION.BORROWING);
 
   const columns = [
     {
@@ -86,7 +86,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) =>
-        status === 'settled' ? (
+        status === DEBT_STATUS.SETTLED ? (
           <Tag color="green" icon={<CheckCircle size={12} />}>{t('debts.settled')}</Tag>
         ) : (
           <Tag color="volcano" icon={<Clock size={12} />}>{t('debts.tracking')}</Tag>
@@ -99,7 +99,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
         <Button
           size="small"
           type="primary"
-          disabled={record.status === 'settled'}
+          disabled={record.status === DEBT_STATUS.SETTLED}
           onClick={() => setPayTarget(record)}
         >
           {t('debts.update_payment')}
@@ -149,7 +149,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{d.note || t('common.no_note')}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontSize: 11, color: '#94a3b8' }}>{t('common.total')}: {formatMoney(d.amount)}</div>
-                    <Button size="small" type="primary" disabled={d.status === 'settled'} onClick={() => setPayTarget(d)}>
+                    <Button size="small" type="primary" disabled={d.status === DEBT_STATUS.SETTLED} onClick={() => setPayTarget(d)}>
                       {t('debts.pay_button')}
                     </Button>
                   </div>
@@ -182,7 +182,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{d.note || t('common.no_note')}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontSize: 11, color: '#94a3b8' }}>{t('common.total')}: {formatMoney(d.amount)}</div>
-                    <Button size="small" type="primary" disabled={d.status === 'settled'} onClick={() => setPayTarget(d)}>
+                    <Button size="small" type="primary" disabled={d.status === DEBT_STATUS.SETTLED} onClick={() => setPayTarget(d)}>
                       {t('debts.pay_button')}
                     </Button>
                   </div>
@@ -204,8 +204,8 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
             <Select
               placeholder={t('debts.field_direction_placeholder')}
               options={[
-                { value: 'toi_no', label: t('debts.opt_lending') },
-                { value: 'no_toi', label: t('debts.opt_borrowing') },
+                { value: DEBT_DIRECTION.LENDING, label: t('debts.opt_lending') },
+                { value: DEBT_DIRECTION.BORROWING, label: t('debts.opt_borrowing') },
               ]}
             />
           </Form.Item>

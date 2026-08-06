@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, Modal, Form, Input, InputNumber, Select, Space, Popconfirm, Empty } from 'antd';
 import { message } from '~/lib/antdApp';
 import { Plus, ArrowRightLeft, Building2, Smartphone, Banknote, Bitcoin, Trash2, Pencil } from 'lucide-react';
-import type { AppState, Wallet } from '~/types';
+import { TX_TYPE, WALLET_TYPE, type AppState, type Wallet } from '~/types';
 import { formatMoney } from '~/utils/format';
 import { TRANSFER_CATEGORY_ID } from '~/utils/categories';
 import { addWallet, updateWallet, deleteWallet, addTransaction } from '~/store/appStore';
@@ -14,11 +14,11 @@ import { t } from '~/i18n';
  * dùng chuyển ngôn ngữ.
  */
 const WALLET_TYPE_KEYS = {
-  bank: 'wallets.type_bank',
-  cash: 'wallets.type_cash',
-  e_wallet: 'wallets.type_e_wallet',
-  crypto: 'wallets.type_crypto',
-  usd: 'wallets.type_usd',
+  [WALLET_TYPE.BANK]: 'wallets.type_bank',
+  [WALLET_TYPE.CASH]: 'wallets.type_cash',
+  [WALLET_TYPE.E_WALLET]: 'wallets.type_e_wallet',
+  [WALLET_TYPE.CRYPTO]: 'wallets.type_crypto',
+  [WALLET_TYPE.USD]: 'wallets.type_usd',
 } as const;
 
 const walletTypeLabel = (type: Wallet['type']): string => t(WALLET_TYPE_KEYS[type]);
@@ -86,7 +86,7 @@ export const Wallets: React.FC<WalletsProps> = ({ state }) => {
   };
 
   const iconOfType = (type: Wallet['type']) =>
-    type === 'crypto' ? 'Bitcoin' : type === 'e_wallet' ? 'Smartphone' : 'Building2';
+    type === WALLET_TYPE.CRYPTO ? 'Bitcoin' : type === WALLET_TYPE.E_WALLET ? 'Smartphone' : 'Building2';
 
   const handleSubmitWallet = (values: any) => {
     const fields = {
@@ -124,7 +124,7 @@ export const Wallets: React.FC<WalletsProps> = ({ state }) => {
     }
 
     addTransaction({
-      type: 'chuyen',
+      type: TX_TYPE.TRANSFER,
       amount: values.amount,
       category: TRANSFER_CATEGORY_ID,
       walletId: values.fromWalletId,
@@ -140,11 +140,11 @@ export const Wallets: React.FC<WalletsProps> = ({ state }) => {
 
   const getWalletIcon = (type: Wallet['type']) => {
     switch (type) {
-      case 'cash':
+      case WALLET_TYPE.CASH:
         return <Banknote size={24} color="#ffffff" />;
-      case 'e_wallet':
+      case WALLET_TYPE.E_WALLET:
         return <Smartphone size={24} color="#ffffff" />;
-      case 'crypto':
+      case WALLET_TYPE.CRYPTO:
         return <Bitcoin size={24} color="#ffffff" />;
       default:
         return <Building2 size={24} color="#ffffff" />;
@@ -284,11 +284,11 @@ export const Wallets: React.FC<WalletsProps> = ({ state }) => {
             <Select
               placeholder={t('wallets.field_type_placeholder')}
               options={[
-                { value: 'bank', label: t('wallets.opt_bank') },
-                { value: 'cash', label: t('wallets.opt_cash') },
-                { value: 'e_wallet', label: t('wallets.opt_e_wallet') },
-                { value: 'crypto', label: t('wallets.opt_crypto') },
-                { value: 'usd', label: t('wallets.opt_usd') },
+                { value: WALLET_TYPE.BANK, label: t('wallets.opt_bank') },
+                { value: WALLET_TYPE.CASH, label: t('wallets.opt_cash') },
+                { value: WALLET_TYPE.E_WALLET, label: t('wallets.opt_e_wallet') },
+                { value: WALLET_TYPE.CRYPTO, label: t('wallets.opt_crypto') },
+                { value: WALLET_TYPE.USD, label: t('wallets.opt_usd') },
               ]}
             />
           </Form.Item>
