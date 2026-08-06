@@ -6,7 +6,7 @@ import { isSupabaseConfigured } from './lib/supabase';
 import { message, AntdStaticBridge } from './lib/antdApp';
 import { antdLocale, setActiveLang } from './i18n';
 import { setActiveCurrency } from './utils/currency';
-import { useAppState, deleteTransaction, bulkDeleteTransactions, restoreTransaction, addTransaction, updateTransaction, syncAuthProfile } from './store/appStore';
+import { useAppState, deleteTransaction, bulkDeleteTransactions, restoreTransaction, addTransaction, updateTransaction, startRemoteSync, stopRemoteSync } from './store/appStore';
 import { Header } from './components/Header';
 import { Sidebar, MobileSidebarDrawer } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
@@ -71,11 +71,15 @@ export default function App() {
       setCurrentUser(user);
       setCheckingSession(false);
       if (user) {
-        syncAuthProfile({
+        // startRemoteSync tự lo thứ tự: nạp dữ liệu đã lưu xong mới áp hồ sơ từ
+        // nhà cung cấp đăng nhập, tránh ghi đè cài đặt cũ bằng giá trị mặc định.
+        startRemoteSync(user.id, {
           userName: user.name,
           userEmail: user.email,
           avatarUrl: user.avatarUrl,
         });
+      } else {
+        stopRemoteSync();
       }
     });
     return () => unsubscribe();

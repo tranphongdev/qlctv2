@@ -219,9 +219,29 @@ export async function seedDefaultCategories() {
   }
 }
 
+/**
+ * Ghi một dòng, luôn kèm user_id. Gom về một chỗ để không thể quên gắn khoá phân
+ * vùng khi thêm bảng mới — đó chính là cách dữ liệu của mọi tài khoản từng bị dồn
+ * chung vào một chỗ.
+ */
+async function upsertRow(table: string, label: string, row: Record<string, unknown>) {
+  if (!canSync() || !supabase) return;
+  const { error } = await supabase.from(table).upsert({ ...row, user_id: currentUserId });
+  reportError(`ghi ${label}`, error);
+}
+
+/**
+ * Xoá một dòng của chính người dùng hiện tại. Lọc thêm user_id bên cạnh RLS để
+ * một id đoán trúng cũng không xoá được dữ liệu của người khác.
+ */
+async function deleteRow(table: string, label: string, id: string) {
+  if (!canSync() || !supabase) return;
+  const { error } = await supabase.from(table).delete().eq('id', id).eq('user_id', currentUserId);
+  reportError(`xoá ${label}`, error);
+}
+
 export async function syncTransactionToSupabase(tx: Transaction) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('transactions').upsert({
+  await upsertRow('transactions', 'transactions', {
     id: tx.id,
     type: tx.type,
     amount: tx.amount,
@@ -240,13 +260,11 @@ export async function syncTransactionToSupabase(tx: Transaction) {
 }
 
 export async function deleteTransactionFromSupabase(id: string) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('transactions').delete().eq('id', id);
+  await deleteRow('transactions', 'transactions', id);
 }
 
 export async function syncWalletToSupabase(wallet: Wallet) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('wallets').upsert({
+  await upsertRow('wallets', 'wallets', {
     id: wallet.id,
     name: wallet.name,
     type: wallet.type,
@@ -259,13 +277,11 @@ export async function syncWalletToSupabase(wallet: Wallet) {
 }
 
 export async function deleteWalletFromSupabase(id: string) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('wallets').delete().eq('id', id);
+  await deleteRow('wallets', 'wallets', id);
 }
 
 export async function syncGoalToSupabase(goal: Goal) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('goals').upsert({
+  await upsertRow('goals', 'goals', {
     id: goal.id,
     name: goal.name,
     target: goal.target,
@@ -277,13 +293,11 @@ export async function syncGoalToSupabase(goal: Goal) {
 }
 
 export async function deleteGoalFromSupabase(id: string) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('goals').delete().eq('id', id);
+  await deleteRow('goals', 'goals', id);
 }
 
 export async function syncDebtToSupabase(debt: Debt) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('debts').upsert({
+  await upsertRow('debts', 'debts', {
     id: debt.id,
     name: debt.name,
     direction: debt.direction,
@@ -296,13 +310,11 @@ export async function syncDebtToSupabase(debt: Debt) {
 }
 
 export async function deleteDebtFromSupabase(id: string) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('debts').delete().eq('id', id);
+  await deleteRow('debts', 'debts', id);
 }
 
 export async function syncBudgetToSupabase(budget: Budget) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('budgets').upsert({
+  await upsertRow('budgets', 'budgets', {
     id: budget.id,
     category: budget.category,
     amount: budget.amount,
@@ -312,13 +324,11 @@ export async function syncBudgetToSupabase(budget: Budget) {
 }
 
 export async function deleteBudgetFromSupabase(id: string) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('budgets').delete().eq('id', id);
+  await deleteRow('budgets', 'budgets', id);
 }
 
 export async function syncCategoryToSupabase(category: Category) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('categories').upsert({
+  await upsertRow('categories', 'categories', {
     id: category.id,
     name: category.name,
     type: category.type,
@@ -329,13 +339,11 @@ export async function syncCategoryToSupabase(category: Category) {
 }
 
 export async function deleteCategoryFromSupabase(id: string) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('categories').delete().eq('id', id);
+  await deleteRow('categories', 'categories', id);
 }
 
 export async function syncNotificationToSupabase(notif: NotificationItem) {
-  if (!isSupabaseConfigured || !supabase) return;
-  await supabase.from('notifications').upsert({
+  await upsertRow('notifications', 'notifications', {
     id: notif.id,
     title: notif.title,
     message: notif.message,
@@ -344,4 +352,3 @@ export async function syncNotificationToSupabase(notif: NotificationItem) {
     type: notif.type,
   });
 }
-

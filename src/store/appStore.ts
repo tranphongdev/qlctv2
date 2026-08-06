@@ -16,9 +16,14 @@ import {
   deleteBudgetFromSupabase,
   syncCategoryToSupabase,
   deleteCategoryFromSupabase,
+  syncProfileToSupabase,
+  setSyncUserId,
+  getSyncUserId,
 } from '../lib/supabaseSync';
 
 const STORAGE_KEY = 'quan_ly_chi_tieu_pro_v2';
+/** Tài khoản sở hữu dữ liệu đang nằm trong localStorage của máy này. */
+const OWNER_KEY = 'quan_ly_chi_tieu_pro_owner';
 
 export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'cat_an_uong', name: 'Ăn uống', type: 'chi', icon: 'Utensils', color: '#EF4444', order: 1 },
@@ -87,16 +92,53 @@ function notifyListeners() {
   }
 }
 
-// Initial Sync from Supabase if configured
-fetchRemoteState().then((remoteData) => {
+/**
+ * Bắt đầu phiên đồng bộ cho một tài khoản.
+ *
+ * Trước đây `fetchRemoteState()` được gọi ngay lúc import module, tức là trước khi
+ * Supabase kịp khôi phục phiên — không có user_id nên không thể lọc theo người
+ * dùng. Giờ App gọi hàm này sau khi biết chắc ai đang đăng nhập.
+ */
+export async function startRemoteSync(
+  userId: string,
+  authProfile: { userName: string; userEmail: string; avatarUrl: string },
+) {
+  // onAuthChange còn bắn cả khi làm mới token (khoảng mỗi giờ). Đã đồng bộ cho
+  // đúng tài khoản này rồi thì không kéo lại toàn bộ bảng lần nữa.
+  if (getSyncUserId() === userId) return;
+
+  setSyncUserId(userId);
+
+  // Cùng một trình duyệt có thể đã lưu dữ liệu của tài khoản khác. Dọn trước khi
+  // nạp để người mới đăng nhập không thấy thoáng qua số liệu của người trước.
+  if (localStorage.getItem(OWNER_KEY) !== userId) {
+    globalState = { ...DEFAULT_APP_STATE };
+    localStorage.setItem(OWNER_KEY, userId);
+    notifyListeners();
+  }
+
+  const remoteData = await fetchRemoteState();
   if (remoteData) {
+    const { profile, ...tables } = remoteData;
     globalState = {
       ...globalState,
-      ...remoteData,
+      ...tables,
+      // Trộn chứ không thay: bảng profiles chỉ giữ một phần UserSettings.
+      settings: { ...globalState.settings, ...profile },
     };
     notifyListeners();
   }
-});
+
+  // Chỉ áp hồ sơ từ nhà cung cấp đăng nhập SAU khi đã nạp xong hồ sơ đã lưu.
+  // Làm ngược lại thì trên máy mới, cài đặt mặc định sẽ được đẩy lên đè mất
+  // ảnh đại diện và đơn vị tiền người dùng từng chọn.
+  syncAuthProfile(authProfile);
+}
+
+/** Kết thúc phiên: ngắt đường ghi để không có gì rò sang tài khoản kế tiếp. */
+export function stopRemoteSync() {
+  setSyncUserId(null);
+}
 
 export function useAppState(): AppState {
   const [state, setState] = useState<AppState>(globalState);
@@ -339,6 +381,7 @@ export function updateSettings(newSettings: Partial<AppState['settings']>) {
     settings: { ...globalState.settings, ...newSettings },
   };
   notifyListeners();
+  syncProfileToSupabase(globalState.settings);
 }
 
 /**
