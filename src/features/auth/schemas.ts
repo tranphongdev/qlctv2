@@ -1,52 +1,63 @@
 import { z } from 'zod';
+import { t } from '../../i18n';
 
-export const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, { message: 'Vui lòng nhập địa chỉ Email' })
-    .email({ message: 'Email không hợp lệ (Ví dụ: user@example.com)' }),
-  password: z
-    .string()
-    .min(1, { message: 'Vui lòng nhập mật khẩu' }),
-  remember: z.boolean().optional(),
-});
+/**
+ * Các schema được dựng qua hàm chứ không phải hằng số module: thông báo lỗi lấy từ
+ * t(), mà t() đọc ngôn ngữ đang hoạt động tại thời điểm gọi. Nếu để dạng hằng số,
+ * chuỗi lỗi sẽ bị đóng băng theo ngôn ngữ lúc import và không bao giờ đổi khi người
+ * dùng chuyển ngôn ngữ trong Cài đặt.
+ */
 
-export type LoginFormData = z.infer<typeof loginSchema>;
-
-export const registerSchema = z
-  .object({
-    name: z
-      .string()
-      .min(2, { message: 'Họ và tên phải chứa ít nhất 2 ký tự' }),
+export const loginSchema = () =>
+  z.object({
     email: z
       .string()
-      .min(1, { message: 'Vui lòng nhập địa chỉ Email' })
-      .email({ message: 'Email không hợp lệ (Ví dụ: user@example.com)' }),
+      .min(1, { message: t('validation.email_required') })
+      .email({ message: t('validation.email_invalid') }),
     password: z
       .string()
-      .min(6, { message: 'Mật khẩu phải có ít nhất 6 ký tự' }),
-    confirmPassword: z
-      .string()
-      .min(1, { message: 'Vui lòng nhập lại mật khẩu' }),
-    currency: z.enum(['VND', 'USD', 'EUR'], {
-      message: 'Vui lòng chọn loại tiền tệ mặc định',
-    }),
-    agreeTerms: z.boolean().refine((val) => val === true, {
-      message: 'Bạn phải đồng ý với Điều khoản sử dụng & Chính sách bảo mật',
-    }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Mật khẩu nhập lại không trùng khớp',
-    path: ['confirmPassword'],
+      .min(1, { message: t('validation.password_required') }),
+    remember: z.boolean().optional(),
   });
 
-export type RegisterFormData = z.infer<typeof registerSchema>;
+export type LoginFormData = z.infer<ReturnType<typeof loginSchema>>;
 
-export const forgotPasswordSchema = z.object({
-  email: z
-    .string()
-    .min(1, { message: 'Vui lòng nhập địa chỉ Email nhận link khôi phục' })
-    .email({ message: 'Email không đúng định dạng' }),
-});
+export const registerSchema = () =>
+  z
+    .object({
+      name: z
+        .string()
+        .min(2, { message: t('validation.name_min') }),
+      email: z
+        .string()
+        .min(1, { message: t('validation.email_required') })
+        .email({ message: t('validation.email_invalid') }),
+      password: z
+        .string()
+        .min(6, { message: t('validation.password_min') }),
+      confirmPassword: z
+        .string()
+        .min(1, { message: t('validation.confirm_required') }),
+      currency: z.enum(['VND', 'USD', 'EUR'], {
+        message: t('validation.currency_required'),
+      }),
+      agreeTerms: z.boolean().refine((val) => val === true, {
+        message: t('validation.terms_required'),
+      }),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t('validation.password_mismatch'),
+      path: ['confirmPassword'],
+    });
 
-export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+export type RegisterFormData = z.infer<ReturnType<typeof registerSchema>>;
+
+export const forgotPasswordSchema = () =>
+  z.object({
+    email: z
+      .string()
+      .min(1, { message: t('validation.forgot_email_required') })
+      .email({ message: t('validation.email_format') }),
+  });
+
+export type ForgotPasswordFormData = z.infer<ReturnType<typeof forgotPasswordSchema>>;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Input, List, Tag } from 'antd';
+import { t } from '../i18n';
 import {
   Search,
   LayoutDashboard,
@@ -39,107 +40,107 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const commands = [
     {
       id: 'cmd_add',
-      title: 'Thêm giao dịch mới',
-      subtitle: 'Tạo giao dịch thu nhập, chi tiêu hoặc chuyển khoản ví',
+      title: t('cmd.add_tx_title'),
+      subtitle: t('cmd.add_tx_subtitle'),
       icon: <PlusCircle size={18} color="#22C55E" />,
       action: () => {
         onClose();
         onOpenAddModal();
       },
-      category: 'Thao tác nhanh',
+      category: t('cmd.cat_quick_actions'),
     },
     {
       id: 'nav_dashboard',
-      title: 'Mở Trang Tổng quan (Dashboard)',
-      subtitle: 'Xem 4 thẻ chỉ số, biểu đồ thu chi và biến động tài sản',
+      title: t('cmd.dashboard_title'),
+      subtitle: t('cmd.dashboard_subtitle'),
       icon: <LayoutDashboard size={18} color="#4F46E5" />,
       action: () => {
         onClose();
         onSelectTab('dashboard');
       },
-      category: 'Điều hướng',
+      category: t('cmd.cat_navigation'),
     },
     {
       id: 'nav_transactions',
-      title: 'Mở Quản lý Giao dịch',
-      subtitle: 'Xem danh sách, lọc, sắp xếp và xuất dữ liệu Excel',
+      title: t('cmd.transactions_title'),
+      subtitle: t('cmd.transactions_subtitle'),
       icon: <Receipt size={18} color="#7C3AED" />,
       action: () => {
         onClose();
         onSelectTab('transactions');
       },
-      category: 'Điều hướng',
+      category: t('cmd.cat_navigation'),
     },
     {
       id: 'nav_wallets',
-      title: 'Mở Quản lý Ví & Nguồn tiền',
-      subtitle: 'Ví tiền mặt, MB Bank, Vietcombank, MoMo, Crypto',
+      title: t('cmd.wallets_title'),
+      subtitle: t('cmd.wallets_subtitle'),
       icon: <Wallet size={18} color="#2563EB" />,
       action: () => {
         onClose();
         onSelectTab('wallets');
       },
-      category: 'Điều hướng',
+      category: t('cmd.cat_navigation'),
     },
     {
       id: 'nav_budgets',
-      title: 'Mở Quản lý Ngân sách',
-      subtitle: 'Xem và thiết lập hạn mức chi tiêu theo danh mục',
+      title: t('cmd.budgets_title'),
+      subtitle: t('cmd.budgets_subtitle'),
       icon: <PieChart size={18} color="#F59E0B" />,
       action: () => {
         onClose();
         onSelectTab('budgets');
       },
-      category: 'Điều hướng',
+      category: t('cmd.cat_navigation'),
     },
     {
       id: 'nav_goals',
-      title: 'Mở Mục tiêu Tiết kiệm',
-      subtitle: 'Theo dõi tiến độ tiết kiệm mua sắm và dự phòng',
+      title: t('cmd.goals_title'),
+      subtitle: t('cmd.goals_subtitle'),
       icon: <Target size={18} color="#EC4899" />,
       action: () => {
         onClose();
         onSelectTab('goals');
       },
-      category: 'Điều hướng',
+      category: t('cmd.cat_navigation'),
     },
     {
       id: 'nav_debts',
-      title: 'Mở Sổ Nợ & Cho vay',
-      subtitle: 'Theo dõi các khoản vay, cho vay và ngày hẹn trả',
+      title: t('cmd.debts_title'),
+      subtitle: t('cmd.debts_subtitle'),
       icon: <HandCoins size={18} color="#10B981" />,
       action: () => {
         onClose();
         onSelectTab('debts');
       },
-      category: 'Điều hướng',
+      category: t('cmd.cat_navigation'),
     },
     {
       id: 'nav_analytics',
-      title: 'Mở Thống kê & Phân tích Tài chính',
-      subtitle: 'Báo cáo chi tiết, điểm sức khỏe tài chính và cash flow',
+      title: t('cmd.analytics_title'),
+      subtitle: t('cmd.analytics_subtitle'),
       icon: <BarChart3 size={18} color="#3B82F6" />,
       action: () => {
         onClose();
         onSelectTab('analytics');
       },
-      category: 'Điều hướng',
+      category: t('cmd.cat_navigation'),
     },
     {
       id: 'nav_calendar',
-      title: 'Mở Xem theo Lịch',
-      subtitle: 'Xem giao dịch thu chi phân bổ theo ngày trong tháng',
+      title: t('cmd.calendar_title'),
+      subtitle: t('cmd.calendar_subtitle'),
       icon: <Calendar size={18} color="#8B5CF6" />,
       action: () => {
         onClose();
         onSelectTab('calendar');
       },
-      category: 'Điều hướng',
+      category: t('cmd.cat_navigation'),
     },
     {
       id: 'nav_ai',
-      title: 'Mở AI Financial Insights',
-      subtitle: 'Phân tích thông minh, phát hiện bất thường và hỏi đáp AI',
+      title: t('cmd.ai_title'),
+      subtitle: t('cmd.ai_subtitle'),
       icon: <Sparkles size={18} color="#7C3AED" />,
       action: () => {
         onClose();
@@ -149,14 +150,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     },
     {
       id: 'nav_profile',
-      title: 'Mở Cài đặt & Sao lưu',
-      subtitle: 'Tùy chỉnh giao diện, sao lưu & khôi phục dữ liệu JSON',
+      title: t('cmd.settings_title'),
+      subtitle: t('cmd.settings_subtitle'),
       icon: <User size={18} />,
       action: () => {
         onClose();
         onSelectTab('profile');
       },
-      category: 'Cài đặt',
+      category: t('cmd.cat_settings'),
     },
   ];
 
@@ -183,7 +184,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(148, 163, 184, 0.15)' }}>
         <Input
           prefix={<Search size={20} color="#4F46E5" style={{ marginRight: 8 }} />}
-          placeholder="Nhập từ khóa tìm kiếm hoặc chọn lệnh thao tác nhanh..."
+          placeholder={t('cmd.search_placeholder')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           variant="borderless"
@@ -251,7 +252,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         }}
       >
         <span>
-          Nhấn <kbd style={{ background: 'rgba(148, 163, 184, 0.25)', padding: '2px 6px', borderRadius: 4, color: 'var(--text-body)' }}>ESC</kbd> để thoát
+          {t('cmd.esc_hint_prefix')} <kbd style={{ background: 'rgba(148, 163, 184, 0.25)', padding: '2px 6px', borderRadius: 4, color: 'var(--text-body)' }}>ESC</kbd> {t('cmd.esc_hint_suffix')}
         </span>
         <span>Command Palette</span>
       </div>

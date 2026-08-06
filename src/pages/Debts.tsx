@@ -5,6 +5,7 @@ import { Plus, CheckCircle, Clock } from 'lucide-react';
 import type { AppState, Debt } from '../types';
 import { formatMoney } from '../utils/format';
 import { addDebt, payDebt } from '../store/appStore';
+import { t } from '../i18n';
 
 interface DebtsProps {
   state: AppState;
@@ -26,7 +27,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
       note: values.note,
       phone: values.phone,
     });
-    message.success('Đã thêm khoản nợ mới!');
+    message.success(t('debts.added'));
     setIsAddOpen(false);
     form.resetFields();
   };
@@ -34,7 +35,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
   const handlePay = (values: any) => {
     if (!payTarget) return;
     payDebt(payTarget.id, values.amount);
-    message.success(`Đã cập nhật thanh toán ${formatMoney(values.amount)}!`);
+    message.success(t('debts.payment_recorded', { amount: formatMoney(values.amount) }));
     setPayTarget(null);
     payForm.resetFields();
   };
@@ -44,30 +45,30 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
 
   const columns = [
     {
-      title: 'Tên đối tác / Khoản nợ',
+      title: t('debts.col_name'),
       dataIndex: 'name',
       key: 'name',
       render: (name: string, record: Debt) => (
         <div>
           <div style={{ fontWeight: 600, fontSize: 14 }}>{name}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{record.note || 'Không có ghi chú'}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{record.note || t('common.no_note')}</div>
         </div>
       ),
     },
     {
-      title: 'Tổng số tiền',
+      title: t('debts.col_total'),
       dataIndex: 'amount',
       key: 'amount',
       render: (val: number) => <span style={{ fontWeight: 700 }}>{formatMoney(val)}</span>,
     },
     {
-      title: 'Đã thanh toán',
+      title: t('debts.col_paid'),
       dataIndex: 'paid',
       key: 'paid',
       render: (val: number) => <span style={{ color: '#16A34A', fontWeight: 600 }}>{formatMoney(val)}</span>,
     },
     {
-      title: 'Còn lại',
+      title: t('debts.col_remaining'),
       key: 'remaining',
       render: (_: any, record: Debt) => {
         const rem = Math.max(0, record.amount - record.paid);
@@ -75,24 +76,24 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
       },
     },
     {
-      title: 'Hạn trả',
+      title: t('debts.col_due'),
       dataIndex: 'due',
       key: 'due',
-      render: (due: string | null) => (due ? <Tag color="orange">{due}</Tag> : <span style={{ color: '#94a3b8' }}>Chưa đặt</span>),
+      render: (due: string | null) => (due ? <Tag color="orange">{due}</Tag> : <span style={{ color: '#94a3b8' }}>{t('debts.not_set')}</span>),
     },
     {
-      title: 'Trạng thái',
+      title: t('common.status'),
       dataIndex: 'status',
       key: 'status',
       render: (status: string) =>
         status === 'settled' ? (
-          <Tag color="green" icon={<CheckCircle size={12} />}>Đã tất toán</Tag>
+          <Tag color="green" icon={<CheckCircle size={12} />}>{t('debts.settled')}</Tag>
         ) : (
-          <Tag color="volcano" icon={<Clock size={12} />}>Đang theo dõi</Tag>
+          <Tag color="volcano" icon={<Clock size={12} />}>{t('debts.tracking')}</Tag>
         ),
     },
     {
-      title: 'Thao tác',
+      title: t('common.actions'),
       key: 'action',
       render: (_: any, record: Debt) => (
         <Button
@@ -101,7 +102,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
           disabled={record.status === 'settled'}
           onClick={() => setPayTarget(record)}
         >
-          Cập nhật trả tiền
+          {t('debts.update_payment')}
         </Button>
       ),
     },
@@ -112,12 +113,12 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
       {/* Header */}
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800 }}>Sổ Nợ & Cho Vay</div>
-          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Theo dõi người khác nợ bạn (Cho vay) và các khoản bạn nợ (Đi vay)</div>
+          <div style={{ fontSize: 20, fontWeight: 800 }}>{t('debts.title')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('debts.subtitle')}</div>
         </div>
 
         <Button type="primary" icon={<Plus size={16} />} size="middle" style={{ borderRadius: 12 }} onClick={() => setIsAddOpen(true)}>
-          Thêm Khoản Nợ Mới
+          {t('debts.add_new')}
         </Button>
       </div>
 
@@ -126,7 +127,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
         {/* Cho vay (Lending) */}
         <div className="glass-card" style={{ padding: 20 }}>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: '#22C55E' }}>
-            🟢 CHO VAY
+            {t('debts.lending')}
           </div>
           <div className="desktop-only">
             <Table columns={columns} dataSource={lendingList} rowKey="id" pagination={false} style={{ width: '100%' }} />
@@ -140,11 +141,11 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
                     <span style={{ fontWeight: 700, fontSize: 15 }}>{d.name}</span>
                     <span style={{ color: rem > 0 ? '#DC2626' : '#16A34A', fontWeight: 700 }}>{formatMoney(rem)}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{d.note || 'Không có ghi chú'}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{d.note || t('common.no_note')}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: 11, color: '#94a3b8' }}>Tổng: {formatMoney(d.amount)}</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{t('common.total')}: {formatMoney(d.amount)}</div>
                     <Button size="small" type="primary" disabled={d.status === 'settled'} onClick={() => setPayTarget(d)}>
-                      Trả tiền
+                      {t('debts.pay_button')}
                     </Button>
                   </div>
                 </div>
@@ -156,7 +157,7 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
         {/* Đi vay (Borrowing) */}
         <div className="glass-card" style={{ padding: 20 }}>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: '#EF4444' }}>
-            🔴 ĐI VAY
+            {t('debts.borrowing')}
           </div>
           <div className="desktop-only">
             <Table columns={columns} dataSource={borrowingList} rowKey="id" pagination={false} style={{ width: '100%' }} />
@@ -170,11 +171,11 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
                     <span style={{ fontWeight: 700, fontSize: 15 }}>{d.name}</span>
                     <span style={{ color: rem > 0 ? '#DC2626' : '#16A34A', fontWeight: 700 }}>{formatMoney(rem)}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{d.note || 'Không có ghi chú'}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{d.note || t('common.no_note')}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: 11, color: '#94a3b8' }}>Tổng: {formatMoney(d.amount)}</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{t('common.total')}: {formatMoney(d.amount)}</div>
                     <Button size="small" type="primary" disabled={d.status === 'settled'} onClick={() => setPayTarget(d)}>
-                      Trả tiền
+                      {t('debts.pay_button')}
                     </Button>
                   </div>
                 </div>
@@ -185,51 +186,51 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
       </div>
 
       {/* Add Debt Modal */}
-      <Modal open={isAddOpen} onCancel={() => setIsAddOpen(false)} title="Thêm Khoản Nợ Mới" footer={null}>
+      <Modal open={isAddOpen} onCancel={() => setIsAddOpen(false)} title={t('debts.add_new')} footer={null}>
         <Form form={form} layout="vertical" onFinish={handleCreateDebt} style={{ marginTop: 16 }}>
-          <Form.Item name="name" label="Tên người vay / Tổ chức" rules={[{ required: true }]}>
-            <Input placeholder="Anh Nam, Vay Ngân hàng..." />
+          <Form.Item name="name" label={t('debts.field_name')} rules={[{ required: true }]}>
+            <Input placeholder={t('debts.field_name_placeholder')} />
           </Form.Item>
 
-          <Form.Item name="direction" label="Loại nợ" rules={[{ required: true }]}>
+          <Form.Item name="direction" label={t('debts.field_direction')} rules={[{ required: true }]}>
             <Select
-              placeholder="Chọn loại nợ"
+              placeholder={t('debts.field_direction_placeholder')}
               options={[
-                { value: 'toi_no', label: '🟢 Cho vay (Người khác nợ tôi)' },
-                { value: 'no_toi', label: '🔴 Đi vay (Tôi nợ người khác)' },
+                { value: 'toi_no', label: t('debts.opt_lending') },
+                { value: 'no_toi', label: t('debts.opt_borrowing') },
               ]}
             />
           </Form.Item>
 
-          <Form.Item name="amount" label="Số tiền nợ (VNĐ)" rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder="0 VNĐ" min={10000} />
+          <Form.Item name="amount" label={t('debts.field_amount')} rules={[{ required: true }]}>
+            <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder={t('common.amount_placeholder')} min={10000} />
           </Form.Item>
 
-          <Form.Item name="due" label="Ngày hẹn trả">
+          <Form.Item name="due" label={t('debts.field_due')}>
             <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
           </Form.Item>
 
-          <Form.Item name="note" label="Ghi chú">
-            <Input.TextArea rows={2} placeholder="Nhập chi tiết khoản nợ..." />
+          <Form.Item name="note" label={t('common.note')}>
+            <Input.TextArea rows={2} placeholder={t('debts.note_placeholder')} />
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
-            <Button onClick={() => setIsAddOpen(false)} style={{ marginRight: 8 }}>Hủy</Button>
-            <Button type="primary" htmlType="submit">Tạo Khoản Nợ</Button>
+            <Button onClick={() => setIsAddOpen(false)} style={{ marginRight: 8 }}>{t('common.cancel')}</Button>
+            <Button type="primary" htmlType="submit">{t('debts.submit_create')}</Button>
           </Form.Item>
         </Form>
       </Modal>
 
       {/* Pay Debt Modal */}
-      <Modal open={!!payTarget} onCancel={() => setPayTarget(null)} title={`Ghi nhận thanh toán: ${payTarget?.name}`} footer={null}>
+      <Modal open={!!payTarget} onCancel={() => setPayTarget(null)} title={t('debts.pay_modal_title', { name: payTarget?.name ?? '' })} footer={null}>
         <Form form={payForm} layout="vertical" onFinish={handlePay} style={{ marginTop: 16 }}>
-          <Form.Item name="amount" label="Số tiền trả (VNĐ)" rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder="0 VNĐ" min={10000} autoFocus />
+          <Form.Item name="amount" label={t('debts.pay_amount_label')} rules={[{ required: true }]}>
+            <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder={t('common.amount_placeholder')} min={10000} autoFocus />
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
-            <Button onClick={() => setPayTarget(null)} style={{ marginRight: 8 }}>Hủy</Button>
-            <Button type="primary" htmlType="submit">Xác Nhận Thanh Toán</Button>
+            <Button onClick={() => setPayTarget(null)} style={{ marginRight: 8 }}>{t('common.cancel')}</Button>
+            <Button type="primary" htmlType="submit">{t('debts.pay_submit')}</Button>
           </Form.Item>
         </Form>
       </Modal>

@@ -5,6 +5,7 @@ import { UploadOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import type { Category, Transaction, Wallet } from '../types';
 import { addWallet } from '../store/appStore';
+import { t } from '../i18n';
 
 interface AddTransactionModalProps {
   open: boolean;
@@ -60,19 +61,19 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
   const handleCreateDefaultWallet = () => {
     addWallet({
-      name: 'Tiền mặt',
+      name: t('atm.default_wallet_name'),
       type: 'cash',
       balance: 0,
       color: '#10B981',
       icon: 'Banknote',
       isDefault: true,
     });
-    message.success('Đã tự động tạo Ví Tiền Mặt mặc định!');
+    message.success(t('atm.default_wallet_created'));
   };
 
   const handleFinish = (values: any) => {
     if (wallets.length === 0) {
-      message.error('Vui lòng tạo ít nhất 1 ví tiền trước khi lưu giao dịch!');
+      message.error(t('atm.need_wallet_error'));
       return;
     }
 
@@ -94,7 +95,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     };
 
     onSave(data);
-    message.success(initialData ? 'Cập nhật giao dịch thành công!' : 'Đã thêm giao dịch thành công!');
+    message.success(initialData ? t('atm.updated') : t('atm.added'));
     onClose();
   };
 
@@ -103,7 +104,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     const reader = new FileReader();
     reader.onload = (e) => {
       setReceiptUrl(e.target?.result as string);
-      message.success('Đã tải ảnh hóa đơn!');
+      message.success(t('atm.receipt_uploaded'));
     };
     if (file.originFileObj) {
       reader.readAsDataURL(file.originFileObj);
@@ -116,7 +117,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     <Modal
       open={open}
       onCancel={onClose}
-      title={<span style={{ fontSize: 18, fontWeight: 700 }}>{initialData ? 'Sửa Giao Dịch' : 'Thêm Giao Dịch Mới'}</span>}
+      title={<span style={{ fontSize: 18, fontWeight: 700 }}>{initialData ? t('atm.title_edit') : t('atm.title_add')}</span>}
       footer={null}
       // width={Math.min(560, typeof window !== 'undefined' ? window.innerWidth : 560)}
       // style={{ top: 20 }}
@@ -133,11 +134,11 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         <Alert
           type="warning"
           showIcon
-          title="Bạn chưa có ví tiền nào"
-          description="Để ghi nhận giao dịch, hãy tạo ít nhất một ví tiền mặt hoặc tài khoản ngân hàng."
+          title={t('atm.no_wallet_title')}
+          description={t('atm.no_wallet_desc')}
           action={
             <Button size="small" type="primary" icon={<PlusOutlined />} onClick={handleCreateDefaultWallet}>
-              Tạo Ví Tiền Mặt Mặc Định
+              {t('atm.create_default_wallet')}
             </Button>
           }
           style={{ marginBottom: 16, borderRadius: 12 }}
@@ -145,12 +146,12 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       )}
       <Form form={form} layout="vertical" onFinish={handleFinish} style={{ marginTop: 16 }}>
         {/* Type Selector */}
-        <Form.Item label="Loại giao dịch">
+        <Form.Item label={t('atm.type_label')}>
           <Segmented
             options={[
-              { label: '🔴 Chi tiêu', value: 'chi' },
-              { label: '🟢 Thu nhập', value: 'thu' },
-              { label: '🔄 Chuyển khoản', value: 'chuyen' },
+              { label: t('atm.type_expense'), value: 'chi' },
+              { label: t('atm.type_income'), value: 'thu' },
+              { label: t('atm.type_transfer'), value: 'chuyen' },
             ]}
             value={txType}
             onChange={(val) => setTxType(val as any)}
@@ -162,12 +163,12 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         {/* Amount */}
         <Form.Item
           name="amount"
-          label="Số tiền (VND)"
-          rules={[{ required: true, message: 'Vui lòng nhập số tiền' }]}
+          label={t('atm.amount_label')}
+          rules={[{ required: true, message: t('atm.amount_required') }]}
         >
           <InputNumber
             style={{ width: '100%'}}
-            placeholder="0 ₫"
+            placeholder={t('common.amount_placeholder')}
             formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
             parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as any}
             autoFocus
@@ -179,11 +180,11 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           {txType !== 'chuyen' ? (
             <Form.Item
               name="category"
-              label="Danh mục"
-              rules={[{ required: true, message: 'Chọn danh mục' }]}
+              label={t('atm.category_label')}
+              rules={[{ required: true, message: t('atm.category_required') }]}
             >
               <Select
-                placeholder="Chọn danh mục"
+                placeholder={t('atm.category_required')}
                 options={filteredCategories.map((cat) => ({
                   value: cat.id,
                   label: (
@@ -198,11 +199,11 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           ) : (
             <Form.Item
               name="toWalletId"
-              label="Ví nhận tiền"
-              rules={[{ required: true, message: 'Chọn ví nhận' }]}
+              label={t('atm.to_wallet_label')}
+              rules={[{ required: true, message: t('atm.to_wallet_required') }]}
             >
               <Select
-                placeholder="Chọn ví nhận"
+                placeholder={t('atm.to_wallet_required')}
                 options={wallets.map((w) => ({
                   value: w.id,
                   label: `${w.name} (${w.bankName || w.type})`,
@@ -213,11 +214,11 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
           <Form.Item
             name="walletId"
-            label={txType === 'chuyen' ? 'Ví nguồn' : 'Ví / Nguồn tiền'}
-            rules={[{ required: true, message: 'Chọn ví tiền' }]}
+            label={txType === 'chuyen' ? t('atm.from_wallet_label') : t('atm.wallet_label')}
+            rules={[{ required: true, message: t('atm.wallet_required') }]}
           >
             <Select
-              placeholder="Chọn ví"
+              placeholder={t('atm.wallet_placeholder')}
               options={wallets.map((w) => ({
                 value: w.id,
                 label: w.name,
@@ -228,28 +229,28 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
         {/* Date & Time */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12 }}>
-          <Form.Item name="date" label="Ngày giao dịch" rules={[{ required: true }]}>
+          <Form.Item name="date" label={t('atm.date_label')} rules={[{ required: true }]}>
             <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
           </Form.Item>
-          <Form.Item name="time" label="Giờ giao dịch">
+          <Form.Item name="time" label={t('atm.time_label')}>
             <TimePicker style={{ width: '100%' }} format="HH:mm" />
           </Form.Item>
         </div>
 
         {/* Note */}
-        <Form.Item name="note" label="Ghi chú">
-          <Input.TextArea rows={2} placeholder="Nhập ghi chú chi tiết..." />
+        <Form.Item name="note" label={t('common.note')}>
+          <Input.TextArea rows={2} placeholder={t('atm.note_placeholder')} />
         </Form.Item>
 
         {/* Image Receipt Upload */}
-        <Form.Item label="Ảnh hóa đơn đính kèm">
+        <Form.Item label={t('atm.receipt_label')}>
           <Upload
             beforeUpload={() => false}
             onChange={handleUpload}
             maxCount={1}
             showUploadList={false}
           >
-            <Button icon={<UploadOutlined />}>Tải ảnh hóa đơn lên</Button>
+            <Button icon={<UploadOutlined />}>{t('atm.receipt_upload')}</Button>
           </Upload>
           {receiptUrl && (
             <div style={{ marginTop: 10 }}>
@@ -265,9 +266,9 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         {/* Submit */}
         <Form.Item style={{ marginBottom: 0, marginTop: 16, textAlign: 'right' }}>
           <Space>
-            <Button onClick={onClose}>Hủy</Button>
+            <Button onClick={onClose}>{t('common.cancel')}</Button>
             <Button type="primary" htmlType="submit">
-              Lưu Giao Dịch
+              {t('atm.submit')}
             </Button>
           </Space>
         </Form.Item>

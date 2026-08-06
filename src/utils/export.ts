@@ -1,24 +1,25 @@
 import * as XLSX from 'xlsx';
 import type { Transaction, Wallet, Category } from '../types';
 import { formatMoney } from './format';
+import { t } from '../i18n';
 
 export function exportTransactionsToExcel(
   transactions: Transaction[],
   walletsMap: Record<string, Wallet>,
   categoriesMap: Record<string, Category>
 ) {
-  const data = transactions.map((t, index) => ({
+  const data = transactions.map((tx, index) => ({
     'STT': index + 1,
-    'Ngày': t.date,
-    'Giờ': t.time || '',
-    'Loại': t.type === 'thu' ? 'Thu nhập' : t.type === 'chi' ? 'Chi tiêu' : 'Chuyển khoản',
-    'Danh mục': categoriesMap[t.category]?.name || t.category,
-    'Số tiền (VNĐ)': t.amount,
-    'Ví tiền': walletsMap[t.walletId]?.name || t.walletId,
-    'Ghi chú': t.note || '',
-    'Người liên quan': t.counterparty || '',
-    'Địa điểm': t.location || '',
-    'Thẻ (Tags)': (t.tags || []).join(', ')
+    [t('export.col_date')]: tx.date,
+    [t('export.col_time')]: tx.time || '',
+    [t('export.col_type')]: tx.type === 'thu' ? t('export.type_income') : tx.type === 'chi' ? t('export.type_expense') : t('export.type_transfer'),
+    [t('export.col_category')]: categoriesMap[tx.category]?.name || tx.category,
+    [t('export.col_amount')]: tx.amount,
+    [t('export.col_wallet')]: walletsMap[tx.walletId]?.name || tx.walletId,
+    [t('export.col_note')]: tx.note || '',
+    [t('export.col_counterparty')]: tx.counterparty || '',
+    [t('export.col_location')]: tx.location || '',
+    [t('export.col_tags')]: (tx.tags || []).join(', ')
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(data);
@@ -33,14 +34,14 @@ export function exportTransactionsToCSV(
   categoriesMap: Record<string, Category>
 ) {
   const headers = ['STT', 'Ngay', 'Loai', 'Danh Muc', 'So Tien', 'Vi Tien', 'Ghi Chu'];
-  const rows = transactions.map((t, i) => [
+  const rows = transactions.map((tx, i) => [
     i + 1,
-    t.date,
-    t.type,
-    `"${categoriesMap[t.category]?.name || t.category}"`,
-    t.amount,
-    `"${walletsMap[t.walletId]?.name || t.walletId}"`,
-    `"${(t.note || '').replace(/"/g, '""')}"`
+    tx.date,
+    tx.type,
+    `"${categoriesMap[tx.category]?.name || tx.category}"`,
+    tx.amount,
+    `"${walletsMap[tx.walletId]?.name || tx.walletId}"`,
+    `"${(tx.note || '').replace(/"/g, '""')}"`
   ]);
 
   const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
@@ -80,19 +81,19 @@ export function printFinancialReport(title: string, summary: { income: number; e
     </head>
     <body>
       <h1>${title}</h1>
-      <p style="color: #64748b; font-size: 13px;">Ngày xuất: ${new Date().toLocaleDateString('vi-VN')}</p>
+      <p style="color: #64748b; font-size: 13px;">${t('export.exported_on', { date: new Date().toLocaleDateString() })}</p>
       
       <div class="summary-box">
         <div class="stat">
-          <div class="stat-label">Tổng Thu</div>
+          <div class="stat-label">${t('export.total_income')}</div>
           <div class="stat-val income">${formatMoney(summary.income)}</div>
         </div>
         <div class="stat">
-          <div class="stat-label">Tổng Chi</div>
+          <div class="stat-label">${t('export.total_expense')}</div>
           <div class="stat-val expense">${formatMoney(summary.expense)}</div>
         </div>
         <div class="stat">
-          <div class="stat-label">Số Dư Ròng</div>
+          <div class="stat-label">${t('export.net_balance')}</div>
           <div class="stat-val">${formatMoney(summary.balance)}</div>
         </div>
       </div>
@@ -100,21 +101,21 @@ export function printFinancialReport(title: string, summary: { income: number; e
       <table>
         <thead>
           <tr>
-            <th>Ngày</th>
-            <th>Loại</th>
-            <th>Danh mục</th>
-            <th>Ghi chú</th>
-            <th>Số tiền</th>
+            <th>${t('export.col_date')}</th>
+            <th>${t('export.col_type')}</th>
+            <th>${t('export.col_category')}</th>
+            <th>${t('export.col_note')}</th>
+            <th>${t('export.th_amount')}</th>
           </tr>
         </thead>
         <tbody>
-          ${transactions.map(t => `
+          ${transactions.map(tx => `
             <tr>
-              <td>${t.date}</td>
-              <td>${t.type === 'thu' ? 'Thu nhập' : 'Chi tiêu'}</td>
-              <td>${t.category}</td>
-              <td>${t.note || ''}</td>
-              <td class="amount-${t.type}">${t.type === 'thu' ? '+' : '-'}${formatMoney(t.amount)}</td>
+              <td>${tx.date}</td>
+              <td>${tx.type === 'thu' ? t('export.type_income') : t('export.type_expense')}</td>
+              <td>${tx.category}</td>
+              <td>${tx.note || ''}</td>
+              <td class="amount-${tx.type}">${tx.type === 'thu' ? '+' : '-'}${formatMoney(tx.amount)}</td>
             </tr>
           `).join('')}
         </tbody>

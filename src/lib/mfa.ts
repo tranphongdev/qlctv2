@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
+import { t } from '../i18n';
 
 /**
  * Xác thực 2 lớp dạng TOTP, chạy trên Supabase Auth MFA. Mã bí mật do Supabase sinh
@@ -15,7 +16,7 @@ export interface TotpEnrollment {
 
 function requireClient() {
   if (!isSupabaseConfigured || !supabase) {
-    throw new Error('Supabase chưa được cấu hình.');
+    throw new Error(t('mfa.not_configured'));
   }
   return supabase;
 }

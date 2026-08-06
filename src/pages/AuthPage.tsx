@@ -6,6 +6,7 @@ import { HeroSection } from '../features/auth/components/HeroSection';
 import { LoginForm } from '../features/auth/components/LoginForm';
 import { RegisterForm } from '../features/auth/components/RegisterForm';
 import { ForgotPasswordModal } from '../features/auth/components/ForgotPasswordModal';
+import { t } from '../i18n';
 import type { AuthMode } from '../features/auth/types';
 
 interface AuthPageProps {
@@ -96,7 +97,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                 gap: 6,
               }}
             >
-              <LogIn size={16} /> Đăng nhập
+              <LogIn size={16} /> {t('auth.tab_login')}
             </button>
             <button
               type="button"
@@ -119,7 +120,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                 gap: 6,
               }}
             >
-              <UserPlus size={16} /> Đăng ký
+              <UserPlus size={16} /> {t('auth.tab_register')}
             </button>
           </div>
 

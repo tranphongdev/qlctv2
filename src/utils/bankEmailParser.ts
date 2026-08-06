@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { t } from '../i18n';
 
 export interface ParsedBankTransaction {
   amount: number;
@@ -171,7 +172,7 @@ function detectBank(lines: ParsedLine[], flatAll: string): { bankName: string; s
   if (VCB_RECEIPT.test(flatAll) && /order number|so lenh giao dich/.test(flatAll)) {
     return { bankName: 'Vietcombank', suggestedWalletId: 'w_vcb' };
   }
-  return { bankName: 'Ngân hàng', suggestedWalletId: 'w_vcb' };
+  return { bankName: t('parser.fallback_bank'), suggestedWalletId: 'w_vcb' };
 }
 
 const INCOME_HINTS = /ghi co|nhan tien|tien vao|credit amount|\bcredit\b|thanh toan luong|nhan luong|\bsalary\b/;
@@ -265,7 +266,7 @@ export function parseBankEmailOrText(rawInput: string): ParsedBankTransaction {
     const firstMeaningful = lines.find(
       (l) => !/bien lai|payment receipt|thong bao|^\(/.test(l.flat) && l.raw.length < 60,
     );
-    note = firstMeaningful?.raw ?? `Giao dịch ${bankName}`;
+    note = firstMeaningful?.raw ?? t('parser.fallback_note', { bank: bankName });
   }
 
   const suggestedCategory = suggestCategory(type, `${note} ${counterparty ?? ''}`);

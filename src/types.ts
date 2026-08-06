@@ -121,9 +121,9 @@ export interface AppState {
 }
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
-  userName: 'Tran Phong',
-  userEmail: 'tranphong.dev@gmail.com',
-  avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=TranPhong',
+  userName: 'User Demo',
+  userEmail: 'userdemo.dev@gmail.com',
+  avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=UserDemo',
   theme: 'light',
   accentColor: '#4F46E5',
   currency: 'VND',

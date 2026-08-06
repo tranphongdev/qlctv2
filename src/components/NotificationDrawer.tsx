@@ -1,6 +1,7 @@
 import React from 'react';
 import { Drawer, Button, List, Empty } from 'antd';
 import { CheckCheck, AlertTriangle, Wallet, Target, Sparkles, Bell } from 'lucide-react';
+import { t } from '../i18n';
 import type { NotificationItem } from '../types';
 
 interface NotificationDrawerProps {
@@ -36,7 +37,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Bell size={18} color="#4F46E5" />
-          <span style={{ fontWeight: 700, fontSize: 16 }}>Thông báo</span>
+          <span style={{ fontWeight: 700, fontSize: 16 }}>{t('notif.title')}</span>
         </div>
       }
       placement="right"
@@ -48,7 +49,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
-          {unreadCount > 0 ? `${unreadCount} thông báo mới` : 'Tất cả thông báo'}
+          {unreadCount > 0 ? t('notif.new_count', { count: unreadCount }) : t('notif.all')}
         </span>
         {notifications.length > 0 && (
           <Button
@@ -58,13 +59,13 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
             onClick={onMarkRead}
             style={{ color: '#4F46E5', fontWeight: 600, fontSize: 12 }}
           >
-            Đánh dấu đã đọc
+            {t('notif.mark_read')}
           </Button>
         )}
       </div>
 
       {notifications.length === 0 ? (
-        <Empty description="Không có thông báo nào" style={{ marginTop: 60 }} />
+        <Empty description={t('notif.empty')} style={{ marginTop: 60 }} />
       ) : (
         <List
           dataSource={notifications}

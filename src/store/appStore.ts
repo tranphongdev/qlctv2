@@ -20,29 +20,47 @@ import {
   setSyncUserId,
   getSyncUserId,
 } from '../lib/supabaseSync';
+import { t } from '../i18n';
+import type { TranslationKey } from '../i18n';
 
 const STORAGE_KEY = 'quan_ly_chi_tieu_pro_v2';
 /** Tài khoản sở hữu dữ liệu đang nằm trong localStorage của máy này. */
 const OWNER_KEY = 'quan_ly_chi_tieu_pro_owner';
 
-export const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'cat_an_uong', name: 'Ăn uống', type: 'chi', icon: 'Utensils', color: '#EF4444', order: 1 },
-  { id: 'cat_cafe', name: 'Cafe & Trà sữa', type: 'chi', icon: 'Coffee', color: '#F59E0B', order: 2 },
-  { id: 'cat_mua_sam', name: 'Mua sắm', type: 'chi', icon: 'ShoppingBag', color: '#EC4899', order: 3 },
-  { id: 'cat_tien_nha', name: 'Tiền nhà', type: 'chi', icon: 'Home', color: '#6366F1', order: 4 },
-  { id: 'cat_dien', name: 'Điện nước', type: 'chi', icon: 'Zap', color: '#3B82F6', order: 5 },
-  { id: 'cat_internet', name: 'Internet & 4G', type: 'chi', icon: 'Wifi', color: '#06B6D4', order: 6 },
-  { id: 'cat_du_lich', name: 'Du lịch', type: 'chi', icon: 'Plane', color: '#10B981', order: 7 },
-  { id: 'cat_giai_tri', name: 'Giải trí', type: 'chi', icon: 'Gamepad2', color: '#8B5CF6', order: 8 },
-  { id: 'cat_hoc_tap', name: 'Học tập', type: 'chi', icon: 'GraduationCap', color: '#14B8A6', order: 9 },
-  { id: 'cat_y_te', name: 'Y tế & Sức khỏe', type: 'chi', icon: 'HeartPulse', color: '#F43F5E', order: 10 },
-  { id: 'cat_luong', name: 'Lương hàng tháng', type: 'thu', icon: 'WalletCards', color: '#22C55E', order: 11 },
-  { id: 'cat_freelance', name: 'Freelance', type: 'thu', icon: 'Laptop', color: '#10B981', order: 12 },
-  { id: 'cat_dau_tu', name: 'Đầu tư & Lãi', type: 'thu', icon: 'TrendingUp', color: '#3B82F6', order: 13 },
-  { id: 'cat_thu_khac', name: 'Thu nhập khác', type: 'thu', icon: 'Coins', color: '#8B5CF6', order: 14 },
+/**
+ * Danh mục mặc định gieo cho tài khoản mới.
+ *
+ * Đây là *dữ liệu người dùng*, không phải chuỗi giao diện: sau khi gieo, bản ghi
+ * được lưu xuống localStorage/Supabase và người dùng đổi tên được. Vì thế tên chỉ
+ * dịch đúng một lần tại thời điểm gieo — người dùng mới nhận danh mục theo ngôn
+ * ngữ đang chọn, còn tên đã lưu (kể cả tên họ tự sửa) không bao giờ bị ghi đè.
+ *
+ * Phải là hàm chứ không phải hằng số: hằng số sẽ chốt ngôn ngữ ngay lúc import,
+ * trước cả khi App kịp đọc cài đặt ngôn ngữ của người dùng.
+ */
+const DEFAULT_CATEGORY_SEEDS: Array<Omit<Category, 'name'>> = [
+  { id: 'cat_an_uong', type: 'chi', icon: 'Utensils', color: '#EF4444', order: 1 },
+  { id: 'cat_cafe', type: 'chi', icon: 'Coffee', color: '#F59E0B', order: 2 },
+  { id: 'cat_mua_sam', type: 'chi', icon: 'ShoppingBag', color: '#EC4899', order: 3 },
+  { id: 'cat_tien_nha', type: 'chi', icon: 'Home', color: '#6366F1', order: 4 },
+  { id: 'cat_dien', type: 'chi', icon: 'Zap', color: '#3B82F6', order: 5 },
+  { id: 'cat_internet', type: 'chi', icon: 'Wifi', color: '#06B6D4', order: 6 },
+  { id: 'cat_du_lich', type: 'chi', icon: 'Plane', color: '#10B981', order: 7 },
+  { id: 'cat_giai_tri', type: 'chi', icon: 'Gamepad2', color: '#8B5CF6', order: 8 },
+  { id: 'cat_hoc_tap', type: 'chi', icon: 'GraduationCap', color: '#14B8A6', order: 9 },
+  { id: 'cat_y_te', type: 'chi', icon: 'HeartPulse', color: '#F43F5E', order: 10 },
+  { id: 'cat_luong', type: 'thu', icon: 'WalletCards', color: '#22C55E', order: 11 },
+  { id: 'cat_freelance', type: 'thu', icon: 'Laptop', color: '#10B981', order: 12 },
+  { id: 'cat_dau_tu', type: 'thu', icon: 'TrendingUp', color: '#3B82F6', order: 13 },
+  { id: 'cat_thu_khac', type: 'thu', icon: 'Coins', color: '#8B5CF6', order: 14 },
 ];
 
-export const INITIAL_CATEGORIES: Category[] = DEFAULT_CATEGORIES;
+export function defaultCategories(): Category[] {
+  return DEFAULT_CATEGORY_SEEDS.map((seed) => ({
+    ...seed,
+    name: t(`seed.${seed.id}` as TranslationKey),
+  }));
+}
 export const INITIAL_WALLETS: Wallet[] = [];
 export const INITIAL_TRANSACTIONS: Transaction[] = [];
 export const INITIAL_BUDGETS: Budget[] = [];
@@ -53,7 +71,7 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [];
 export const DEFAULT_APP_STATE: AppState = {
   transactions: [],
   wallets: [],
-  categories: DEFAULT_CATEGORIES,
+  categories: defaultCategories(),
   budgets: [],
   goals: [],
   debts: [],
@@ -71,7 +89,7 @@ function loadStoredState(): AppState {
         ...DEFAULT_APP_STATE,
         ...parsed,
         wallets: parsed.wallets ?? [],
-        categories: parsed.categories?.length ? parsed.categories : DEFAULT_CATEGORIES,
+        categories: parsed.categories?.length ? parsed.categories : defaultCategories(),
       };
     }
   } catch (e) {

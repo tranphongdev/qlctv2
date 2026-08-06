@@ -6,6 +6,7 @@ import type { AppState } from '../types';
 import { DynamicIcon } from '../components/DynamicIcon';
 
 import { addCategory } from '../store/appStore';
+import { t } from '../i18n';
 
 interface CategoriesPageProps {
   state: AppState;
@@ -24,7 +25,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
       icon: values.type === 'chi' ? 'ShoppingBag' : 'Coins',
       order: categories.length + 1,
     });
-    message.success('Đã thêm danh mục mới!');
+    message.success(t('cats.added'));
     setIsAddOpen(false);
     form.resetFields();
   };
@@ -36,19 +37,19 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800 }}>Quản lý Danh mục Chi tiêu & Thu nhập</div>
-          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Tùy chỉnh màu sắc, biểu tượng và sắp xếp danh mục</div>
+          <div style={{ fontSize: 20, fontWeight: 800 }}>{t('cats.title')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('cats.subtitle')}</div>
         </div>
 
         <Button type="primary" icon={<Plus size={16} />} size="middle" style={{ borderRadius: 12 }} onClick={() => setIsAddOpen(true)}>
-          Thêm danh mục mới
+          {t('cats.add_new')}
         </Button>
       </div>
 
       {/* Expense Categories Grid */}
       <div className="glass-card" style={{ padding: 20 }}>
         <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: '#EF4444' }}>
-          🔴 Danh mục Chi tiêu ({expCategories.length})
+          {t('cats.expense_section', { count: expCategories.length })}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
           {expCategories.map((c) => (
@@ -80,7 +81,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
               </div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</div>
-                <div style={{ fontSize: 10, color: '#94a3b8' }}>Chi tiêu</div>
+                <div style={{ fontSize: 10, color: '#94a3b8' }}>{t('cats.expense_label')}</div>
               </div>
             </div>
           ))}
@@ -90,7 +91,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
       {/* Income Categories Grid */}
       <div className="glass-card" style={{ padding: 20 }}>
         <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: '#22C55E' }}>
-          🟢 Danh mục Thu nhập ({incCategories.length})
+          {t('cats.income_section', { count: incCategories.length })}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
           {incCategories.map((c) => (
@@ -121,7 +122,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
               </div>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{c.name}</div>
-                <div style={{ fontSize: 11, color: '#94a3b8' }}>Đang hoạt động</div>
+                <div style={{ fontSize: 11, color: '#94a3b8' }}>{t('cats.active')}</div>
               </div>
             </div>
           ))}
@@ -129,29 +130,29 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
       </div>
 
       {/* Modal Add Category */}
-      <Modal open={isAddOpen} onCancel={() => setIsAddOpen(false)} title="Thêm Danh mục Mới" footer={null}>
+      <Modal open={isAddOpen} onCancel={() => setIsAddOpen(false)} title={t('cats.modal_title')} footer={null}>
         <Form form={form} layout="vertical" onFinish={handleCreateCategory} style={{ marginTop: 16 }}>
-          <Form.Item name="name" label="Tên danh mục" rules={[{ required: true }]}>
-            <Input placeholder="Ví dụ: Thú cưng, Quà tặng..." />
+          <Form.Item name="name" label={t('cats.field_name')} rules={[{ required: true }]}>
+            <Input placeholder={t('cats.field_name_placeholder')} />
           </Form.Item>
 
-          <Form.Item name="type" label="Loại" rules={[{ required: true }]}>
+          <Form.Item name="type" label={t('cats.field_type')} rules={[{ required: true }]}>
             <Select
-              placeholder="Chọn loại danh mục"
+              placeholder={t('cats.field_type_placeholder')}
               options={[
-                { value: 'chi', label: '🔴 Chi tiêu' },
-                { value: 'thu', label: '🟢 Thu nhập' },
+                { value: 'chi', label: t('cats.opt_expense') },
+                { value: 'thu', label: t('cats.opt_income') },
               ]}
             />
           </Form.Item>
 
-          <Form.Item name="color" label="Màu sắc đại diện">
+          <Form.Item name="color" label={t('cats.field_color')}>
             <Input type="color" defaultValue="#4F46E5" style={{ width: 80, height: 40 }} />
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
-            <Button onClick={() => setIsAddOpen(false)} style={{ marginRight: 8 }}>Hủy</Button>
-            <Button type="primary" htmlType="submit">Tạo Danh Mục</Button>
+            <Button onClick={() => setIsAddOpen(false)} style={{ marginRight: 8 }}>{t('common.cancel')}</Button>
+            <Button type="primary" htmlType="submit">{t('cats.submit')}</Button>
           </Form.Item>
         </Form>
       </Modal>

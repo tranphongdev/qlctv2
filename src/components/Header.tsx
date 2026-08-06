@@ -6,6 +6,7 @@ import { Search, Bell, Sun, Moon, Sparkles, Command, Menu as MenuIcon, Mail, Log
 import type { UserSettings, NotificationItem } from '../types';
 import type { AuthUser } from '../lib/auth';
 import { getTimeAwareGreeting } from '../utils/format';
+import { t } from '../i18n';
 import { NotificationDrawer } from './NotificationDrawer';
 
 interface HeaderProps {
@@ -45,11 +46,11 @@ export const Header: React.FC<HeaderProps> = ({
   const unreadCount = notifications.filter((n) => !n.read).length;
   // settings là nguồn sự thật vì người dùng sửa được tên và ảnh trong trang Cài đặt;
   // currentUser chỉ là ảnh chụp lúc đăng nhập nên không phản ánh thay đổi sau đó.
-  const userName = currentUser ? settings.userName || currentUser.name : 'Khách';
+  const userName = currentUser ? settings.userName || currentUser.name : t('header.guest');
   const avatarUrl = settings.avatarUrl || currentUser?.avatarUrl;
   const { greeting, icon } = currentUser
     ? getTimeAwareGreeting(userName)
-    : { greeting: 'Chào bạn!', icon: '👋' };
+    : { greeting: t('header.greeting_default'), icon: '👋' };
 
   const userMenuItems: MenuProps['items'] = [
     {
@@ -58,14 +59,14 @@ export const Header: React.FC<HeaderProps> = ({
       label: (
         <div style={{ padding: '4px 0', borderBottom: '1px solid #f1f5f9' }}>
           <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{userName}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{currentUser?.email || 'Chế độ Demo Khách'}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{currentUser?.email || t('header.demo_mode')}</div>
         </div>
       ),
     },
     {
       key: 'profile',
       icon: <UserIcon size={16} />,
-      label: 'Hồ sơ & Cài đặt',
+      label: t('header.profile_settings'),
       onClick: () => onSelectTab('profile'),
     },
     {
@@ -74,7 +75,7 @@ export const Header: React.FC<HeaderProps> = ({
     {
       key: 'logout',
       icon: <LogOut size={16} color="#EF4444" />,
-      label: <span style={{ color: '#EF4444', fontWeight: 600 }}>Đăng xuất</span>,
+      label: <span style={{ color: '#EF4444', fontWeight: 600 }}>{t('header.logout')}</span>,
       onClick: onLogout,
     },
   ];
@@ -161,7 +162,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <Command size={10} /> K
               </div>
             }
-            placeholder="Tìm kiếm..."
+            placeholder={t('header.search_placeholder')}
             onClick={onOpenCommandPalette}
             style={{
               borderRadius: 8,
@@ -187,12 +188,12 @@ export const Header: React.FC<HeaderProps> = ({
                 border: 'none',
               }}
             >
-              Đăng nhập / Đăng ký
+              {t('header.login_register')}
             </Button>
           )}
 
           {/* Bank Email Sync Button */}
-          <HintTooltip title="Đồng bộ Email Ngân hàng">
+          <HintTooltip title={t('header.tip_sync_email')}>
             <Button
               type="text"
               shape="circle"
@@ -212,7 +213,7 @@ export const Header: React.FC<HeaderProps> = ({
             style={{ width: 34, height: 34 }}
           />
 
-          <HintTooltip title="Chuyển giao diện Sáng / Tối">
+          <HintTooltip title={t('header.tip_toggle_theme')}>
             <Button
               type="text"
               shape="circle"
@@ -222,7 +223,7 @@ export const Header: React.FC<HeaderProps> = ({
             />
           </HintTooltip>
 
-          <HintTooltip title="Thông báo hệ thống">
+          <HintTooltip title={t('header.tip_notifications')}>
             <Badge count={unreadCount} overflowCount={99} offset={[-4, 4]}>
               <Button
                 type="text"

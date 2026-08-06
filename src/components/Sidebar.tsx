@@ -115,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.3px', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 Financial
               </div>
-              <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>Quản lý chi tiêu</div>
+              <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>{t('sidebar.tagline')}</div>
             </div>
           </div>
         ) : (
@@ -256,7 +256,7 @@ export const MobileSidebarDrawer: React.FC<MobileSidebarDrawerProps> = ({
             <div style={{ fontWeight: 800, fontSize: 16, background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Financial
             </div>
-            <div style={{ fontSize: 11, color: '#94a3b8' }}>Quản lý chi tiêu</div>
+            <div style={{ fontSize: 11, color: '#94a3b8' }}>{t('sidebar.tagline')}</div>
           </div>
         </div>
 

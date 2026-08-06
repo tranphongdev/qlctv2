@@ -140,7 +140,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
     link.href = url;
     link.download = `Quan_Ly_Chi_Tieu_Backup_${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
-    message.success('Đã tải xuống file sao lưu JSON!');
+    message.success(t('settings.backup_downloaded'));
   };
 
   const handleImportBackup = (file: any) => {
@@ -149,9 +149,9 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
       const content = e.target?.result as string;
       const ok = importBackupJSON(content);
       if (ok) {
-        message.success('Đã khôi phục dữ liệu từ file sao lưu thành công!');
+        message.success(t('settings.restore_success'));
       } else {
-        message.error('File sao lưu không hợp lệ!');
+        message.error(t('settings.restore_invalid'));
       }
     };
     reader.readAsText(file);
@@ -209,7 +209,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
 
           <Form form={form} layout="vertical" initialValues={settings} onFinish={handleSaveProfile}>
             <Form.Item name="userName" label={t('settings.display_name')} rules={[{ required: true }]}>
-              <Input placeholder="Nhập tên người dùng" />
+              <Input placeholder={t('settings.name_placeholder')} />
             </Form.Item>
 
             <Form.Item name="userEmail" label={t('settings.email')} rules={[{ required: true, type: 'email' }]}>
@@ -220,9 +220,9 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
               <Form.Item name="currency" label={t('settings.currency')}>
                 <Select
                   options={[
-                    { value: 'VND', label: 'VNĐ (Việt Nam Đồng)' },
-                    { value: 'USD', label: `USD (1 USD ≈ ${VND_PER_UNIT.USD.toLocaleString('vi-VN')}₫)` },
-                    { value: 'EUR', label: `EUR (1 EUR ≈ ${VND_PER_UNIT.EUR.toLocaleString('vi-VN')}₫)` },
+                    { value: 'VND', label: t('settings.currency_vnd') },
+                    { value: 'USD', label: t('settings.currency_usd', { rate: VND_PER_UNIT.USD.toLocaleString('vi-VN') }) },
+                    { value: 'EUR', label: t('settings.currency_eur', { rate: VND_PER_UNIT.EUR.toLocaleString('vi-VN') }) },
                   ]}
                 />
               </Form.Item>
@@ -230,7 +230,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
               <Form.Item name="language" label={t('settings.language')}>
                 <Select
                   options={[
-                    { value: 'vi', label: 'Tiếng Việt' },
+                    { value: 'vi', label: t('settings.lang_vi') },
                     { value: 'en', label: 'English' },
                   ]}
                 />
@@ -296,10 +296,10 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
             <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Server size={20} color="#10B981" />
-                <span>Cấu hình Supabase Database</span>
+                <span>{t('settings.supabase_section')}</span>
               </div>
               {isSupabaseConfigured ? (
-                <Tag color="green" icon={<CheckCircle2 size={12} />}>Đã kết nối</Tag>
+                <Tag color="green" icon={<CheckCircle2 size={12} />}>{t('settings.connected')}</Tag>
               ) : (
                 <Tag color="orange" icon={<AlertCircle size={12} />}>LocalStorage</Tag>
               )}
@@ -307,17 +307,19 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
 
             {isSupabaseConfigured ? (
               <Alert
-                title="Đã kết nối Supabase Cloud thành công"
-                description="Tất cả giao dịch, ví tiền, hạn mức ngân sách và mục tiêu tiết kiệm được đồng bộ thời gian thực vào bảng dữ liệu Cloud của bạn."
+                title={t('settings.supabase_ok_title')}
+                description={t('settings.supabase_ok_desc')}
                 type="success"
                 showIcon
               />
             ) : (
               <Alert
-                title="Đang sử dụng bộ nhớ LocalStorage"
+                title={t('settings.local_title')}
                 description={
                   <div>
-                    Để đồng bộ Supabase Cloud, mở file <code>.env</code> và dán <code>VITE_SUPABASE_URL</code> & <code>VITE_SUPABASE_ANON_KEY</code> của dự án Supabase. Chạy file SQL <code>supabase_schema.sql</code> để tạo bảng tự động.
+                    {t('settings.local_desc_1')} <code>.env</code> {t('settings.local_desc_2')}{' '}
+                    <code>VITE_SUPABASE_URL</code> & <code>VITE_SUPABASE_ANON_KEY</code>{' '}
+                    {t('settings.local_desc_3')} <code>supabase_schema.sql</code> {t('settings.local_desc_4')}
                   </div>
                 }
                 type="warning"
@@ -330,20 +332,20 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
           <div className="glass-card" style={{ padding: 24 }}>
             <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
               <Database size={20} color="#7C3AED" />
-              <span>Sao lưu & Khôi phục JSON</span>
+              <span>{t('settings.backup_section')}</span>
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, lineHeight: '1.5' }}>
-              Tải xuống file sao lưu JSON an toàn của toàn bộ giao dịch, ví tiền, ngân sách & tiết kiệm.
+              {t('settings.backup_desc')}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <Button icon={<Download size={16} />} type="primary" onClick={handleExportBackup} block style={{ borderRadius: 12 }}>
-                Tải File Backup (.JSON)
+                {t('settings.backup_button')}
               </Button>
 
               <Upload beforeUpload={handleImportBackup} showUploadList={false}>
                 <Button icon={<UploadIcon size={16} />} block style={{ borderRadius: 12 }}>
-                  Khôi phục từ File JSON
+                  {t('settings.restore_button')}
                 </Button>
               </Upload>
             </div>

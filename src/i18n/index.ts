@@ -40,7 +40,22 @@ export function antdLocale(lang: Lang = activeLang): Locale {
   return ANTD_LOCALES[lang];
 }
 
-/** Dịch một key; thiếu bản dịch thì rơi về tiếng Việt thay vì hiện key trần. */
-export function t(key: TranslationKey): string {
-  return DICTS[activeLang][key] || vi[key];
+/** Giá trị được phép nhúng vào chuỗi dịch qua placeholder {tên}. */
+export type TranslationParams = Record<string, string | number>;
+
+/**
+ * Dịch một key; thiếu bản dịch thì rơi về tiếng Việt thay vì hiện key trần.
+ *
+ * Placeholder viết dạng {tên} trong file .json và truyền qua tham số thứ hai:
+ * t('auth.login_success', { name: 'An' }) → "👋 Chào mừng quay trở lại, An!".
+ * Placeholder không có giá trị tương ứng được giữ nguyên để lỗi lộ ra ngay trên
+ * giao diện thay vì âm thầm biến thành chuỗi rỗng.
+ */
+export function t(key: TranslationKey, params?: TranslationParams): string {
+  const template = DICTS[activeLang][key] || vi[key];
+  if (!params) return template;
+
+  return template.replace(/\{(\w+)\}/g, (placeholder, name: string) =>
+    name in params ? String(params[name]) : placeholder,
+  );
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Progress } from 'antd';
 import { Check, X } from 'lucide-react';
+import { t } from '../../../i18n';
 import type { PasswordStrengthResult } from '../types';
 
 interface PasswordStrengthMeterProps {
@@ -19,7 +20,7 @@ export function evaluatePasswordStrength(password: string = ''): PasswordStrengt
   if (password.length === 0) {
     return {
       score: 0,
-      label: 'Yếu',
+      level: 'weak',
       color: '#FF4D4F',
       hasLength: false,
       hasUpper: false,
@@ -30,15 +31,22 @@ export function evaluatePasswordStrength(password: string = ''): PasswordStrengt
   }
 
   if (criteriaMet <= 2) {
-    return { score: 25, label: 'Yếu', color: '#FF4D4F', hasLength, hasUpper, hasLower, hasNumber, hasSpecial };
+    return { score: 25, level: 'weak', color: '#FF4D4F', hasLength, hasUpper, hasLower, hasNumber, hasSpecial };
   } else if (criteriaMet === 3) {
-    return { score: 50, label: 'Trung bình', color: '#FAAD14', hasLength, hasUpper, hasLower, hasNumber, hasSpecial };
+    return { score: 50, level: 'medium', color: '#FAAD14', hasLength, hasUpper, hasLower, hasNumber, hasSpecial };
   } else if (criteriaMet === 4) {
-    return { score: 75, label: 'Mạnh', color: '#1677FF', hasLength, hasUpper, hasLower, hasNumber, hasSpecial };
+    return { score: 75, level: 'strong', color: '#1677FF', hasLength, hasUpper, hasLower, hasNumber, hasSpecial };
   } else {
-    return { score: 100, label: 'Rất mạnh', color: '#52C41A', hasLength, hasUpper, hasLower, hasNumber, hasSpecial };
+    return { score: 100, level: 'very_strong', color: '#52C41A', hasLength, hasUpper, hasLower, hasNumber, hasSpecial };
   }
 }
+
+const STRENGTH_LABEL_KEYS = {
+  weak: 'password.weak',
+  medium: 'password.medium',
+  strong: 'password.strong',
+  very_strong: 'password.very_strong',
+} as const;
 
 export const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({ password = '' }) => {
   if (!password) return null;
@@ -48,8 +56,8 @@ export const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({ pa
   return (
     <div style={{ marginTop: 8, marginBottom: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-        <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Độ mạnh mật khẩu:</span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: result.color }}>{result.label}</span>
+        <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{t('password.strength_label')}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: result.color }}>{t(STRENGTH_LABEL_KEYS[result.level])}</span>
       </div>
 
       <Progress
@@ -63,19 +71,19 @@ export const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({ pa
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, fontSize: 11 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: result.hasLength ? '#52C41A' : '#94a3b8' }}>
           {result.hasLength ? <Check size={12} /> : <X size={12} />}
-          <span>Tối thiểu 8 ký tự</span>
+          <span>{t('password.rule_length')}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: result.hasUpper ? '#52C41A' : '#94a3b8' }}>
           {result.hasUpper ? <Check size={12} /> : <X size={12} />}
-          <span>Có chữ hoa (A-Z)</span>
+          <span>{t('password.rule_upper')}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: result.hasNumber ? '#52C41A' : '#94a3b8' }}>
           {result.hasNumber ? <Check size={12} /> : <X size={12} />}
-          <span>Có chữ số (0-9)</span>
+          <span>{t('password.rule_number')}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: result.hasSpecial ? '#52C41A' : '#94a3b8' }}>
           {result.hasSpecial ? <Check size={12} /> : <X size={12} />}
-          <span>Ký tự đặc biệt (@#$)</span>
+          <span>{t('password.rule_special')}</span>
         </div>
       </div>
     </div>

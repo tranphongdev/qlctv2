@@ -17,6 +17,7 @@ import type { AppState, Category, Transaction, Wallet } from '../types';
 import { formatMoney, removeAccents } from '../utils/format';
 import { DynamicIcon } from '../components/DynamicIcon';
 import { exportTransactionsToExcel, exportTransactionsToCSV, printFinancialReport } from '../utils/export';
+import { t } from '../i18n';
 
 interface TransactionsProps {
   state: AppState;
@@ -47,17 +48,17 @@ export const Transactions: React.FC<TransactionsProps> = ({
   const walletsMap = wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>);
 
   // Filtered dataset
-  const filteredData = transactions.filter((t) => {
-    if (typeFilter !== 'all' && t.type !== typeFilter) return false;
-    if (catFilter !== 'all' && t.category !== catFilter) return false;
-    if (walletFilter !== 'all' && t.walletId !== walletFilter) return false;
+  const filteredData = transactions.filter((tx) => {
+    if (typeFilter !== 'all' && tx.type !== typeFilter) return false;
+    if (catFilter !== 'all' && tx.category !== catFilter) return false;
+    if (walletFilter !== 'all' && tx.walletId !== walletFilter) return false;
 
     if (searchText) {
       const q = removeAccents(searchText);
-      const note = removeAccents(t.note || '');
-      const catName = removeAccents(categoriesMap[t.category]?.name || '');
-      const walletName = removeAccents(walletsMap[t.walletId]?.name || '');
-      const amountStr = t.amount.toString();
+      const note = removeAccents(tx.note || '');
+      const catName = removeAccents(categoriesMap[tx.category]?.name || '');
+      const walletName = removeAccents(walletsMap[tx.walletId]?.name || '');
+      const amountStr = tx.amount.toString();
       return note.includes(q) || catName.includes(q) || walletName.includes(q) || amountStr.includes(q);
     }
     return true;
@@ -65,30 +66,30 @@ export const Transactions: React.FC<TransactionsProps> = ({
 
   const handleExportExcel = () => {
     exportTransactionsToExcel(filteredData, walletsMap, categoriesMap);
-    message.success('Đã xuất file Excel!');
+    message.success(t('tx.export_excel_done'));
   };
 
   const handleExportCSV = () => {
     exportTransactionsToCSV(filteredData, walletsMap, categoriesMap);
-    message.success('Đã xuất file CSV!');
+    message.success(t('tx.export_csv_done'));
   };
 
   const handlePrintPDF = () => {
-    const inc = filteredData.filter((t) => t.type === 'thu').reduce((a, b) => a + b.amount, 0);
-    const exp = filteredData.filter((t) => t.type === 'chi').reduce((a, b) => a + b.amount, 0);
-    printFinancialReport('BÁO CÁO GIAO DỊCH TÀI CHÍNH', { income: inc, expense: exp, balance: inc - exp }, filteredData);
+    const inc = filteredData.filter((tx) => tx.type === 'thu').reduce((a, b) => a + b.amount, 0);
+    const exp = filteredData.filter((tx) => tx.type === 'chi').reduce((a, b) => a + b.amount, 0);
+    printFinancialReport(t('tx.report_title'), { income: inc, expense: exp, balance: inc - exp }, filteredData);
   };
 
   const handleBulkDeleteAction = () => {
     if (selectedRowKeys.length === 0) return;
     onBulkDelete(selectedRowKeys as string[]);
     setSelectedRowKeys([]);
-    message.success(`Đã xóa ${selectedRowKeys.length} giao dịch!`);
+    message.success(t('tx.bulk_deleted', { count: selectedRowKeys.length }));
   };
 
   const columns = [
     {
-      title: 'Ngày & Giờ',
+      title: t('tx.col_datetime'),
       dataIndex: 'date',
       key: 'date',
       sorter: (a: Transaction, b: Transaction) => dayjs(a.date).unix() - dayjs(b.date).unix(),
@@ -100,7 +101,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
       ),
     },
     {
-      title: 'Danh mục',
+      title: t('tx.col_category'),
       dataIndex: 'category',
       key: 'category',
       render: (catId: string) => {
@@ -126,12 +127,12 @@ export const Transactions: React.FC<TransactionsProps> = ({
       },
     },
     {
-      title: 'Ghi chú & Thẻ',
+      title: t('tx.col_note_tags'),
       dataIndex: 'note',
       key: 'note',
       render: (note: string, record: Transaction) => (
         <div>
-          <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--text-heading)' }}>{note || 'Không có ghi chú'}</div>
+          <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--text-heading)' }}>{note || t('common.no_note')}</div>
           {record.tags && record.tags.length > 0 && (
             <div style={{ marginTop: 4, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
               {record.tags.map((tag) => (
@@ -145,7 +146,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
       ),
     },
     {
-      title: 'Ví / Nguồn tiền',
+      title: t('tx.col_wallet'),
       dataIndex: 'walletId',
       key: 'walletId',
       render: (wId: string) => {
@@ -154,7 +155,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
       },
     },
     {
-      title: 'Số tiền (VNĐ)',
+      title: t('tx.col_amount'),
       dataIndex: 'amount',
       key: 'amount',
       sorter: (a: Transaction, b: Transaction) => a.amount - b.amount,
@@ -168,7 +169,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
       },
     },
     {
-      title: 'Hóa đơn',
+      title: t('tx.col_receipt'),
       dataIndex: 'receiptUrl',
       key: 'receiptUrl',
       render: (url?: string) =>
@@ -179,14 +180,14 @@ export const Transactions: React.FC<TransactionsProps> = ({
             icon={<Eye size={16} color="#4F46E5" />}
             onClick={() => setPreviewImage(url)}
           >
-            Xem ảnh
+            {t('tx.view_image')}
           </Button>
         ) : (
-          <span style={{ fontSize: 12, color: '#cbd5e1' }}>Không có</span>
+          <span style={{ fontSize: 12, color: '#cbd5e1' }}>{t('tx.none')}</span>
         ),
     },
     {
-      title: 'Thao tác',
+      title: t('common.actions'),
       key: 'action',
       render: (_: any, record: Transaction) => (
         <Space size="small">
@@ -196,11 +197,11 @@ export const Transactions: React.FC<TransactionsProps> = ({
             onClick={() => onOpenAddModal(record)}
           />
           <Popconfirm
-            title="Xóa giao dịch này?"
-            description="Bạn có chắc chắn muốn xóa không?"
+            title={t('tx.delete_title')}
+            description={t('tx.delete_desc')}
             onConfirm={() => onDeleteTx(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
+            okText={t('common.delete')}
+            cancelText={t('common.cancel')}
           >
             <Button type="text" icon={<Trash2 size={16} color="#EF4444" />} />
           </Popconfirm>
@@ -214,13 +215,13 @@ export const Transactions: React.FC<TransactionsProps> = ({
       {/* Header Bar */}
       <div className="glass-card" style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <div style={{ fontSize: 18, fontWeight: 800 }}>Quản lý Giao dịch</div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Tổng số {filteredData.length} giao dịch được ghi nhận</div>
+          <div style={{ fontSize: 18, fontWeight: 800 }}>{t('tx.title')}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('tx.subtitle', { count: filteredData.length })}</div>
         </div>
 
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', width: '100%', justifyContent: 'flex-start' }} className="mobile-only">
           <Button icon={<Plus size={14} />} type="primary" onClick={() => onOpenAddModal()} style={{ flex: 1 }}>
-            Thêm Giao Dịch
+            {t('tx.add')}
           </Button>
           {onOpenBankSync && (
             <Button icon={<Mail size={14} color="#7C3AED" />} onClick={onOpenBankSync} />
@@ -232,29 +233,29 @@ export const Transactions: React.FC<TransactionsProps> = ({
 
         <Space wrap className="desktop-only">
           {selectedRowKeys.length > 0 && (
-            <Popconfirm title={`Xóa ${selectedRowKeys.length} giao dịch đã chọn?`} onConfirm={handleBulkDeleteAction}>
+            <Popconfirm title={t('tx.bulk_delete_confirm', { count: selectedRowKeys.length })} onConfirm={handleBulkDeleteAction}>
               <Button danger icon={<Trash2 size={16} />}>
-                Xóa {selectedRowKeys.length} mục
+                {t('tx.bulk_delete_button', { count: selectedRowKeys.length })}
               </Button>
             </Popconfirm>
           )}
 
           {onOpenBankSync && (
             <Button icon={<Mail size={16} color="#7C3AED" />} onClick={onOpenBankSync}>
-              Đồng bộ Email Ngân hàng
+              {t('tx.sync_email')}
             </Button>
           )}
           <Button icon={<FileSpreadsheet size={16} color="#16A34A" />} onClick={handleExportExcel}>
-            Xuất Excel
+            {t('tx.export_excel')}
           </Button>
           <Button icon={<FileText size={16} color="#2563EB" />} onClick={handleExportCSV}>
-            Xuất CSV
+            {t('tx.export_csv')}
           </Button>
           <Button icon={<Printer size={16} color="#7C3AED" />} onClick={handlePrintPDF}>
-            In Báo cáo
+            {t('tx.print_report')}
           </Button>
           <Button type="primary" icon={<Plus size={16} />} onClick={() => onOpenAddModal()}>
-            Thêm Giao Dịch
+            {t('tx.add')}
           </Button>
         </Space>
       </div>
@@ -263,7 +264,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
       <div className="glass-card" style={{ padding: '12px 16px', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         <Input
           prefix={<Search size={16} />}
-          placeholder="Tìm theo ghi chú, danh mục, số tiền..."
+          placeholder={t('tx.search_placeholder')}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           style={{ width: 220, flexShrink: 0 }}
@@ -275,10 +276,10 @@ export const Transactions: React.FC<TransactionsProps> = ({
           onChange={setTypeFilter}
           style={{ width: 140, flexShrink: 0 }}
           options={[
-            { value: 'all', label: 'Tất cả loại' },
-            { value: 'thu', label: '🟢 Thu' },
-            { value: 'chi', label: '🔴 Chi' },
-            { value: 'chuyen', label: '🔄 Chuyển' },
+            { value: 'all', label: t('tx.filter_all_types') },
+            { value: 'thu', label: t('tx.type_income') },
+            { value: 'chi', label: t('tx.type_expense') },
+            { value: 'chuyen', label: t('tx.type_transfer') },
           ]}
         />
 
@@ -287,7 +288,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
           onChange={setCatFilter}
           style={{ width: 170, flexShrink: 0 }}
           options={[
-            { value: 'all', label: 'Tất cả danh mục' },
+            { value: 'all', label: t('tx.filter_all_categories') },
             ...categories.map((c) => ({ value: c.id, label: c.name })),
           ]}
         />
@@ -297,7 +298,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
           onChange={setWalletFilter}
           style={{ width: 150, flexShrink: 0 }}
           options={[
-            { value: 'all', label: 'Tất cả ví' },
+            { value: 'all', label: t('tx.filter_all_wallets') },
             ...wallets.map((w) => ({ value: w.id, label: w.name })),
           ]}
         />
@@ -322,7 +323,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
       <div className="mobile-only" style={{ flexDirection: 'column', gap: 12 }}>
         {filteredData.length === 0 ? (
           <div className="glass-card" style={{ padding: 32, textAlign: 'center', color: '#94a3b8' }}>
-            Không tìm thấy giao dịch nào
+            {t('tx.empty')}
           </div>
         ) : (
           filteredData.map((tx) => {
@@ -347,7 +348,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                       <DynamicIcon name={cat?.icon || 'CircleDollarSign'} color={cat?.color || '#4F46E5'} size={20} />
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>{tx.note || cat?.name || 'Giao dịch'}</div>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>{tx.note || cat?.name || t('tx.fallback_name')}</div>
                       <div style={{ fontSize: 11, color: '#94a3b8' }}>
                         {tx.date} • {cat?.name}
                       </div>
@@ -374,7 +375,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                       <Button size="small" type="text" icon={<Eye size={16} color="#4F46E5" />} onClick={() => setPreviewImage(tx.receiptUrl || null)} />
                     )}
                     <Button size="small" type="text" icon={<Edit size={16} color="#3B82F6" />} onClick={() => onOpenAddModal(tx)} />
-                    <Popconfirm title="Xóa giao dịch này?" onConfirm={() => onDeleteTx(tx.id)}>
+                    <Popconfirm title={t('tx.delete_title')} onConfirm={() => onDeleteTx(tx.id)}>
                       <Button size="small" type="text" icon={<Trash2 size={16} color="#EF4444" />} />
                     </Popconfirm>
                   </Space>

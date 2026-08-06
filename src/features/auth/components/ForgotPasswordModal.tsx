@@ -3,6 +3,7 @@ import { Modal, Form, Input, Button, Alert } from 'antd';
 import { message } from '../../../lib/antdApp';
 import { Mail, KeyRound, CheckCircle2 } from 'lucide-react';
 import { forgotPasswordSchema } from '../schemas';
+import { t } from '../../../i18n';
 
 interface ForgotPasswordModalProps {
   open: boolean;
@@ -17,10 +18,10 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
 
   const handleResetPassword = async (values: { email: string }) => {
     // Validate with Zod
-    const validation = forgotPasswordSchema.safeParse(values);
+    const validation = forgotPasswordSchema().safeParse(values);
     if (!validation.success) {
       const firstError = validation.error.issues[0]?.message;
-      message.error(firstError || 'Vui lòng kiểm tra lại Email!');
+      message.error(firstError || t('forgot.invalid_email'));
       return;
     }
 
@@ -30,9 +31,9 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
       await new Promise((resolve) => setTimeout(resolve, 1200));
       setSentEmail(values.email);
       setSentSuccess(true);
-      message.success('Đã gửi link khôi phục mật khẩu!');
+      message.success(t('forgot.success'));
     } catch (err: any) {
-      message.error('Gửi yêu cầu thất bại. Vui lòng thử lại sau!');
+      message.error(t('forgot.failed'));
     } finally {
       setLoading(false);
     }
@@ -54,7 +55,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <KeyRound size={20} color="#1677FF" />
-          <span style={{ fontWeight: 700, fontSize: 16 }}>Khôi phục Mật khẩu</span>
+          <span style={{ fontWeight: 700, fontSize: 16 }}>{t('forgot.title')}</span>
         </div>
       }
     >
@@ -79,31 +80,31 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
           <Alert
             type="success"
             showIcon={false}
-            message={<div style={{ fontWeight: 700, fontSize: 15 }}>Đã gửi hướng dẫn khôi phục!</div>}
+            message={<div style={{ fontWeight: 700, fontSize: 15 }}>{t('forgot.sent_title')}</div>}
             description={
               <div style={{ fontSize: 13, marginTop: 4 }}>
-                Chúng tôi đã gửi link đặt lại mật khẩu đến <b>{sentEmail}</b>. Vui lòng kiểm tra hộp thư đến hoặc Hòm thư Spam của bạn.
+                {t('forgot.sent_desc_prefix')} <b>{sentEmail}</b>. {t('forgot.sent_desc_suffix')}
               </div>
             }
             style={{ borderRadius: 12, marginBottom: 20, textAlign: 'left' }}
           />
 
           <Button type="primary" onClick={handleCloseModal} block style={{ borderRadius: 12, fontWeight: 700 }}>
-            Hoàn tất
+            {t('forgot.done')}
           </Button>
         </div>
       ) : (
         <Form form={form} layout="vertical" onFinish={handleResetPassword} style={{ marginTop: 16 }}>
           <div style={{ fontSize: 13, color: '#64748b', marginBottom: 16, lineHeight: 1.5 }}>
-            Nhập địa chỉ Email bạn đã đăng ký tài khoản. Chúng tôi sẽ gửi hướng dẫn khôi phục mật khẩu chi tiết.
+            {t('forgot.description')}
           </div>
 
           <Form.Item
             name="email"
-            label="Địa chỉ Email"
+            label={t('auth.email_label')}
             rules={[
-              { required: true, message: 'Vui lòng nhập Email' },
-              { type: 'email', message: 'Email không đúng định dạng' },
+              { required: true, message: t('validation.email_short') },
+              { type: 'email', message: t('validation.email_format') },
             ]}
           >
             <Input prefix={<Mail size={16} color="#94a3b8" />} placeholder="example@gmail.com" size="large" style={{ borderRadius: 12 }} />
@@ -124,7 +125,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
                 border: 'none',
               }}
             >
-              Gửi Yêu Cầu Khôi Phục
+              {t('forgot.submit')}
             </Button>
           </Form.Item>
         </Form>

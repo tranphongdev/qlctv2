@@ -5,6 +5,7 @@ import { Mail, Lock, User, Coins } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { registerSchema } from '../schemas';
 import { signUpWithEmail } from '../../../lib/auth';
+import { t } from '../../../i18n';
 import type { AuthUser } from '../../../lib/auth';
 
 interface RegisterFormProps {
@@ -18,10 +19,10 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
 
   const handleSubmit = async (values: any) => {
     // Validate with Zod
-    const validation = registerSchema.safeParse(values);
+    const validation = registerSchema().safeParse(values);
     if (!validation.success) {
       const firstError = validation.error.issues[0]?.message;
-      message.error(firstError || 'Vui lòng kiểm tra lại thông tin đăng ký!');
+      message.error(firstError || t('auth.register_invalid_form'));
       return;
     }
 
@@ -29,18 +30,18 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
     try {
       const data = await signUpWithEmail(values.email, values.password, values.name);
       if (data.user) {
-        message.success('🎉 Đăng ký tài khoản thành công!');
+        message.success(t('auth.register_success'));
         onSuccess({
           id: data.user.id,
           email: data.user.email || '',
-          name: values.name || 'Người dùng',
+          name: values.name || t('auth.default_user_name'),
           avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.id}`,
         });
         form.resetFields();
       }
     } catch (err: any) {
       console.error('Register error:', err);
-      message.error(err.message || 'Đăng ký tài khoản thất bại!');
+      message.error(err.message || t('auth.register_failed'));
     } finally {
       setLoading(false);
     }
@@ -49,22 +50,22 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
   return (
     <div className="fade-in-quick">
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: '#1E293B', marginBottom: 6 }}>Tạo tài khoản mới</h2>
+        <h2 style={{ fontSize: 24, fontWeight: 800, color: '#1E293B', marginBottom: 6 }}>{t('auth.register_title')}</h2>
         <p style={{ fontSize: 14, color: '#64748B', margin: 0 }}>
-          Bắt đầu hành trình làm chủ tài chính cá nhân ngay hôm nay.
+          {t('auth.register_subtitle')}
         </p>
       </div>
 
       <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false} initialValues={{ currency: 'VND' }}>
         <Form.Item
           name="name"
-          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>Họ và tên</span>}
-          rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
+          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.name_label')}</span>}
+          rules={[{ required: true, message: t('validation.name_required') }]}
           style={{ marginBottom: 12 }}
         >
           <Input
             prefix={<User size={18} color="#94A3B8" style={{ marginRight: 6 }} />}
-            placeholder="Ví dụ: Trần Phong"
+            placeholder={t('auth.name_placeholder')}
             size="large"
             autoFocus
             style={{ borderRadius: 4, height: 44, fontSize: 14 }}
@@ -73,10 +74,10 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
 
         <Form.Item
           name="email"
-          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>Địa chỉ Email</span>}
+          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.email_label')}</span>}
           rules={[
-            { required: true, message: 'Vui lòng nhập Email' },
-            { type: 'email', message: 'Email không đúng định dạng' },
+            { required: true, message: t('validation.email_short') },
+            { type: 'email', message: t('validation.email_format') },
           ]}
           style={{ marginBottom: 12 }}
         >
@@ -91,8 +92,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
           <Form.Item
             name="password"
-            label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>Mật khẩu</span>}
-            rules={[{ required: true, message: 'Tối thiểu 6 ký tự', min: 6 }]}
+            label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.password_label')}</span>}
+            rules={[{ required: true, message: t('validation.password_min_short'), min: 6 }]}
             style={{ marginBottom: 12 }}
           >
             <Input.Password
@@ -105,13 +106,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
 
           <Form.Item
             name="confirmPassword"
-            label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>Xác nhận mật khẩu</span>}
-            rules={[{ required: true, message: 'Vui lòng nhập lại mật khẩu' }]}
+            label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.confirm_password_label')}</span>}
+            rules={[{ required: true, message: t('validation.confirm_required') }]}
             style={{ marginBottom: 12 }}
           >
             <Input.Password
               prefix={<Lock size={18} color="#94A3B8" style={{ marginRight: 6 }} />}
-              placeholder="Nhập lại mật khẩu"
+              placeholder={t('auth.confirm_password_placeholder')}
               size="large"
               style={{ borderRadius: 4, height: 44, fontSize: 14 }}
             />
@@ -120,8 +121,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
 
         <Form.Item
           name="currency"
-          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>Đơn vị tiền tệ mặc định</span>}
-          rules={[{ required: true, message: 'Chọn loại tiền tệ' }]}
+          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.currency_label')}</span>}
+          rules={[{ required: true, message: t('validation.currency_required_short') }]}
           style={{ marginBottom: 12 }}
         >
           <Select
@@ -129,16 +130,16 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
             style={{ borderRadius: 4, height: 44 }}
             prefix={<Coins size={18} color="#94A3B8" />}
             options={[
-              { value: 'VND', label: '🇻🇳 VNĐ - Việt Nam Đồng' },
-              { value: 'USD', label: '🇺🇸 USD - Đô la Mỹ ($)' },
-              { value: 'EUR', label: '🇪🇺 EUR - Euro (€)' },
+              { value: 'VND', label: t('auth.currency_vnd') },
+              { value: 'USD', label: t('auth.currency_usd') },
+              { value: 'EUR', label: t('auth.currency_eur') },
             ]}
           />
         </Form.Item>
 
         <Form.Item name="agreeTerms" valuePropName="checked" style={{ marginBottom: 16 }}>
           <Checkbox style={{ fontSize: 13, color: '#64748B' }}>
-            Tôi đồng ý với <a href="#terms" style={{ color: '#1677FF', fontWeight: 600 }}>Điều khoản sử dụng</a> & <a href="#privacy" style={{ color: '#1677FF', fontWeight: 600 }}>Chính sách bảo mật</a>
+            {t('auth.agree_prefix')} <a href="#terms" style={{ color: '#1677FF', fontWeight: 600 }}>{t('auth.terms_link')}</a> & <a href="#privacy" style={{ color: '#1677FF', fontWeight: 600 }}>{t('auth.privacy_link')}</a>
           </Checkbox>
         </Form.Item>
 
@@ -160,19 +161,19 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
                 border: 'none',
               }}
             >
-              Tạo Tài Khoản
+              {t('auth.register_button')}
             </Button>
           </motion.div>
         </Form.Item>
 
         <div style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: '#64748B' }}>
-          Đã có tài khoản?{' '}
+          {t('auth.have_account')}{' '}
           <Button
             type="link"
             onClick={onSwitchLogin}
             style={{ padding: 0, fontWeight: 700, color: '#1677FF', fontSize: 14 }}
           >
-            Đăng nhập ngay
+            {t('auth.login_now')}
           </Button>
         </div>
       </Form>

@@ -1,8 +1,3 @@
-/**
- * Cầu nối giữa key tab (Sidebar, BottomNav, CommandPalette, Header đang dùng) và
- * đường dẫn URL. Giữ nguyên API `activeTab` / `onSelectTab` của các component điều
- * hướng, chỉ đổi nguồn sự thật từ useState sang URL.
- */
 export const TAB_PATHS = {
   dashboard: '/',
   transactions: '/transactions',

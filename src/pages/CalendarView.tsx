@@ -4,6 +4,7 @@ import type { Dayjs } from 'dayjs';
 import type { AppState, Category } from '../types';
 import { formatMoney } from '../utils/format';
 import { DynamicIcon } from '../components/DynamicIcon';
+import { t } from '../i18n';
 
 interface CalendarViewProps {
   state: AppState;
@@ -35,8 +36,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ state }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div className="glass-card" style={{ padding: '20px 24px' }}>
-        <div style={{ fontSize: 20, fontWeight: 800 }}>Xem Giao Dịch Theo Lịch</div>
-        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Nhấp vào ngày bất kỳ trên lịch để xem danh sách giao dịch thu chi</div>
+        <div style={{ fontSize: 20, fontWeight: 800 }}>{t('cal.title')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('cal.subtitle')}</div>
       </div>
 
       <div className="glass-card" style={{ padding: 20 }}>
@@ -48,14 +49,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ state }) => {
 
       {/* Day Breakdown Drawer */}
       <Drawer
-        title={`Giao dịch ngày ${selectedDate}`}
+        title={t('cal.modal_title', { date: selectedDate ?? '' })}
         placement="right"
         size={Math.min(400, typeof window !== 'undefined' ? window.innerWidth : 400)}
         onClose={() => setSelectedDate(null)}
         open={!!selectedDate}
       >
         {selectedTxs.length === 0 ? (
-          <div style={{ color: '#94a3b8', textAlign: 'center', marginTop: 40 }}>Không có giao dịch nào trong ngày này</div>
+          <div style={{ color: '#94a3b8', textAlign: 'center', marginTop: 40 }}>{t('cal.empty')}</div>
         ) : (
           <List
             dataSource={selectedTxs}

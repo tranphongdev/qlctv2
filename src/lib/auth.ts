@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
+import { t } from '../i18n';
 import type { Session } from '@supabase/supabase-js';
 
 export interface AuthUser {
@@ -10,7 +11,7 @@ export interface AuthUser {
 
 export async function signUpWithEmail(email: string, pass: string, name: string) {
   if (!isSupabaseConfigured || !supabase) {
-    throw new Error('Supabase chưa được cấu hình. Vui lòng kiểm tra lại file .env!');
+    throw new Error(t('auth.not_configured'));
   }
 
   const { data, error } = await supabase.auth.signUp({
@@ -29,7 +30,7 @@ export async function signUpWithEmail(email: string, pass: string, name: string)
 
 export async function signInWithEmail(email: string, pass: string) {
   if (!isSupabaseConfigured || !supabase) {
-    throw new Error('Supabase chưa được cấu hình. Vui lòng kiểm tra lại file .env!');
+    throw new Error(t('auth.not_configured'));
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -56,7 +57,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   return {
     id: u.id,
     email: u.email || '',
-    name: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Người dùng',
+    name: u.user_metadata?.full_name || u.email?.split('@')[0] || t('auth.default_user_name'),
     avatarUrl: u.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.id}`,
   };
 }
@@ -71,7 +72,7 @@ export function onAuthChange(callback: (user: AuthUser | null, session: Session 
         {
           id: u.id,
           email: u.email || '',
-          name: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Người dùng',
+          name: u.user_metadata?.full_name || u.email?.split('@')[0] || t('auth.default_user_name'),
           avatarUrl: u.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.id}`,
         },
         session

@@ -5,14 +5,22 @@ import { Plus, ArrowRightLeft, Building2, Smartphone, Banknote, Bitcoin, Mail, T
 import type { AppState, Wallet } from '../types';
 import { formatMoney } from '../utils/format';
 import { addWallet, updateWallet, deleteWallet, addTransaction } from '../store/appStore';
+import { t } from '../i18n';
 
-const WALLET_TYPE_LABEL: Record<Wallet['type'], string> = {
-  bank: 'Ngân hàng',
-  cash: 'Tiền mặt',
-  e_wallet: 'Ví điện tử',
-  crypto: 'Crypto',
-  usd: 'Ngoại tệ USD',
-};
+/**
+ * Nhãn loại ví phải tra tại thời điểm render chứ không dựng sẵn thành hằng số
+ * module — hằng số sẽ đóng băng theo ngôn ngữ lúc import và không đổi khi người
+ * dùng chuyển ngôn ngữ.
+ */
+const WALLET_TYPE_KEYS = {
+  bank: 'wallets.type_bank',
+  cash: 'wallets.type_cash',
+  e_wallet: 'wallets.type_e_wallet',
+  crypto: 'wallets.type_crypto',
+  usd: 'wallets.type_usd',
+} as const;
+
+const walletTypeLabel = (type: Wallet['type']): string => t(WALLET_TYPE_KEYS[type]);
 
 /** Che số tài khoản theo kiểu thẻ ngân hàng, chỉ để lộ 4 số cuối. */
 function maskAccountNumber(accountNumber?: string): string {
@@ -95,10 +103,10 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
       // Giữ lại id và isDefault: form không có hai trường này, trải bản ghi cũ ra
       // trước thì chúng mới không bị mất khi lưu.
       updateWallet({ ...editingWallet, ...fields });
-      message.success(`Đã cập nhật ví ${fields.name}!`);
+      message.success(t('wallets.updated', { name: fields.name }));
     } else {
       addWallet(fields);
-      message.success('Đã thêm ví tiền mới!');
+      message.success(t('wallets.added'));
     }
 
     closeWalletModal();
@@ -106,12 +114,12 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
 
   const handleTransfer = (values: any) => {
     if (values.fromWalletId === values.toWalletId) {
-      message.error('Ví nguồn và ví nhận phải khác nhau!');
+      message.error(t('wallets.transfer_same_error'));
       return;
     }
     const fromW = wallets.find((w) => w.id === values.fromWalletId);
     if (fromW && fromW.balance < values.amount) {
-      message.error('Số dư ví nguồn không đủ!');
+      message.error(t('wallets.insufficient'));
       return;
     }
 
@@ -122,10 +130,10 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
       walletId: values.fromWalletId,
       toWalletId: values.toWalletId,
       date: new Date().toISOString().slice(0, 10),
-      note: values.note || 'Chuyển khoản giữa các ví',
+      note: values.note || t('wallets.transfer_default_note'),
     });
 
-    message.success('Chuyển tiền thành công!');
+    message.success(t('wallets.transfer_success'));
     setIsTransferOpen(false);
     transferForm.resetFields();
   };
@@ -148,21 +156,21 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
       {/* Header */}
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800 }}>Quản lý Ví & Tài khoản</div>
-          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Quản lý {wallets.length} ví tiền mặt, tài khoản ngân hàng và ví điện tử</div>
+          <div style={{ fontSize: 20, fontWeight: 800 }}>{t('wallets.title')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('wallets.subtitle', { count: wallets.length })}</div>
         </div>
 
         <Space wrap>
           {onOpenBankSync && (
             <Button icon={<Mail size={16} color="#7C3AED" />} size="middle" onClick={onOpenBankSync}>
-              Đồng bộ Email Ngân hàng
+              {t('wallets.sync_email')}
             </Button>
           )}
           <Button icon={<ArrowRightLeft size={16} />} size="middle" onClick={() => setIsTransferOpen(true)}>
-            Chuyển tiền ví
+            {t('wallets.transfer')}
           </Button>
           <Button type="primary" icon={<Plus size={16} />} onClick={openCreateModal}>
-            Thêm ví mới
+            {t('wallets.add_new')}
           </Button>
         </Space>
       </div>
@@ -181,7 +189,7 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  {w.bankName || WALLET_TYPE_LABEL[w.type]}
+                  {w.bankName || walletTypeLabel(w.type)}
                 </div>
                 <div style={{ fontSize: 16, fontWeight: 700, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {w.name}
@@ -192,7 +200,7 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
                 <Button
                   type="text"
                   size="small"
-                  aria-label={`Sửa ví ${w.name}`}
+                  aria-label={t('wallets.edit_aria', { name: w.name })}
                   onClick={() => openEditModal(w)}
                   icon={<Pencil size={16} color="#ffffff" />}
                   style={{
@@ -205,20 +213,20 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
                   }}
                 />
                 <Popconfirm
-                  title="Xóa ví tiền này?"
-                  description="Bạn có chắc muốn xóa ví khỏi hệ thống?"
+                  title={t('wallets.delete_title')}
+                  description={t('wallets.delete_desc')}
                   onConfirm={() => {
                     deleteWallet(w.id);
-                    message.success(`Đã xóa ví ${w.name}!`);
+                    message.success(t('wallets.deleted', { name: w.name }));
                   }}
-                  okText="Xóa"
-                  cancelText="Hủy"
+                  okText={t('common.delete')}
+                  cancelText={t('common.cancel')}
                   okButtonProps={{ danger: true }}
                 >
                   <Button
                     type="text"
                     size="small"
-                    aria-label={`Xóa ví ${w.name}`}
+                    aria-label={t('wallets.delete_aria', { name: w.name })}
                     icon={<Trash2 size={16} color="#ffffff" />}
                     style={{
                       background: 'rgba(255,255,255,0.22)',
@@ -245,11 +253,11 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
             {/* Hàng dưới: số dư bên trái, loại ví bên phải như dòng hiệu lực trên thẻ */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 8 }}>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 10, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>Số dư</div>
+                <div style={{ fontSize: 10, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>{t('wallets.balance_label')}</div>
                 <div style={{ fontSize: 21, fontWeight: 800, letterSpacing: '-0.3px' }}>{formatMoney(w.balance)}</div>
               </div>
               <div style={{ fontSize: 10, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '1px', whiteSpace: 'nowrap' }}>
-                {WALLET_TYPE_LABEL[w.type]}
+                {walletTypeLabel(w.type)}
               </div>
             </div>
           </div>
@@ -260,61 +268,61 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
       <Modal
         open={isAddOpen}
         onCancel={closeWalletModal}
-        title={editingWallet ? `Sửa ví ${editingWallet.name}` : 'Thêm Ví / Tài khoản mới'}
+        title={editingWallet ? t('wallets.modal_edit_title', { name: editingWallet.name }) : t('wallets.modal_add_title')}
         footer={null}
         destroyOnHidden
       >
         <Form form={form} layout="vertical" onFinish={handleSubmitWallet} style={{ marginTop: 16 }}>
-          <Form.Item name="name" label="Tên ví / Tài khoản" rules={[{ required: true, message: 'Nhập tên ví' }]}>
-            <Input placeholder="Ví dụ: MB Bank, MoMo, Ví Tiền Mặt..." />
+          <Form.Item name="name" label={t('wallets.field_name')} rules={[{ required: true, message: t('wallets.field_name_required') }]}>
+            <Input placeholder={t('wallets.field_name_placeholder')} />
           </Form.Item>
 
-          <Form.Item name="type" label="Loại nguồn tiền" rules={[{ required: true }]}>
+          <Form.Item name="type" label={t('wallets.field_type')} rules={[{ required: true }]}>
             <Select
-              placeholder="Chọn loại ví"
+              placeholder={t('wallets.field_type_placeholder')}
               options={[
-                { value: 'bank', label: 'Tài khoản Ngân hàng (MB, VCB, TCB...)' },
-                { value: 'cash', label: 'Tiền mặt' },
-                { value: 'e_wallet', label: 'Ví điện tử (MoMo, ZaloPay...)' },
-                { value: 'crypto', label: 'Crypto / Crypto Wallet' },
-                { value: 'usd', label: 'Ví Ngoại tệ USD' },
+                { value: 'bank', label: t('wallets.opt_bank') },
+                { value: 'cash', label: t('wallets.opt_cash') },
+                { value: 'e_wallet', label: t('wallets.opt_e_wallet') },
+                { value: 'crypto', label: t('wallets.opt_crypto') },
+                { value: 'usd', label: t('wallets.opt_usd') },
               ]}
             />
           </Form.Item>
 
-          <Form.Item name="bankName" label="Tên ngân hàng / Nhà cung cấp">
+          <Form.Item name="bankName" label={t('wallets.field_bank_name')}>
             <Input placeholder="MB Bank, Vietcombank, Techcombank..." />
           </Form.Item>
 
-          <Form.Item name="accountNumber" label="Số tài khoản / Số điện thoại">
-            <Input placeholder="Ví dụ: 0987654321" />
+          <Form.Item name="accountNumber" label={t('wallets.field_account')}>
+            <Input placeholder={t('wallets.field_account_placeholder')} />
           </Form.Item>
 
           <Form.Item
             name="balance"
-            label={editingWallet ? 'Số dư hiện tại (VNĐ)' : 'Số dư ban đầu (VNĐ)'}
-            extra={editingWallet ? 'Sửa trực tiếp ở đây là điều chỉnh số dư, không sinh giao dịch.' : undefined}
+            label={editingWallet ? t('wallets.field_balance_edit') : t('wallets.field_balance_new')}
+            extra={editingWallet ? t('wallets.field_balance_hint') : undefined}
           >
             <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder="0" min={0} />
           </Form.Item>
 
-          <Form.Item name="color" label="Màu đại diện card">
+          <Form.Item name="color" label={t('wallets.field_color')}>
             <Input type="color" style={{ width: 80, height: 40, padding: 0 }} />
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
-            <Button onClick={closeWalletModal} style={{ marginRight: 8 }}>Hủy</Button>
-            <Button type="primary" htmlType="submit">{editingWallet ? 'Lưu thay đổi' : 'Tạo Ví'}</Button>
+            <Button onClick={closeWalletModal} style={{ marginRight: 8 }}>{t('common.cancel')}</Button>
+            <Button type="primary" htmlType="submit">{editingWallet ? t('common.save_changes') : t('wallets.submit_create')}</Button>
           </Form.Item>
         </Form>
       </Modal>
 
       {/* Transfer Between Wallets Modal */}
-      <Modal open={isTransferOpen} onCancel={() => setIsTransferOpen(false)} title="🔄 Chuyển tiền giữa các Ví" footer={null}>
+      <Modal open={isTransferOpen} onCancel={() => setIsTransferOpen(false)} title={t('wallets.transfer_title')} footer={null}>
         <Form form={transferForm} layout="vertical" onFinish={handleTransfer} style={{ marginTop: 16 }}>
-          <Form.Item name="fromWalletId" label="Ví nguồn (Trừ tiền)" rules={[{ required: true }]}>
+          <Form.Item name="fromWalletId" label={t('wallets.from_label')} rules={[{ required: true }]}>
             <Select
-              placeholder="Chọn ví gửi"
+              placeholder={t('wallets.from_placeholder')}
               options={wallets.map((w) => ({
                 value: w.id,
                 label: `${w.name} (${formatMoney(w.balance)})`,
@@ -322,9 +330,9 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
             />
           </Form.Item>
 
-          <Form.Item name="toWalletId" label="Ví nhận (Cộng tiền)" rules={[{ required: true }]}>
+          <Form.Item name="toWalletId" label={t('wallets.to_label')} rules={[{ required: true }]}>
             <Select
-              placeholder="Chọn ví nhận"
+              placeholder={t('wallets.to_placeholder')}
               options={wallets.map((w) => ({
                 value: w.id,
                 label: `${w.name} (${formatMoney(w.balance)})`,
@@ -332,17 +340,17 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
             />
           </Form.Item>
 
-          <Form.Item name="amount" label="Số tiền chuyển (VNĐ)" rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder="0 VNĐ" min={1000} />
+          <Form.Item name="amount" label={t('wallets.transfer_amount')} rules={[{ required: true }]}>
+            <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder={t('common.amount_placeholder')} min={1000} />
           </Form.Item>
 
-          <Form.Item name="note" label="Ghi chú chuyển khoản">
-            <Input placeholder="Rút tiền ATM, nạp tiền ví MoMo..." />
+          <Form.Item name="note" label={t('wallets.transfer_note')}>
+            <Input placeholder={t('wallets.transfer_note_placeholder')} />
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
-            <Button onClick={() => setIsTransferOpen(false)} style={{ marginRight: 8 }}>Hủy</Button>
-            <Button type="primary" htmlType="submit">Xác Nhận Chuyển</Button>
+            <Button onClick={() => setIsTransferOpen(false)} style={{ marginRight: 8 }}>{t('common.cancel')}</Button>
+            <Button type="primary" htmlType="submit">{t('wallets.transfer_submit')}</Button>
           </Form.Item>
         </Form>
       </Modal>

@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
 import 'dayjs/locale/en';
 import { fromVnd, getActiveCurrency, localeOfCurrency } from './currency';
+import { t } from '../i18n';
 import type { CurrencyCode } from './currency';
 
 dayjs.locale('vi');
@@ -25,8 +26,8 @@ export function formatCompactNumber(amountVnd: number, currency: CurrencyCode = 
 
   // VND dùng đơn vị đọc quen thuộc của tiếng Việt, các đơn vị khác dùng K/M/B.
   if (currency === 'VND') {
-    if (abs >= 1_000_000_000) return (val / 1_000_000_000).toFixed(1) + ' tỷ';
-    if (abs >= 1_000_000) return (val / 1_000_000).toFixed(1) + ' triệu';
+    if (abs >= 1_000_000_000) return (val / 1_000_000_000).toFixed(1) + ' ' + t('format.billion');
+    if (abs >= 1_000_000) return (val / 1_000_000).toFixed(1) + ' ' + t('format.million');
     if (abs >= 1_000) return (val / 1_000).toFixed(0) + 'k';
     return Math.round(val).toString();
   }
@@ -53,11 +54,11 @@ export function formatDate(dateStr: string, format = 'DD/MM/YYYY'): string {
 export function getTimeAwareGreeting(name: string): { greeting: string; icon: string } {
   const hour = dayjs().hour();
   if (hour >= 5 && hour < 12) {
-    return { greeting: `Chào buổi sáng, ${name}!`, icon: '🌅' };
+    return { greeting: t('header.greeting_morning', { name }), icon: '🌅' };
   } else if (hour >= 12 && hour < 18) {
-    return { greeting: `Chào buổi chiều, ${name}!`, icon: '☀️' };
+    return { greeting: t('header.greeting_afternoon', { name }), icon: '☀️' };
   } else {
-    return { greeting: `Chào buổi tối, ${name}!`, icon: '🌙' };
+    return { greeting: t('header.greeting_evening', { name }), icon: '🌙' };
   }
 }
 

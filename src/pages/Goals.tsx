@@ -6,6 +6,7 @@ import confetti from 'canvas-confetti';
 import type { AppState, Goal } from '../types';
 import { formatMoney } from '../utils/format';
 import { addGoal, depositToGoal, deleteGoal } from '../store/appStore';
+import { t } from '../i18n';
 
 interface GoalsProps {
   state: AppState;
@@ -26,7 +27,7 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
       imageUrl: values.imageUrl || 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=500&q=80',
       color: '#4F46E5',
     });
-    message.success('Đã tạo mục tiêu tiết kiệm mới!');
+    message.success(t('goals.created'));
     setIsAddOpen(false);
     form.resetFields();
   };
@@ -44,9 +45,11 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
         spread: 70,
         origin: { y: 0.6 },
       });
-      message.success(`🎉 BẠN ĐÃ HOÀN THÀNH MỤC TIÊU ${depositGoal.name.toUpperCase()}! XIN CHÚC MỪNG!`);
+      message.success(t('goals.completed_celebration', { name: depositGoal.name.toUpperCase() }));
     } else {
-      message.success(`Đã nộp thêm ${formatMoney(depositAmount)} vào mục tiêu ${depositGoal.name}!`);
+      message.success(
+        t('goals.deposited', { amount: formatMoney(depositAmount), name: depositGoal.name }),
+      );
     }
 
     setDepositGoal(null);
@@ -58,12 +61,12 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
       {/* Header */}
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800 }}>Mục tiêu Tiết kiệm</div>
-          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Theo dõi tiến độ tiết kiệm mua sắm, du lịch & dự phòng tài chính</div>
+          <div style={{ fontSize: 20, fontWeight: 800 }}>{t('goals.title')}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('goals.subtitle')}</div>
         </div>
 
         <Button type="primary" icon={<Plus size={16} />} size="middle" style={{ borderRadius: 12 }} onClick={() => setIsAddOpen(true)}>
-          Tạo Mục Tiêu Mới
+          {t('goals.add_new')}
         </Button>
       </div>
 
@@ -90,7 +93,7 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
                 <div style={{ position: 'absolute', top: 12, right: 12 }}>
                   {isDone ? (
                     <Tag color="green" icon={<CheckCircle2 size={12} />}>
-                      Hoàn thành 🎉
+                      {t('goals.done_tag')}
                     </Tag>
                   ) : (
                     <Tag color="purple">{pct}%</Tag>
@@ -102,7 +105,7 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
               <div style={{ padding: 20 }}>
                 <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{g.name}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
-                  Hạn chót: {g.deadline || 'Không giới hạn'}
+                  {t('goals.deadline_label', { value: g.deadline || t('goals.no_deadline') })}
                 </div>
 
                 {/* Tag trên ảnh bìa đã hiện % rồi, tắt showInfo để khỏi lặp số. */}
@@ -110,11 +113,11 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, margin: '14px 0 16px' }}>
                   <div>
-                    <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>Đã nộp:</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>{t('goals.saved_label')}</span>
                     <div style={{ fontWeight: 700, color: '#4F46E5' }}>{formatMoney(g.saved)}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>Mục tiêu:</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>{t('goals.target_label')}</span>
                     <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{formatMoney(g.target)}</div>
                   </div>
                 </div>
@@ -126,22 +129,22 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
                     icon={<Sparkles size={16} />}
                     style={{ borderRadius: 12, flex: 1 }}
                   >
-                    {isDone ? 'Nộp Thêm Tiết Kiệm' : 'Nộp Tiền Tiết Kiệm'}
+                    {isDone ? t('goals.deposit_more') : t('goals.deposit')}
                   </Button>
                   <Popconfirm
-                    title="Xóa mục tiêu này?"
-                    description={`Toàn bộ tiến độ của "${g.name}" sẽ bị xóa khỏi hệ thống.`}
+                    title={t('goals.delete_title')}
+                    description={t('goals.delete_desc', { name: g.name })}
                     onConfirm={() => {
                       deleteGoal(g.id);
-                      message.success(`Đã xóa mục tiêu ${g.name}!`);
+                      message.success(t('goals.deleted', { name: g.name }));
                     }}
-                    okText="Xóa"
-                    cancelText="Hủy"
+                    okText={t('common.delete')}
+                    cancelText={t('common.cancel')}
                     okButtonProps={{ danger: true }}
                   >
                     <Button
                       danger
-                      aria-label={`Xóa mục tiêu ${g.name}`}
+                      aria-label={t('goals.delete_aria', { name: g.name })}
                       icon={<Trash2 size={16} />}
                       style={{ borderRadius: 12 }}
                     />
@@ -154,41 +157,41 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
       </div>
 
       {/* Add Goal Modal */}
-      <Modal open={isAddOpen} onCancel={() => setIsAddOpen(false)} title="Tạo Mục tiêu Tiết kiệm Mới" footer={null}>
+      <Modal open={isAddOpen} onCancel={() => setIsAddOpen(false)} title={t('goals.modal_add_title')} footer={null}>
         <Form form={form} layout="vertical" onFinish={handleCreateGoal} style={{ marginTop: 16 }}>
-          <Form.Item name="name" label="Tên mục tiêu" rules={[{ required: true, message: 'Nhập tên mục tiêu' }]}>
-            <Input placeholder="Mua MacBook Pro M3, Du lịch Nhật Bản..." />
+          <Form.Item name="name" label={t('goals.field_name')} rules={[{ required: true, message: t('goals.field_name_required') }]}>
+            <Input placeholder={t('goals.field_name_placeholder')} />
           </Form.Item>
 
-          <Form.Item name="target" label="Số tiền mục tiêu (VNĐ)" rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder="0 VNĐ" min={100000} />
+          <Form.Item name="target" label={t('goals.field_target')} rules={[{ required: true }]}>
+            <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder={t('common.amount_placeholder')} min={100000} />
           </Form.Item>
 
-          <Form.Item name="deadline" label="Hạn chót hoàn thành">
+          <Form.Item name="deadline" label={t('goals.field_deadline')}>
             <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
           </Form.Item>
 
-          <Form.Item name="imageUrl" label="Link ảnh đại diện (Cover URL)">
+          <Form.Item name="imageUrl" label={t('goals.field_image')}>
             <Input placeholder="https://..." />
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
-            <Button onClick={() => setIsAddOpen(false)} style={{ marginRight: 8 }}>Hủy</Button>
-            <Button type="primary" htmlType="submit">Tạo Mục Tiêu</Button>
+            <Button onClick={() => setIsAddOpen(false)} style={{ marginRight: 8 }}>{t('common.cancel')}</Button>
+            <Button type="primary" htmlType="submit">{t('goals.submit_create')}</Button>
           </Form.Item>
         </Form>
       </Modal>
 
       {/* Deposit Modal */}
-      <Modal open={!!depositGoal} onCancel={() => setDepositGoal(null)} title={`Nộp tiền tiết kiệm: ${depositGoal?.name}`} footer={null}>
+      <Modal open={!!depositGoal} onCancel={() => setDepositGoal(null)} title={t('goals.deposit_modal_title', { name: depositGoal?.name ?? '' })} footer={null}>
         <Form form={depositForm} layout="vertical" onFinish={handleDeposit} style={{ marginTop: 16 }}>
-          <Form.Item name="amount" label="Số tiền nộp (VNĐ)" rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder="0 VNĐ" min={10000} autoFocus />
+          <Form.Item name="amount" label={t('goals.deposit_amount_label')} rules={[{ required: true }]}>
+            <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder={t('common.amount_placeholder')} min={10000} autoFocus />
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
-            <Button onClick={() => setDepositGoal(null)} style={{ marginRight: 8 }}>Hủy</Button>
-            <Button type="primary" htmlType="submit">Xác Nhận Nộp</Button>
+            <Button onClick={() => setDepositGoal(null)} style={{ marginRight: 8 }}>{t('common.cancel')}</Button>
+            <Button type="primary" htmlType="submit">{t('goals.deposit_submit')}</Button>
           </Form.Item>
         </Form>
       </Modal>

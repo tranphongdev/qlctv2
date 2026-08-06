@@ -19,6 +19,7 @@ import type { AppState } from '../types';
 import { CounterAnimation } from '../components/CounterAnimation';
 import { formatMoney, formatCompactNumber, formatDate } from '../utils/format';
 import { DynamicIcon } from '../components/DynamicIcon';
+import { t } from '../i18n';
 
 /** Số tháng hiển thị trên chart xu hướng. Ít cột -> cột dày và dễ đọc hơn. */
 const TREND_MONTHS = 6;
@@ -113,7 +114,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
       // tâm, nên cột luôn căn giữa nhãn kể cả khi series kia bằng 0. Đổi lại phải
       // tách bằng bề rộng: cột Thu nhập rộng nằm dưới, cột Chi tiêu hẹp vẽ đè lên.
       {
-        label: 'Thu nhập',
+        label: t('dash.income_label'),
         data: monthlyTrend.map((m) => m.thu),
         backgroundColor: '#22C55E',
         borderRadius: 6,
@@ -124,7 +125,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
         maxBarThickness: 44,
       },
       {
-        label: 'Chi tiêu',
+        label: t('dash.expense_label'),
         data: monthlyTrend.map((m) => m.chi),
         backgroundColor: '#EF4444',
         borderRadius: 6,
@@ -177,7 +178,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
 
   const hasPieData = pieData.length > 0;
   const donutData: ChartData<'doughnut'> = {
-    labels: hasPieData ? pieData.map((d) => d.name) : ['Không có chi tiêu'],
+    labels: hasPieData ? pieData.map((d) => d.name) : [t('dash.no_expense_chart')],
     datasets: [
       {
         data: hasPieData ? pieData.map((d) => d.value) : [1],
@@ -219,7 +220,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
         <div className="gradient-card-primary" style={{ padding: 24, cursor: 'pointer' }} onClick={() => onSelectTab('wallets')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.9 }}>
             <span style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Tổng số dư tài sản
+              {t('dash.total_balance')}
             </span>
             <Wallet size={22} />
           </div>
@@ -228,13 +229,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, opacity: 0.95 }}>
             {balanceChangePct === null ? (
-              <span>Chưa đủ dữ liệu để so sánh</span>
+              <span>{t('dash.not_enough_data')}</span>
             ) : (
               <>
                 <span style={{ padding: '2px 8px', borderRadius: 99, background: 'rgba(255,255,255,0.2)', fontWeight: 700 }}>
                   {balanceChangePct >= 0 ? '+' : ''}{balanceChangePct.toFixed(1)}%
                 </span>
-                <span>{balanceChangePct >= 0 ? 'Tăng' : 'Giảm'} so với tháng trước</span>
+                <span>{balanceChangePct >= 0 ? t('dash.increase') : t('dash.decrease')} {t('dash.vs_last_month')}</span>
               </>
             )}
           </div>
@@ -244,7 +245,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
         <div className="glass-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-              Thu nhập tháng này
+              {t('dash.income_this_month')}
             </span>
             {/* Màu đặt trên thẻ bọc; lucide mặc định stroke="currentColor" nên icon
                 tự ăn theo. Truyền var() vào prop color sẽ hỏng vì nó rơi vào thuộc
@@ -258,7 +259,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
             <ArrowUpRight size={16} style={{ color: 'var(--color-income)' }} />
-            <span>{incomeSourceCount > 0 ? `${incomeSourceCount} nguồn thu nhập` : 'Chưa có khoản thu nào'}</span>
+            <span>{incomeSourceCount > 0 ? t('dash.income_sources', { count: incomeSourceCount }) : t('dash.no_income_yet')}</span>
           </div>
         </div>
 
@@ -266,7 +267,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
         <div className="glass-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-              Chi tiêu tháng này
+              {t('dash.expense_this_month')}
             </span>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--tint-expense)', color: 'var(--color-expense)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <TrendingDown size={20} />
@@ -277,7 +278,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
             <ArrowDownRight size={16} style={{ color: 'var(--color-expense)' }} />
-            <span>{expenseCategoryCount > 0 ? `${expenseCategoryCount} danh mục chi tiêu` : 'Chưa có khoản chi nào'}</span>
+            <span>{expenseCategoryCount > 0 ? t('dash.expense_categories', { count: expenseCategoryCount }) : t('dash.no_expense_yet')}</span>
           </div>
         </div>
 
@@ -285,7 +286,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
         <div className="glass-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-              Tiết kiệm ròng
+              {t('dash.net_savings')}
             </span>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--tint-savings)', color: 'var(--color-savings)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <PiggyBank size={20} />
@@ -296,7 +297,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           </div>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>
-              <span>Tỷ lệ tiết kiệm</span>
+              <span>{t('dash.savings_rate')}</span>
               <span style={{ fontWeight: 700, color: 'var(--color-savings)' }}>{savingsRate}%</span>
             </div>
             <Progress percent={savingsRate} strokeColor={{ '0%': '#4F46E5', '100%': '#7C3AED' }} showInfo={false} />
@@ -310,11 +311,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
         <div className="glass-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 700 }}>Xu hướng Chi tiêu & Thu nhập</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Phân tích {TREND_MONTHS} tháng gần nhất</div>
+              <div style={{ fontSize: 16, fontWeight: 700 }}>{t('dash.trend_title')}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('dash.trend_subtitle', { months: TREND_MONTHS })}</div>
             </div>
             <Button size="small" icon={<CalendarIcon size={14} />} onClick={() => onSelectTab('calendar')}>
-              Xem chi tiết
+              {t('dash.view_detail')}
             </Button>
           </div>
 
@@ -326,9 +327,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
         {/* Category Expense Donut Chart */}
         <div className="glass-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontSize: 16, fontWeight: 700 }}>Chi tiêu theo danh mục</div>
+            <div style={{ fontSize: 16, fontWeight: 700 }}>{t('dash.by_category')}</div>
             <Button type="link" size="small" onClick={() => onSelectTab('categories')}>
-              Xem tất cả
+              {t('dash.view_all')}
             </Button>
           </div>
 
@@ -357,10 +358,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           {/* flexWrap + nowrap ở tiêu đề: màn hẹp thì cả cụm nút xuống dòng dưới,
               thay vì bóp tiêu đề vỡ thành hai dòng cạnh nút. */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>Giao dịch gần đây</div>
+            <div style={{ fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>{t('dash.recent_tx')}</div>
             <Space>
               <Button icon={<Plus size={14} />} type="primary" onClick={onOpenAddModal}>
-                Thêm mới
+                {t('dash.add_new')}
               </Button>
             </Space>
           </div>
@@ -401,7 +402,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 600, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {tx.note || cat?.name || 'Giao dịch'}
+                        {tx.note || cat?.name || t('tx.fallback_name')}
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {formatDate(tx.date)} • {cat?.name}
@@ -424,9 +425,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
         {/* Savings Goals Widget */}
         <div className="glass-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 8 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>Mục tiêu tiết kiệm</div>
+            <div style={{ fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>{t('dash.goals_title')}</div>
             <Button type="link" size="small" onClick={() => onSelectTab('goals')}>
-              Xem thêm
+              {t('dash.view_more')}
             </Button>
           </div>
 
@@ -442,8 +443,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                   {/* Phần trăm đã hiện ở tiêu đề, tắt showInfo để khỏi lặp số. */}
                   <Progress percent={pct} showInfo={false} strokeColor={{ '0%': '#4F46E5', '100%': '#7C3AED' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4, fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
-                    <span>Đã tiết kiệm: {formatMoney(goal.saved)}</span>
-                    <span>Mục tiêu: {formatMoney(goal.target)}</span>
+                    <span>{t('dash.goal_saved', { amount: formatMoney(goal.saved) })}</span>
+                    <span>{t('dash.goal_target', { amount: formatMoney(goal.target) })}</span>
                   </div>
                 </div>
               );

@@ -6,6 +6,7 @@ import type { Wallet, Category, Transaction } from '../types';
 import { parseBankEmailOrText, SAMPLE_BANK_EMAILS } from '../utils/bankEmailParser';
 import type { ParsedBankTransaction } from '../utils/bankEmailParser';
 import { formatMoney } from '../utils/format';
+import { t } from '../i18n';
 
 interface BankEmailSyncModalProps {
   open: boolean;
@@ -50,7 +51,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
 
   const handleConfirmSave = () => {
     if (!parsedTx || parsedTx.amount <= 0) {
-      message.error('Vui lòng nhập nội dung Email ngân hàng hợp lệ để bóc tách!');
+      message.error(t('bank.parse_error'));
       return;
     }
 
@@ -65,7 +66,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
       tags: ['EmailBankSync', parsedTx.bankName],
     });
 
-    message.success(`🎉 Đã tự động tạo giao dịch ${formatMoney(parsedTx.amount)} từ Email ${parsedTx.bankName}!`);
+    message.success(t('bank.tx_created', { amount: formatMoney(parsedTx.amount), bank: parsedTx.bankName }));
     setInputText('');
     setParsedTx(null);
     onClose();
@@ -86,7 +87,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
 
   const copyScriptCode = () => {
     navigator.clipboard.writeText(googleAppsScriptCode);
-    message.success('Đã sao chép mã Google Apps Script vào bộ nhớ tạm!');
+    message.success(t('bank.script_copied'));
   };
 
   return (
@@ -99,8 +100,8 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
             <Mail size={18} color="#ffffff" />
           </div>
           <div>
-            <div style={{ fontSize: 17, fontWeight: 800 }}>Đồng bộ Email Ngân hàng (iOS / Gmail)</div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 400 }}>Tự động bóc tách số tiền bị trừ / cộng từ thông báo Email</div>
+            <div style={{ fontSize: 17, fontWeight: 800 }}>{t('bank.sync_title')}</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 400 }}>{t('bank.sync_subtitle')}</div>
           </div>
         </div>
       }
@@ -116,18 +117,18 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
             label: (
               <span>
                 <Zap size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                Dán & Bóc Tách Email
+                {t('bank.tab_paste')}
               </span>
             ),
             children: (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-                    Dán nội dung Email / SMS Ngân hàng vào đây:
+                    {t('bank.paste_label')}
                   </div>
                   <Input.TextArea
                     rows={4}
-                    placeholder="Dán nội dung Email từ Vietcombank, MB Bank, Techcombank, MoMo... Ví dụ: [Vietcombank] THONG BAO BIEN DONG SO DU... -250,000 VND..."
+                    placeholder={t('bank.paste_placeholder')}
                     value={inputText}
                     onChange={(e) => handleParseText(e.target.value)}
                     style={{ borderRadius: 12 }}
@@ -150,7 +151,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
                           {parsedTx.bankName}
                         </Tag>
                         <Tag color={parsedTx.type === 'thu' ? 'green' : 'red'}>
-                          {parsedTx.type === 'thu' ? '🟢 Cộng tiền' : '🔴 Trừ tiền'}
+                          {parsedTx.type === 'thu' ? t('bank.credit') : t('bank.debit')}
                         </Tag>
                       </div>
                       <span style={{ fontSize: 11, color: '#94a3b8' }}>
@@ -164,7 +165,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginBottom: 12 }}>
                       <div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Ví nộp / trừ tiền:</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{t('bank.wallet_label')}</div>
                         <Select
                           value={selectedWalletId}
                           onChange={setSelectedWalletId}
@@ -178,7 +179,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
                       </div>
 
                       <div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Gợi ý Danh mục:</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{t('bank.category_hint')}</div>
                         <Select
                           value={selectedCategoryId}
                           onChange={setSelectedCategoryId}
@@ -198,12 +199,12 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
                     </div>
 
                     <div style={{ marginBottom: 14 }}>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Ghi chú giao dịch:</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{t('bank.note_label')}</div>
                       <Input
                         value={customNote}
                         onChange={(e) => setCustomNote(e.target.value)}
                         size="small"
-                        placeholder="Nội dung giao dịch..."
+                        placeholder={t('bank.note_placeholder')}
                       />
                     </div>
 
@@ -215,13 +216,13 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
                       onClick={handleConfirmSave}
                       style={{ borderRadius: 12, height: 44, fontWeight: 700 }}
                     >
-                      Xác nhận & Thêm Giao Dịch
+                      {t('bank.confirm_add')}
                     </Button>
                   </div>
                 ) : (
                   inputText.trim() && (
                     <div style={{ padding: 14, borderRadius: 12, background: 'rgba(239, 68, 68, 0.08)', color: '#DC2626', fontSize: 13 }}>
-                      Chưa bóc tách được số tiền hợp lệ từ nội dung trên. Vui lòng kiểm tra lại văn bản Email.
+                      {t('bank.parse_failed')}
                     </div>
                   )
                 )}
@@ -233,13 +234,13 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
             label: (
               <span>
                 <FileText size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                Mẫu Email Demo
+                {t('bank.tab_samples')}
               </span>
             ),
             children: (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 8 }}>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  Bấm vào 1 trong các mẫu Email thông báo từ Ngân hàng dưới đây để trải nghiệm bóc tách tự động:
+                  {t('bank.samples_hint')}
                 </div>
 
                 {SAMPLE_BANK_EMAILS.map((sample, idx) => (
@@ -259,7 +260,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
                     </pre>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
                       <span style={{ fontSize: 12, color: '#4F46E5', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                        Dùng mẫu này <ArrowRight size={12} />
+                        {t('bank.use_sample')} <ArrowRight size={12} />
                       </span>
                     </div>
                   </Card>
@@ -272,23 +273,23 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
             label: (
               <span>
                 <Sparkles size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                Tự động 24/7 (Gmail)
+                {t('bank.tab_auto')}
               </span>
             ),
             children: (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 8 }}>
                 <div style={{ padding: 14, borderRadius: 14, background: 'rgba(79, 70, 229, 0.08)', color: '#4F46E5', fontSize: 13, lineHeight: '1.5' }}>
-                  <b>💡 Hướng dẫn tự động 100% cho iPhone / iOS:</b>
+                  <b>{t('bank.auto_title')}</b>
                   <br />
-                  Bạn có thể tạo 1 mã kịch bản miễn phí chạy ngầm 24/7 trên Gmail bằng <b>Google Apps Script</b>. Mỗi khi ngân hàng gửi email trừ tiền vào Gmail, kịch bản sẽ tự động quét và lưu vào ứng dụng!
+                  {t('bank.auto_desc_1')} <b>Google Apps Script</b>{t('bank.auto_desc_2')}
                 </div>
 
-                <div style={{ fontSize: 13, fontWeight: 700 }}>Các bước thiết lập (chỉ 2 phút):</div>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>{t('bank.steps_title')}</div>
                 <ol style={{ fontSize: 12, color: 'var(--text-secondary)', paddingLeft: 20, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <li>Truy cập <a href="https://script.google.com" target="_blank" rel="noreferrer">script.google.com</a> trên trình duyệt.</li>
-                  <li>Tạo một <b>New Project</b> mới.</li>
-                  <li>Dán đoạn mã dưới đây và chọn lưu kịch bản.</li>
-                  <li>Thêm <b>Trigger (Trình kích hoạt)</b> chạy tự động mỗi 5 phút hoặc 15 phút.</li>
+                  <li>{t('bank.step_1_prefix')} <a href="https://script.google.com" target="_blank" rel="noreferrer">script.google.com</a> {t('bank.step_1_suffix')}</li>
+                  <li>{t('bank.step_2_prefix')} <b>New Project</b>{t('bank.step_2_suffix')}</li>
+                  <li>{t('bank.step_3')}</li>
+                  <li>{t('bank.step_4_prefix')} <b>{t('bank.trigger_name')}</b> {t('bank.step_4_suffix')}</li>
                 </ol>
 
                 <div style={{ position: 'relative', marginTop: 4 }}>
@@ -298,7 +299,7 @@ export const BankEmailSyncModal: React.FC<BankEmailSyncModalProps> = ({
                     onClick={copyScriptCode}
                     style={{ position: 'absolute', top: 8, right: 8, zIndex: 10 }}
                   >
-                    Sao chép Code
+                    {t('bank.copy_code')}
                   </Button>
                   <pre style={{ background: '#0f172a', color: '#38bdf8', padding: 12, borderRadius: 12, fontSize: 11, overflowX: 'auto', margin: 0 }}>
                     {googleAppsScriptCode}

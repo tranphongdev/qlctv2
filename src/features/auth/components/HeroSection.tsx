@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, TrendingUp, CreditCard, ArrowUpRight } from 'lucide-react';
 import { formatMoney } from '../../../utils/format';
+import { t } from '../../../i18n';
 
 export const HeroSection: React.FC = () => {
   return (
@@ -72,19 +73,19 @@ export const HeroSection: React.FC = () => {
             <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.4px', background: 'linear-gradient(135deg, #ffffff 0%, #CBD5E1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Financial
             </div>
-            <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 600, letterSpacing: '0.5px' }}>SaaS Expense Management</div>
+            <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 600, letterSpacing: '0.5px' }}>{t('hero.brand_subtitle')}</div>
           </div>
         </div>
 
         {/* Slogan */}
         <h1 className="auth-hero-slogan" style={{ fontSize: 30, fontWeight: 800, lineHeight: 1.25, letterSpacing: '-0.8px', margin: '0 0 10px 0' }}>
-          Kiểm soát tài chính. <br />
+          {t('hero.tagline_1')} <br />
           <span style={{ background: 'linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Làm chủ tương lai.
+            {t('hero.tagline_2')}
           </span>
         </h1>
         <p style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.5, maxWidth: 380, margin: 0 }}>
-          Tự động đồng bộ ngân hàng thời gian thực, bóc tách email giao dịch và báo cáo tài chính trực quan hàng đầu.
+          {t('hero.description')}
         </p>
       </motion.div>
 
@@ -111,7 +112,7 @@ export const HeroSection: React.FC = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: 11, color: '#94A3B8', textTransform: 'uppercase', fontWeight: 600 }}>Số Dư Tháng 8</div>
+              <div style={{ fontSize: 11, color: '#94A3B8', textTransform: 'uppercase', fontWeight: 600 }}>{t('hero.balance_label')}</div>
               <div style={{ fontSize: 22, fontWeight: 800, marginTop: 2 }}>{formatMoney(35450000)}</div>
             </div>
             <div style={{ padding: '4px 10px', borderRadius: 99, background: 'rgba(34, 197, 94, 0.2)', color: '#4ADE80', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -174,8 +175,8 @@ export const HeroSection: React.FC = () => {
               <ArrowUpRight size={18} />
             </div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>Tự động bóc tách Email</div>
-              <div style={{ fontSize: 11, color: '#94A3B8' }}>Vietcombank • Vừa xong</div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{t('hero.demo_tx_title')}</div>
+              <div style={{ fontSize: 11, color: '#94A3B8' }}>Vietcombank • {t('hero.just_now')}</div>
             </div>
           </div>
           <div style={{ fontSize: 13, fontWeight: 800, color: '#22C55E' }}>+15,000,000 ₫</div>

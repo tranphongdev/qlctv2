@@ -2,18 +2,24 @@ import React, { useState } from 'react';
 import { Button, Input, Tag, Space, Spin } from 'antd';
 import { Sparkles, Send, BrainCircuit, TrendingUp, Lightbulb, Bot } from 'lucide-react';
 import type { AppState } from '../types';
+import { t } from '../i18n';
 
 interface AIInsightsProps {
   state: AppState;
 }
 
-export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
+export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string }>>([
+  // Khởi tạo lười: lời chào chỉ dựng một lần lúc gắn component. Đây là tin nhắn
+  // trong lịch sử hội thoại, không phải nhãn giao diện — dịch lại nó mỗi lần
+  // render sẽ viết lại quá khứ của cuộc trò chuyện.
+  const [messages, setMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string }>>(() => [
     {
       sender: 'ai',
-      text: 'Xin chào Tran Phong! Tôi là AI Financial Advisor của bạn. Tháng này chi tiêu danh mục Cafe tăng 35% so với tháng trước. Bạn có muốn xem gợi ý cắt giảm hợp lý không?',
+      text: t('ai.greeting', {
+        name: state.settings.userName || t('auth.default_user_name'),
+      }),
     },
   ]);
 
@@ -25,11 +31,14 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
     setLoading(true);
 
     setTimeout(() => {
-      let reply = 'Dựa trên dữ liệu tài chính của bạn, tổng số dư khả dụng ở các ví là 85.200.000 VNĐ. Tỷ lệ tiết kiệm tháng này đạt mức 62.9% rất ấn tượng!';
-      if (userText.toLowerCase().includes('cafe') || userText.toLowerCase().includes('ăn')) {
-        reply = 'Trong tháng 8/2026, bạn đã chi 450.000 VNĐ cho Ăn uống và 65.000 VNĐ cho Cafe. Bạn vẫn nằm trong ngân sách cho phép!';
-      } else if (userText.toLowerCase().includes('tiết kiệm')) {
-        reply = 'Gợi ý: Nếu bạn trích 10% thu nhập hàng tháng ngay khi nhận lương vào Mục tiêu "MacBook Pro M3", bạn sẽ hoàn thành mục tiêu sớm hơn 2 tháng!';
+      // Từ khoá nhận diện cũng nằm trong từ điển: người dùng giao diện tiếng Anh sẽ
+      // gõ "food"/"savings" chứ không phải "ăn"/"tiết kiệm".
+      const asked = userText.toLowerCase();
+      let reply = t('ai.reply_default');
+      if (asked.includes(t('ai.keyword_cafe')) || asked.includes(t('ai.keyword_food'))) {
+        reply = t('ai.reply_food');
+      } else if (asked.includes(t('ai.keyword_savings'))) {
+        reply = t('ai.reply_savings');
       }
       setMessages((prev) => [...prev, { sender: 'ai', text: reply }]);
       setLoading(false);
@@ -46,7 +55,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
           </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800 }}>AI Financial Insights & Advisor</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Phân tích thông minh & tư vấn tối ưu chi tiêu</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('ai.subtitle')}</div>
           </div>
         </div>
         <Tag color="purple" style={{ padding: '2px 8px', fontSize: 11, fontWeight: 600 }}>Gemini Financial v3.6</Tag>
@@ -58,10 +67,10 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
         <div className="glass-card" style={{ padding: 22, borderLeft: '4px solid #EF4444' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <TrendingUp size={20} color="#EF4444" />
-            <span style={{ fontWeight: 700, fontSize: 15 }}>Danh mục tăng mạnh nhất</span>
+            <span style={{ fontWeight: 700, fontSize: 15 }}>{t('ai.top_category_title')}</span>
           </div>
           <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-            Chi tiêu cho <b>Tiền nhà</b> và <b>Ăn uống ngoài</b> chiếm 65% tổng chi tiêu tháng này (5.950.000 VNĐ).
+            {t('ai.top_category_prefix')} <b>{t('ai.top_category_item_1')}</b> {t('ai.top_category_conjunction')} <b>{t('ai.top_category_item_2')}</b> {t('ai.top_category_suffix')}
           </div>
         </div>
 
@@ -69,10 +78,10 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
         <div className="glass-card" style={{ padding: 22, borderLeft: '4px solid #F59E0B' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <Lightbulb size={20} color="#F59E0B" />
-            <span style={{ fontWeight: 700, fontSize: 15 }}>Gợi ý tiết kiệm 15%</span>
+            <span style={{ fontWeight: 700, fontSize: 15 }}>{t('ai.savings_tip_title')}</span>
           </div>
           <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-            Chuyển bớt 2.000.000 VNĐ dư thừa từ ví MoMo sang gửi tiết kiệm ngắn hạn để nhận lãi suất 5.2%/năm.
+            {t('ai.savings_tip_body')}
           </div>
         </div>
 
@@ -80,10 +89,10 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
         <div className="glass-card" style={{ padding: 22, borderLeft: '4px solid #22C55E' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <Sparkles size={20} color="#22C55E" />
-            <span style={{ fontWeight: 700, fontSize: 15 }}>Dự đoán cuối tháng</span>
+            <span style={{ fontWeight: 700, fontSize: 15 }}>{t('ai.forecast_title')}</span>
           </div>
           <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-            Dựa trên tốc độ chi tiêu 380k/ngày, dự kiến bạn sẽ dư ra <b>18.500.000 VNĐ</b> vào cuối tháng 8/2026.
+            {t('ai.forecast_prefix')} <b>{t('ai.forecast_amount')}</b> {t('ai.forecast_suffix')}
           </div>
         </div>
       </div>
@@ -92,7 +101,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
       <div className="glass-card" style={{ padding: 24, display: 'flex', flexDirection: 'column', height: 440 }}>
         <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Bot size={20} color="#7C3AED" />
-          <span>Hỏi đáp Trợ lý Tài chính AI</span>
+          <span>{t('ai.chat_title')}</span>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -118,14 +127,14 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state: _state }) => {
 
         <Space.Compact style={{ width: '100%' }}>
           <Input
-            placeholder="Hỏi AI bất kỳ điều gì về tài chính của bạn..."
+            placeholder={t('ai.input_placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onPressEnter={handleSend}
             size="large"
           />
           <Button type="primary" icon={<Send size={18} />} onClick={handleSend}>
-            Gửi
+            {t('ai.send')}
           </Button>
         </Space.Compact>
       </div>

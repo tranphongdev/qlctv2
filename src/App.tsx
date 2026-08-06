@@ -5,7 +5,7 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { getAppTheme } from './theme';
 import { isSupabaseConfigured } from './lib/supabase';
 import { message, AntdStaticBridge } from './lib/antdApp';
-import { antdLocale, setActiveLang } from './i18n';
+import { antdLocale, setActiveLang, t } from './i18n';
 import { setActiveCurrency } from './utils/currency';
 import { useAppState, deleteTransaction, bulkDeleteTransactions, restoreTransaction, addTransaction, updateTransaction, startRemoteSync, stopRemoteSync, useRemoteLoading } from './store/appStore';
 import { Header } from './components/Header';
@@ -130,16 +130,16 @@ export default function App() {
       message.open({
         content: (
           <span>
-            Đã xóa giao dịch.{' '}
+            {t('app.tx_deleted')}{' '}
             <Button
               type="link"
               size="small"
               onClick={() => {
                 restoreTransaction(deleted);
-                message.info('Đã hoàn tác xóa giao dịch!');
+                message.info(t('app.undo_done'));
               }}
             >
-              Hoàn tác (Undo)
+              {t('app.undo')}
             </Button>
           </span>
         ),
@@ -153,13 +153,13 @@ export default function App() {
   const requireAuth = isSupabaseConfigured && !currentUser;
 
   if (checkingSession) {
-    return <LoadingScreen message="Đang khôi phục phiên đăng nhập..." />;
+    return <LoadingScreen message={t('auth.restoring_session')} />;
   }
 
   // Trong lúc kéo dữ liệu lần đầu, kho cục bộ đã bị dọn về rỗng nên dashboard sẽ
   // hiện ra như thể mất sạch số liệu. Che bằng màn chờ cho tới khi có dữ liệu thật.
   if (loadingRemote) {
-    return <LoadingScreen message="Đang tải dữ liệu của bạn..." />;
+    return <LoadingScreen message={t('auth.loading_data')} />;
   }
 
   return (
@@ -221,7 +221,7 @@ export default function App() {
                 onToggleTheme={handleToggleTheme}
                 onOpenCommandPalette={() => setCmdOpen(true)}
                 notifications={state.notifications}
-                onMarkRead={() => message.success('Đã đọc tất cả thông báo')}
+                onMarkRead={() => message.success(t('app.all_notifications_read'))}
                 onOpenMobileMenu={() => setMobileDrawerOpen(true)}
                 onOpenBankSync={() => setBankEmailModalOpen(true)}
                 onOpenAuthModal={() => setActiveTab('auth')}
@@ -229,7 +229,7 @@ export default function App() {
                   await signOutUser();
                   setCurrentUser(null);
                   setActiveTab('auth');
-                  message.info('Đã đăng xuất tài khoản!');
+                  message.info(t('auth.logged_out'));
                 }}
                 onSelectTab={setActiveTab}
               />

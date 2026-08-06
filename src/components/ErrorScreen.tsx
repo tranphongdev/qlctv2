@@ -1,4 +1,5 @@
 import React from 'react';
+import { t } from '../i18n';
 
 interface ErrorScreenProps {
   title?: string;
@@ -14,11 +15,13 @@ interface ErrorScreenProps {
  *
  * Dựng bằng HTML thuần và biến CSS, không đụng tới antd hay store: màn này được
  * hiển thị đúng vào lúc cây React vừa đổ, nên mọi phụ thuộc thêm đều là thêm một
- * đường để chính nó cũng đổ theo.
+ * đường để chính nó cũng đổ theo. Ngoại lệ duy nhất là i18n — module thuần đọc
+ * hai file JSON, không giữ trạng thái ứng dụng; nếu nó hỏng thì app đã không
+ * dựng được từ đầu chứ không đợi tới lúc có lỗi render.
  */
 export const ErrorScreen: React.FC<ErrorScreenProps> = ({
-  title = 'Ứng dụng gặp sự cố',
-  description = 'Một lỗi ngoài dự tính đã làm gián đoạn màn hình này. Dữ liệu đã lưu của bạn không bị ảnh hưởng.',
+  title = t('error.title'),
+  description = t('error.description'),
   error,
   onRetry,
 }) => (
@@ -37,7 +40,7 @@ export const ErrorScreen: React.FC<ErrorScreenProps> = ({
     <div className="app-screen__actions">
       {onRetry && (
         <button type="button" className="app-screen__button" onClick={onRetry}>
-          Thử lại
+          {t('error.retry')}
         </button>
       )}
       <button
@@ -45,13 +48,13 @@ export const ErrorScreen: React.FC<ErrorScreenProps> = ({
         className="app-screen__button app-screen__button--primary"
         onClick={() => window.location.reload()}
       >
-        Tải lại trang
+        {t('error.reload')}
       </button>
     </div>
 
     {error && (
       <details className="app-screen__details">
-        <summary>Chi tiết kỹ thuật</summary>
+        <summary>{t('error.details')}</summary>
         <pre>{error.stack || `${error.name}: ${error.message}`}</pre>
       </details>
     )}

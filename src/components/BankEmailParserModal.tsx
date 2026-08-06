@@ -6,6 +6,7 @@ import { parseBankEmailOrText, normalizeVn, SAMPLE_BANK_EMAILS } from '../utils/
 import type { ParsedBankTransaction } from '../utils/bankEmailParser';
 import type { Category, Wallet, Transaction } from '../types';
 import { formatMoney } from '../utils/format';
+import { t } from '../i18n';
 
 interface BankEmailParserModalProps {
   open: boolean;
@@ -55,7 +56,7 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
 
   const handleConfirm = () => {
     if (!parsedResult || parsedResult.amount <= 0) {
-      message.error('Vui lòng kiểm tra lại số tiền giao dịch!');
+      message.error(t('parser.amount_error'));
       return;
     }
 
@@ -68,11 +69,11 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
       time: parsedResult.time,
       note: parsedResult.note,
       status: 'completed',
-      tags: [parsedResult.bankName, 'Bóc tách Email'],
+      tags: [parsedResult.bankName, t('parser.tag')],
     };
 
     onConfirmAddTx(txData);
-    message.success(`Đã tự động ghi nhận giao dịch ${formatMoney(parsedResult.amount)} từ ${parsedResult.bankName}!`);
+    message.success(t('parser.tx_recorded', { amount: formatMoney(parsedResult.amount), bank: parsedResult.bankName }));
     onClose();
     setInputText('');
     setParsedResult(null);
@@ -99,9 +100,9 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
             <Mail size={20} />
           </div>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>Tự Động Bóc Tách Email / SMS Ngân Hàng</div>
+            <div style={{ fontSize: 18, fontWeight: 700 }}>{t('parser.title')}</div>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 400 }}>
-              Dán nội dung Email biến động số dư để AI tự động trích xuất số tiền, ngày giờ và danh mục
+              {t('parser.subtitle')}
             </div>
           </div>
         </div>
@@ -114,7 +115,7 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
         {/* Sample Templates Quick Select */}
         <div>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>
-            Thử mẫu Email biến động số dư ngân hàng:
+            {t('parser.samples_hint')}
           </div>
           <Space wrap>
             {SAMPLE_BANK_EMAILS.map((sample, i) => (
@@ -134,7 +135,7 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
         {/* Input Text Area */}
         <Input.TextArea
           rows={5}
-          placeholder="Dán toàn bộ nội dung Email hoặc SMS biến động số dư vào đây (Ví dụ: [Vietcombank] GD -450,000 VND lúc 05/08/2026 Shopee...)"
+          placeholder={t('parser.placeholder')}
           value={inputText}
           onChange={(e) => handleParse(e.target.value)}
           style={{ borderRadius: 14, fontSize: 13, fontFamily: 'monospace' }}
@@ -156,16 +157,16 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Sparkles size={18} color="#7C3AED" />
-                <span style={{ fontWeight: 700, fontSize: 15 }}>Kết quả Bóc tách Tự động</span>
+                <span style={{ fontWeight: 700, fontSize: 15 }}>{t('parser.result_title')}</span>
               </div>
               <Tag color={parsedResult.type === 'thu' ? 'green' : 'red'} style={{ fontSize: 12, padding: '2px 10px' }}>
-                {parsedResult.type === 'thu' ? '🟢 Thu Nhập' : '🔴 Chi Tiêu'}
+                {parsedResult.type === 'thu' ? t('parser.type_income') : t('parser.type_expense')}
               </Tag>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Số tiền bóc tách:</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('parser.amount_label')}</div>
                 <div
                   style={{
                     fontSize: 22,
@@ -178,14 +179,14 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
               </div>
 
               <div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Ngân hàng nhận dạng:</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('parser.bank_label')}</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-heading)' }}>{parsedResult.bankName}</div>
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Chọn Ví ghi nhận:</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>{t('parser.wallet_label')}</div>
                 <Select
                   value={selectedWalletId}
                   onChange={setSelectedWalletId}
@@ -198,7 +199,7 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
               </div>
 
               <div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Gợi ý Danh mục:</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>{t('parser.category_hint')}</div>
                 <Select
                   value={selectedCategoryId}
                   onChange={setSelectedCategoryId}
@@ -217,14 +218,14 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
             </div>
 
             <div style={{ fontSize: 13, color: 'var(--text-secondary)', background: 'rgba(148, 163, 184, 0.12)', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(148, 163, 184, 0.25)' }}>
-              <div><b>Ghi chú:</b> {parsedResult.note}</div>
+              <div><b>{t('parser.note_label')}</b> {parsedResult.note}</div>
               {parsedResult.counterparty && (
                 <div style={{ marginTop: 2 }}>
-                  <b>{parsedResult.type === 'thu' ? 'Người chuyển:' : 'Người hưởng:'}</b> {parsedResult.counterparty}
+                  <b>{parsedResult.type === 'thu' ? t('parser.sender') : t('parser.recipient')}</b> {parsedResult.counterparty}
                 </div>
               )}
               <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
-                Thời gian: {parsedResult.date} {parsedResult.time} {parsedResult.accountNumber ? `| TK: ${parsedResult.accountNumber}` : ''}
+                {t('parser.time_label')} {parsedResult.date} {parsedResult.time} {parsedResult.accountNumber ? `| ${t('parser.account_label')} ${parsedResult.accountNumber}` : ''}
               </div>
             </div>
 
@@ -236,7 +237,7 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
               block
               style={{ borderRadius: 12, height: 44, marginTop: 4 }}
             >
-              Ghi Nhận Giao Dịch Này
+              {t('parser.submit')}
             </Button>
           </div>
         )}

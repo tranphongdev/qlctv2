@@ -1,6 +1,6 @@
 import { supabase, isSupabaseConfigured } from './supabase';
 import type { AppState, UserSettings, Transaction, Wallet, Goal, Debt, Budget, Category, NotificationItem } from '../types';
-import { DEFAULT_CATEGORIES } from '../store/appStore';
+import { defaultCategories } from '../store/appStore';
 
 /**
  * Id của người dùng đang đăng nhập, dùng làm khoá phân vùng dữ liệu.
@@ -137,7 +137,7 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
               color: c.color,
               order: c.order_index ?? 0,
             }))
-          : DEFAULT_CATEGORIES,
+          : defaultCategories(),
       budgets: budgetRes.data
         ? budgetRes.data.map((b) => ({
             id: b.id,
@@ -214,7 +214,7 @@ export async function syncProfileToSupabase(settings: UserSettings) {
 
 export async function seedDefaultCategories() {
   if (!canSync()) return;
-  for (const cat of DEFAULT_CATEGORIES) {
+  for (const cat of defaultCategories()) {
     await syncCategoryToSupabase(cat);
   }
 }

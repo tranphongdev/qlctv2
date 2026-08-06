@@ -33,7 +33,7 @@ async function cropToDataUrl(src: string, area: Area): Promise<string> {
   canvas.height = OUTPUT_SIZE;
 
   const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Canvas 2D context không khả dụng');
+  if (!ctx) throw new Error(t('avatar.canvas_unavailable'));
 
   ctx.drawImage(
     image,

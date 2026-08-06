@@ -5,6 +5,7 @@ import { Mail, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { loginSchema } from '../schemas';
 import { signInWithEmail } from '../../../lib/auth';
+import { t } from '../../../i18n';
 import type { AuthUser } from '../../../lib/auth';
 
 interface LoginFormProps {
@@ -19,10 +20,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchRegiste
 
   const handleSubmit = async (values: any) => {
     // Zod client validation
-    const validation = loginSchema.safeParse(values);
+    const validation = loginSchema().safeParse(values);
     if (!validation.success) {
       const firstError = validation.error.issues[0]?.message;
-      message.error(firstError || 'Vui lòng điền đầy đủ thông tin hợp lệ!');
+      message.error(firstError || t('auth.login_invalid_form'));
       return;
     }
 
@@ -30,18 +31,22 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchRegiste
     try {
       const data = await signInWithEmail(values.email, values.password);
       if (data.user) {
-        message.success(`👋 Chào mừng quay trở lại, ${data.user.user_metadata?.full_name || data.user.email}!`);
+        message.success(
+          t('auth.login_success', {
+            name: data.user.user_metadata?.full_name || data.user.email || '',
+          }),
+        );
         onSuccess({
           id: data.user.id,
           email: data.user.email || '',
-          name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'Người dùng',
+          name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || t('auth.default_user_name'),
           avatarUrl: data.user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.id}`,
         });
         form.resetFields();
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      message.error(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại Email và Mật khẩu!');
+      message.error(err.message || t('auth.login_failed'));
     } finally {
       setLoading(false);
     }
@@ -50,19 +55,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchRegiste
   return (
     <div className="fade-in-quick">
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: '#1E293B', marginBottom: 6 }}>Chào mừng trở lại</h2>
+        <h2 style={{ fontSize: 24, fontWeight: 800, color: '#1E293B', marginBottom: 6 }}>{t('auth.login_title')}</h2>
         <p style={{ fontSize: 14, color: '#64748B', margin: 0 }}>
-          Đăng nhập để tiếp tục quản lý tài chính của bạn.
+          {t('auth.login_subtitle')}
         </p>
       </div>
 
       <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false}>
         <Form.Item
           name="email"
-          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>Địa chỉ Email</span>}
+          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.email_label')}</span>}
           rules={[
-            { required: true, message: 'Vui lòng nhập Email' },
-            { type: 'email', message: 'Email không đúng định dạng' },
+            { required: true, message: t('validation.email_short') },
+            { type: 'email', message: t('validation.email_format') },
           ]}
         >
           <Input
@@ -76,8 +81,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchRegiste
 
         <Form.Item
           name="password"
-          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>Mật khẩu</span>}
-          rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}
+          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.password_label')}</span>}
+          rules={[{ required: true, message: t('validation.password_required') }]}
         >
           <Input.Password
             prefix={<Lock size={18} color="#94A3B8" style={{ marginRight: 6 }} />}
@@ -89,7 +94,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchRegiste
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <Form.Item name="remember" valuePropName="checked" noStyle initialValue={true}>
-            <Checkbox style={{ fontSize: 13, color: '#64748B' }}>Ghi nhớ đăng nhập</Checkbox>
+            <Checkbox style={{ fontSize: 13, color: '#64748B' }}>{t('auth.remember_me')}</Checkbox>
           </Form.Item>
 
           <Button
@@ -98,7 +103,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchRegiste
             onClick={onForgotPassword}
             style={{ padding: 0, fontWeight: 600, color: '#1677FF', fontSize: 13 }}
           >
-            Quên mật khẩu?
+            {t('auth.forgot_password')}
           </Button>
         </div>
 
@@ -120,19 +125,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchRegiste
                 border: 'none',
               }}
             >
-              Đăng Nhập
+              {t('auth.login_button')}
             </Button>
           </motion.div>
         </Form.Item>
 
         <div style={{ textAlign: 'center', marginTop: 24, fontSize: 14, color: '#64748B' }}>
-          Chưa có tài khoản?{' '}
+          {t('auth.no_account')}{' '}
           <Button
             type="link"
             onClick={onSwitchRegister}
             style={{ padding: 0, fontWeight: 700, color: '#1677FF', fontSize: 14 }}
           >
-            Đăng ký ngay
+            {t('auth.register_now')}
           </Button>
         </div>
       </Form>
