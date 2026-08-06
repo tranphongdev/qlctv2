@@ -3,7 +3,8 @@ import { Progress, Segmented } from 'antd';
 import dayjs from 'dayjs';
 import { Bar } from 'react-chartjs-2';
 import type { ChartData, ChartOptions } from 'chart.js';
-import { legendStyle, tooltipStyle } from '../utils/chartSetup';
+import { tooltipStyle, chartTheme } from '../utils/chartSetup';
+import { useIsDarkTheme } from '../hooks/useIsDarkTheme';
 import type { AppState } from '../types';
 import { formatMoney, formatCompactNumber } from '../utils/format';
 
@@ -22,6 +23,7 @@ interface AnalyticsProps {
 }
 
 export const Analytics: React.FC<AnalyticsProps> = ({ state }) => {
+  const chart = chartTheme(useIsDarkTheme());
   const { transactions } = state;
 
   const monthlyInc = transactions.filter((t) => t.type === 'thu').reduce((acc, t) => acc + t.amount, 0);
@@ -96,7 +98,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ state }) => {
     // intersect: true -> tooltip chỉ hiện khi con trỏ nằm đúng trên thân cột.
     interaction: { mode: 'index', intersect: true },
     plugins: {
-      legend: { position: 'bottom', ...legendStyle },
+      legend: { position: 'bottom', ...chart.legend },
       tooltip: {
         ...tooltipStyle,
         callbacks: {
@@ -108,14 +110,14 @@ export const Analytics: React.FC<AnalyticsProps> = ({ state }) => {
       x: {
         border: { display: false },
         grid: { display: false },
-        ticks: { font: { size: 12 }, color: '#94a3b8' },
+        ticks: { font: { size: 12 }, color: chart.tick },
       },
       y: {
         border: { display: false },
-        grid: { color: 'rgba(226, 232, 240, 0.6)' },
+        grid: { color: chart.grid },
         ticks: {
           font: { size: 12 },
-          color: '#94a3b8',
+          color: chart.tick,
           callback: (value) => formatCompactNumber(Number(value)),
         },
       },

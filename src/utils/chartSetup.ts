@@ -25,6 +25,20 @@ export const tooltipStyle = {
   boxPadding: 4,
 };
 
+export function chartTheme(isDark: boolean) {
+  const tick = isDark ? '#94A3B8' : '#64748B';
+  return {
+    tick,
+    /** Legend dùng chung, đã gắn sẵn màu chữ hợp giao diện. */
+    legend: { ...legendStyle, labels: { ...legendStyle.labels, color: tick } },
+    grid: isDark ? 'rgba(148, 163, 184, 0.18)' : 'rgba(226, 232, 240, 0.6)',
+    /** Khe hở giữa các múi biểu đồ tròn: phải trùng màu nền thẻ mới thành khe. */
+    arcBorder: isDark ? '#111C31' : '#ffffff',
+    /** Vòng tròn xám lúc chưa có dữ liệu. */
+    emptyArc: isDark ? 'rgba(148, 163, 184, 0.25)' : '#e2e8f0',
+  };
+}
+
 /** Legend style dùng chung: chấm tròn, chữ nhỏ. */
 export const legendStyle = {
   labels: {

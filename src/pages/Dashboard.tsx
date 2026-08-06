@@ -13,7 +13,8 @@ import {
 import dayjs from 'dayjs';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import type { ChartData, ChartOptions } from 'chart.js';
-import { legendStyle, tooltipStyle } from '../utils/chartSetup';
+import { tooltipStyle, chartTheme } from '../utils/chartSetup';
+import { useIsDarkTheme } from '../hooks/useIsDarkTheme';
 import type { AppState } from '../types';
 import { CounterAnimation } from '../components/CounterAnimation';
 import { formatMoney, formatCompactNumber, formatDate } from '../utils/format';
@@ -37,6 +38,7 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onSelectTab }) => {
   const { transactions, wallets, categories, goals } = state;
+  const chart = chartTheme(useIsDarkTheme());
 
   const totalBalance = wallets.reduce((acc, w) => acc + w.balance, 0);
 
@@ -141,7 +143,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
     // intersect: true -> tooltip chỉ hiện khi con trỏ nằm đúng trên thân cột.
     interaction: { mode: 'index', intersect: true },
     plugins: {
-      legend: { position: 'bottom', ...legendStyle },
+      legend: { position: 'bottom', ...chart.legend },
       tooltip: {
         ...tooltipStyle,
         callbacks: {
@@ -155,7 +157,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
         grid: { display: false },
         ticks: {
           font: { size: 12 },
-          color: '#94a3b8',
+          color: chart.tick,
           autoSkip: true,
           maxRotation: 0,
           maxTicksLimit: 10,
@@ -163,10 +165,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
       },
       y: {
         border: { display: false },
-        grid: { color: 'rgba(226, 232, 240, 0.6)' },
+        grid: { color: chart.grid },
         ticks: {
           font: { size: 12 },
-          color: '#94a3b8',
+          color: chart.tick,
           callback: (value) => formatCompactNumber(Number(value)),
         },
       },
@@ -179,8 +181,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
     datasets: [
       {
         data: hasPieData ? pieData.map((d) => d.value) : [1],
-        backgroundColor: hasPieData ? pieData.map((d) => d.color) : ['#e2e8f0'],
-        borderColor: '#fff',
+        backgroundColor: hasPieData ? pieData.map((d) => d.color) : [chart.emptyArc],
+        borderColor: chart.arcBorder,
         borderWidth: 3,
         hoverOffset: 6,
       },
@@ -244,15 +246,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Thu nhập tháng này
             </span>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(34, 197, 94, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <TrendingUp size={20} color="#22C55E" />
+            {/* Màu đặt trên thẻ bọc; lucide mặc định stroke="currentColor" nên icon
+                tự ăn theo. Truyền var() vào prop color sẽ hỏng vì nó rơi vào thuộc
+                tính stroke của SVG, nơi biến CSS không được phân giải. */}
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--tint-income)', color: 'var(--color-income)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <TrendingUp size={20} />
             </div>
           </div>
-          <div style={{ fontSize: 26, fontWeight: 800, margin: '14px 0 6px', color: '#16A34A', letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: 26, fontWeight: 800, margin: '14px 0 6px', color: 'var(--color-income)', letterSpacing: '-0.5px' }}>
             +<CounterAnimation value={monthlyIncome} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
-            <ArrowUpRight size={16} color="#16A34A" />
+            <ArrowUpRight size={16} style={{ color: 'var(--color-income)' }} />
             <span>{incomeSourceCount > 0 ? `${incomeSourceCount} nguồn thu nhập` : 'Chưa có khoản thu nào'}</span>
           </div>
         </div>
@@ -263,15 +268,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Chi tiêu tháng này
             </span>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <TrendingDown size={20} color="#EF4444" />
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--tint-expense)', color: 'var(--color-expense)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <TrendingDown size={20} />
             </div>
           </div>
-          <div style={{ fontSize: 26, fontWeight: 800, margin: '14px 0 6px', color: '#DC2626', letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: 26, fontWeight: 800, margin: '14px 0 6px', color: 'var(--color-expense)', letterSpacing: '-0.5px' }}>
             -<CounterAnimation value={monthlyExpense} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
-            <ArrowDownRight size={16} color="#DC2626" />
+            <ArrowDownRight size={16} style={{ color: 'var(--color-expense)' }} />
             <span>{expenseCategoryCount > 0 ? `${expenseCategoryCount} danh mục chi tiêu` : 'Chưa có khoản chi nào'}</span>
           </div>
         </div>
@@ -282,17 +287,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Tiết kiệm ròng
             </span>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(124, 58, 237, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <PiggyBank size={20} color="#7C3AED" />
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--tint-savings)', color: 'var(--color-savings)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PiggyBank size={20} />
             </div>
           </div>
-          <div style={{ fontSize: 26, fontWeight: 800, margin: '14px 0 6px', color: '#7C3AED', letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: 26, fontWeight: 800, margin: '14px 0 6px', color: 'var(--color-savings)', letterSpacing: '-0.5px' }}>
             +<CounterAnimation value={monthlySavings} />
           </div>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>
               <span>Tỷ lệ tiết kiệm</span>
-              <span style={{ fontWeight: 700, color: '#7C3AED' }}>{savingsRate}%</span>
+              <span style={{ fontWeight: 700, color: 'var(--color-savings)' }}>{savingsRate}%</span>
             </div>
             <Progress percent={savingsRate} strokeColor={{ '0%': '#4F46E5', '100%': '#7C3AED' }} showInfo={false} />
           </div>
@@ -374,7 +379,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                     padding: '12px 16px',
                     borderRadius: 14,
                     background: 'var(--surface-subtle)',
-                    border: '1px solid rgba(226, 232, 240, 0.6)',
+                    border: '1px solid var(--surface-border)',
                   }}
                 >
                   {/* minWidth: 0 để hai dòng chữ được phép co lại và cắt bằng ellipsis,
@@ -405,10 +410,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                   </div>
 
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap', color: isThu ? '#16A34A' : '#DC2626' }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap', color: isThu ? 'var(--color-income)' : 'var(--color-expense)' }}>
                       {isThu ? '+' : '-'}{formatMoney(tx.amount)}
                     </div>
-                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{weekdayOf(tx.date)}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{weekdayOf(tx.date)}</div>
                   </div>
                 </div>
               );
@@ -432,7 +437,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                 <div key={goal.id} style={{ padding: 14, borderRadius: 14, background: 'var(--surface-subtle)', border: '1px solid var(--surface-border)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                     <span style={{ fontWeight: 600, fontSize: 14 }}>{goal.name}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#7C3AED' }}>{pct}%</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-savings)' }}>{pct}%</span>
                   </div>
                   {/* Phần trăm đã hiện ở tiêu đề, tắt showInfo để khỏi lặp số. */}
                   <Progress percent={pct} showInfo={false} strokeColor={{ '0%': '#4F46E5', '100%': '#7C3AED' }} />
