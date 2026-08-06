@@ -475,6 +475,13 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
   padding-top: calc(84px + env(safe-area-inset-top, 0px)) !important;
 }
 
+/* Toast của antd cũng là lớp nổi cố định ở đỉnh màn hình nên dính đúng lỗi trên:
+   mặc định top = 8px, chữ chui xuống dưới đồng hồ / tai thỏ và không đọc được.
+   antd ghi `top` bằng style inline nên phải !important mới đè được. */
+.ant-message {
+  top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+}
+
 /* Mobile First Responsive Utilities & Safe Areas */
 .mobile-only {
   display: none !important;
@@ -496,6 +503,18 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
   /* Safe Area Padding for mobile notch / gesture bar */
   body {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Chừa cả chiều cao header cố định: né được thanh trạng thái rồi thì toast vẫn
+     rơi đúng vào dải header (avatar, ô tìm kiếm, cụm icon) và đè lên nhau. Thả
+     xuống ngay dưới header, vẫn nằm trên vùng nội dung bắt đầu ở 84px. */
+  .ant-message {
+    top: calc(72px + env(safe-area-inset-top, 0px)) !important;
+  }
+
+  /* Màn hẹp: chừa lề hai bên để toast dài không chạm mép kính. */
+  .ant-message-notice-content {
+    max-width: calc(100vw - 24px);
   }
 
   /* Thu hẹp lề trang: 24px mỗi bên ăn mất 1/6 bề ngang màn điện thoại. */
