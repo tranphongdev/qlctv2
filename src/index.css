@@ -694,3 +694,26 @@ canvas {
     opacity: 1;
   }
 }
+
+/* ===== Lưới thẻ (Ví, Mục tiêu, Ngân sách) ===== */
+/* Cột có trần bề rộng để một thẻ đơn độc trên màn rộng vẫn giữ dáng thẻ thay vì
+   kéo dài hết 1400px. Trang tự chỉnh kích thước qua --card-min / --card-max. */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min, 280px), var(--card-max, 380px)));
+  gap: 16px;
+  justify-content: start;
+}
+
+/* Dưới 600px chỉ vừa đúng một cột, nhưng trần --card-max vẫn cắt thẻ lại giữa
+   chừng và để hở một mảng bên phải. Bỏ trần đi cho thẻ trải hết bề ngang. */
+@media (max-width: 600px) {
+  .card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Trần 400px của thẻ ngân hàng cũng cắt ngang trên máy màn lớn (~430px). */
+  .bank-card {
+    max-width: 100%;
+  }
+}

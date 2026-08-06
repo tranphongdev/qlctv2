@@ -59,8 +59,9 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
       </div>
 
       {/* Budgets Grid */}
-      {/* Trần 380px: một ngân sách vẫn giữ dáng thẻ thay vì kéo dài hết chiều ngang. */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 380px))', gap: 16, justifyContent: 'start' }}>
+      {/* Trần 380px: một ngân sách vẫn giữ dáng thẻ thay vì kéo dài hết chiều ngang.
+          Trần bị bỏ dưới 600px để thẻ trải hết bề ngang (xem .card-grid). */}
+      <div className="card-grid">
         {budgets.map((b) => {
           const cat = categoriesMap[b.category];
           const spent = spentMap[b.category] || 0;

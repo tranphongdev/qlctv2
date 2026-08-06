@@ -72,8 +72,9 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
 
       {/* Goals Grid */}
       {/* Trần 380px cho cột: một mục tiêu duy nhất vẫn giữ dáng thẻ thay vì giãn hết
-          chiều ngang biến ảnh bìa thành banner. */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 380px))', gap: 16, justifyContent: 'start' }}>
+          chiều ngang biến ảnh bìa thành banner. Trần này bị bỏ dưới 600px, nơi bề
+          ngang màn hình đã tự giới hạn thẻ (xem .card-grid trong index.css). */}
+      <div className="card-grid">
         {goals.map((g) => {
           const pct = Math.min(100, Math.round((g.saved / g.target) * 100));
           const isDone = g.saved >= g.target;

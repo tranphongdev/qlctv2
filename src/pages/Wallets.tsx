@@ -177,8 +177,9 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
 
       {/* Wallet Cards Grid */}
       {/* auto-fill + trần 360px: cột không giãn theo số thẻ nên vài thẻ vẫn xếp sát
-          nhau, phần dư dồn về cuối hàng thay vì thành khoảng hở giữa các thẻ. */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 360px))', gap: 16, justifyContent: 'start' }}>
+          nhau, phần dư dồn về cuối hàng thay vì thành khoảng hở giữa các thẻ.
+          Trần này bị bỏ dưới 600px (xem .card-grid trong index.css). */}
+      <div className="card-grid" style={{ '--card-min': '260px', '--card-max': '360px' } as React.CSSProperties}>
         {wallets.map((w) => (
           <div
             key={w.id}
