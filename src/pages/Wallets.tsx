@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Button, Modal, Form, Input, InputNumber, Select, Space, Popconfirm } from 'antd';
 import { message } from '../lib/antdApp';
-import { Plus, ArrowRightLeft, Building2, Smartphone, Banknote, Bitcoin, Mail, Trash2 } from 'lucide-react';
+import { Plus, ArrowRightLeft, Building2, Smartphone, Banknote, Bitcoin, Mail, Trash2, Pencil } from 'lucide-react';
 import type { AppState, Wallet } from '../types';
 import { formatMoney } from '../utils/format';
-import { addWallet, deleteWallet, addTransaction } from '../store/appStore';
+import { addWallet, updateWallet, deleteWallet, addTransaction } from '../store/appStore';
 
 const WALLET_TYPE_LABEL: Record<Wallet['type'], string> = {
   bank: 'Ngân hàng',
@@ -45,23 +45,63 @@ interface WalletsProps {
 export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
   const { wallets } = state;
   const [isAddOpen, setIsAddOpen] = useState(false);
+  /** Ví đang sửa; null nghĩa là modal đang ở chế độ thêm mới. */
+  const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [form] = Form.useForm();
   const [transferForm] = Form.useForm();
 
-  const handleCreateWallet = (values: any) => {
-    addWallet({
+  const openCreateModal = () => {
+    setEditingWallet(null);
+    form.resetFields();
+    form.setFieldsValue({ color: '#4F46E5' });
+    setIsAddOpen(true);
+  };
+
+  const openEditModal = (wallet: Wallet) => {
+    setEditingWallet(wallet);
+    form.setFieldsValue({
+      name: wallet.name,
+      type: wallet.type,
+      bankName: wallet.bankName,
+      accountNumber: wallet.accountNumber,
+      balance: wallet.balance,
+      color: wallet.color,
+    });
+    setIsAddOpen(true);
+  };
+
+  const closeWalletModal = () => {
+    setIsAddOpen(false);
+    setEditingWallet(null);
+    form.resetFields();
+  };
+
+  const iconOfType = (type: Wallet['type']) =>
+    type === 'crypto' ? 'Bitcoin' : type === 'e_wallet' ? 'Smartphone' : 'Building2';
+
+  const handleSubmitWallet = (values: any) => {
+    const fields = {
       name: values.name,
       type: values.type,
       bankName: values.bankName,
       accountNumber: values.accountNumber,
       balance: values.balance || 0,
       color: values.color || '#4F46E5',
-      icon: values.type === 'crypto' ? 'Bitcoin' : values.type === 'e_wallet' ? 'Smartphone' : 'Building2',
-    });
-    message.success('Đã thêm ví tiền mới!');
-    setIsAddOpen(false);
-    form.resetFields();
+      icon: iconOfType(values.type),
+    };
+
+    if (editingWallet) {
+      // Giữ lại id và isDefault: form không có hai trường này, trải bản ghi cũ ra
+      // trước thì chúng mới không bị mất khi lưu.
+      updateWallet({ ...editingWallet, ...fields });
+      message.success(`Đã cập nhật ví ${fields.name}!`);
+    } else {
+      addWallet(fields);
+      message.success('Đã thêm ví tiền mới!');
+    }
+
+    closeWalletModal();
   };
 
   const handleTransfer = (values: any) => {
@@ -121,7 +161,7 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
           <Button icon={<ArrowRightLeft size={16} />} size="middle" onClick={() => setIsTransferOpen(true)}>
             Chuyển tiền ví
           </Button>
-          <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsAddOpen(true)}>
+          <Button type="primary" icon={<Plus size={16} />} onClick={openCreateModal}>
             Thêm ví mới
           </Button>
         </Space>
@@ -149,6 +189,21 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
               </div>
 
               <div className="bank-card__actions">
+                <Button
+                  type="text"
+                  size="small"
+                  aria-label={`Sửa ví ${w.name}`}
+                  onClick={() => openEditModal(w)}
+                  icon={<Pencil size={16} color="#ffffff" />}
+                  style={{
+                    background: 'rgba(255,255,255,0.22)',
+                    width: 30,
+                    height: 30,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                />
                 <Popconfirm
                   title="Xóa ví tiền này?"
                   description="Bạn có chắc muốn xóa ví khỏi hệ thống?"
@@ -201,9 +256,15 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
         ))}
       </div>
 
-      {/* Add Wallet Modal */}
-      <Modal open={isAddOpen} onCancel={() => setIsAddOpen(false)} title="Thêm Ví / Tài khoản mới" footer={null}>
-        <Form form={form} layout="vertical" onFinish={handleCreateWallet} style={{ marginTop: 16 }}>
+      {/* Modal dùng chung cho thêm mới và sửa ví */}
+      <Modal
+        open={isAddOpen}
+        onCancel={closeWalletModal}
+        title={editingWallet ? `Sửa ví ${editingWallet.name}` : 'Thêm Ví / Tài khoản mới'}
+        footer={null}
+        destroyOnHidden
+      >
+        <Form form={form} layout="vertical" onFinish={handleSubmitWallet} style={{ marginTop: 16 }}>
           <Form.Item name="name" label="Tên ví / Tài khoản" rules={[{ required: true, message: 'Nhập tên ví' }]}>
             <Input placeholder="Ví dụ: MB Bank, MoMo, Ví Tiền Mặt..." />
           </Form.Item>
@@ -229,17 +290,21 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
             <Input placeholder="Ví dụ: 0987654321" />
           </Form.Item>
 
-          <Form.Item name="balance" label="Số dư ban đầu (VNĐ)">
+          <Form.Item
+            name="balance"
+            label={editingWallet ? 'Số dư hiện tại (VNĐ)' : 'Số dư ban đầu (VNĐ)'}
+            extra={editingWallet ? 'Sửa trực tiếp ở đây là điều chỉnh số dư, không sinh giao dịch.' : undefined}
+          >
             <InputNumber style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={(v) => v?.replace(/\./g, '') as any} placeholder="0" min={0} />
           </Form.Item>
 
           <Form.Item name="color" label="Màu đại diện card">
-            <Input type="color" defaultValue="#4F46E5" style={{ width: 80, height: 40, padding: 0 }} />
+            <Input type="color" style={{ width: 80, height: 40, padding: 0 }} />
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
-            <Button onClick={() => setIsAddOpen(false)} style={{ marginRight: 8 }}>Hủy</Button>
-            <Button type="primary" htmlType="submit">Tạo Ví</Button>
+            <Button onClick={closeWalletModal} style={{ marginRight: 8 }}>Hủy</Button>
+            <Button type="primary" htmlType="submit">{editingWallet ? 'Lưu thay đổi' : 'Tạo Ví'}</Button>
           </Form.Item>
         </Form>
       </Modal>

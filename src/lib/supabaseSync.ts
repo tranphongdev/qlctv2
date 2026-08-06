@@ -273,6 +273,9 @@ export async function syncWalletToSupabase(wallet: Wallet) {
     balance: wallet.balance,
     color: wallet.color,
     icon: wallet.icon,
+    // fetchRemoteState vẫn đọc cột này nhưng lệnh ghi trước đây bỏ sót, nên cờ ví
+    // mặc định không bao giờ được lưu lại.
+    is_default: wallet.isDefault ?? false,
   });
 }
 

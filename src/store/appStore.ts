@@ -272,6 +272,19 @@ export function addWallet(wallet: Omit<Wallet, 'id'>) {
   syncWalletToSupabase(newW);
 }
 
+/**
+ * Sửa ví đã có. Nhận nguyên bản ghi kèm id thay vì phần cập nhật rời, để chỗ gọi
+ * không thể vô tình tạo ví mới khi id không khớp.
+ */
+export function updateWallet(wallet: Wallet) {
+  globalState = {
+    ...globalState,
+    wallets: globalState.wallets.map((w) => (w.id === wallet.id ? wallet : w)),
+  };
+  notifyListeners();
+  syncWalletToSupabase(wallet);
+}
+
 export function deleteWallet(id: string) {
   globalState = { ...globalState, wallets: globalState.wallets.filter((w) => w.id !== id) };
   notifyListeners();
