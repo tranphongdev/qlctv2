@@ -230,7 +230,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
               <Form.Item name="language" label={t('settings.language')}>
                 <Select
                   options={[
-                    { value: 'vi', label: 'Tiếng Việt (Vietnamese)' },
+                    { value: 'vi', label: 'Tiếng Việt' },
                     { value: 'en', label: 'English' },
                   ]}
                 />

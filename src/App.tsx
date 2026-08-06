@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { ConfigProvider, Layout, theme as antdTheme, Button, App as AntdApp } from 'antd';
+import { ConfigProvider, Layout, Button, Spin, App as AntdApp } from 'antd';
+import { getAppTheme } from './theme';
+import { isSupabaseConfigured } from './lib/supabase';
 import { message, AntdStaticBridge } from './lib/antdApp';
 import { antdLocale, setActiveLang } from './i18n';
 import { setActiveCurrency } from './utils/currency';
@@ -54,9 +56,20 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
+  // Supabase khôi phục phiên từ localStorage theo cơ chế bất đồng bộ: ngay sau khi
+  // tải lại trang, currentUser vẫn là null dù người dùng đã đăng nhập. Phải đợi
+  // sự kiện đầu tiên rồi mới quyết định cho vào dashboard hay đẩy ra trang đăng
+  // nhập, nếu không người đã đăng nhập sẽ bị đá ra ngoài mỗi lần F5.
+  const [checkingSession, setCheckingSession] = useState(isSupabaseConfigured);
+
   useEffect(() => {
+    // Không cấu hình Supabase thì không có phiên nào để khôi phục; giữ nguyên chế
+    // độ demo khách thay vì khoá toàn bộ ứng dụng sau trang đăng nhập.
+    if (!isSupabaseConfigured) return;
+
     const unsubscribe = onAuthChange((user) => {
       setCurrentUser(user);
+      setCheckingSession(false);
       if (user) {
         syncAuthProfile({
           userName: user.name,
@@ -129,32 +142,55 @@ export default function App() {
     }
   };
 
+  const isAuthRoute = location.pathname === TAB_PATHS.auth;
+  // Chỉ chặn khi có Supabase; thiếu cấu hình thì ứng dụng chạy ở chế độ demo khách.
+  const requireAuth = isSupabaseConfigured && !currentUser;
+
+  if (checkingSession) {
+    return (
+      <ConfigProvider locale={antdLocale(state.settings.language)} theme={getAppTheme(isDark)}>
+        <div
+          style={{
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 16,
+          }}
+        >
+          <Spin size="large" />
+          <span style={{ color: '#94A3B8', fontSize: 14 }}>Đang khôi phục phiên đăng nhập...</span>
+        </div>
+      </ConfigProvider>
+    );
+  }
+
   return (
     <ConfigProvider
       locale={antdLocale(state.settings.language)}
-      theme={{
-        algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
-        token: {
-          colorPrimary: '#4F46E5',
-          colorSuccess: '#22C55E',
-          colorWarning: '#F59E0B',
-          colorError: '#EF4444',
-          borderRadius: 4,
-          fontFamily: "'Inter', 'Manrope', -apple-system, sans-serif",
-        },
-      }}
+      theme={getAppTheme(isDark)}
     >
       {/* AntdApp cấp context cho message/notification/modal; AntdStaticBridge lấy
           instance đó ra cho các chỗ gọi message.* ngoài phạm vi hook. */}
       <AntdApp>
       <AntdStaticBridge />
-      {location.pathname === TAB_PATHS.auth ? (
-        <AuthPage
-          onSuccess={(user) => {
-            setCurrentUser(user);
-            setActiveTab('dashboard');
-          }}
-        />
+      {requireAuth ? (
+        // Chưa đăng nhập: mọi đường dẫn khác đều bị đẩy về trang đăng nhập thay vì
+        // render dashboard rỗng.
+        isAuthRoute ? (
+          <AuthPage
+            onSuccess={(user) => {
+              setCurrentUser(user);
+              setActiveTab('dashboard');
+            }}
+          />
+        ) : (
+          <Navigate to={TAB_PATHS.auth} replace />
+        )
+      ) : isAuthRoute ? (
+        // Đã đăng nhập thì không còn lý do ở lại trang đăng nhập.
+        <Navigate to={TAB_PATHS.dashboard} replace />
       ) : (
         <Layout style={{ minHeight: '100vh', background: 'transparent' }}>
           <div style={{ display: 'flex', width: '100%', minHeight: '100vh' }}>

@@ -337,6 +337,24 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
     padding: 20px 16px !important;
   }
 
+  /* Alert có nút hành động: mặc định antd xếp icon / nội dung / nút trên cùng
+     một hàng ngang. Trên màn hẹp nút chiếm gần hết bề ngang nên cột chữ bị bóp
+     còn vài ký tự mỗi dòng. Cho nút xuống hàng riêng và trải hết bề ngang. */
+  .ant-alert {
+    flex-wrap: wrap;
+  }
+
+  .ant-alert .ant-alert-actions {
+    flex: 1 0 100%;
+    margin-top: 12px;
+    /* antd đặt margin-inline-start cùng độ ưu tiên nên cần !important để thắng. */
+    margin-inline-start: 0 !important;
+  }
+
+  .ant-alert .ant-alert-actions .ant-btn {
+    width: 100%;
+  }
+
   /* Mobile Bottom Navigation Safe Area Positioning */
   .mobile-bottom-nav {
     bottom: max(12px, env(safe-area-inset-bottom, 12px)) !important;
