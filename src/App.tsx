@@ -29,6 +29,7 @@ import { Analytics } from './pages/Analytics';
 import { CalendarView } from './pages/CalendarView';
 import { AIInsights } from './pages/AIInsights';
 import { ProfileSettings } from './pages/ProfileSettings';
+import { NotFound } from './pages/NotFound';
 import { TAB_PATHS, pathOfTab, tabOfPath } from './routes';
 import type { Transaction } from './types';
 
@@ -40,7 +41,9 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const activeTab = tabOfPath(location.pathname);
+  // Đường dẫn lạ cho chuỗi rỗng: không mục nào trong sidebar được tô sáng khi đang
+  // đứng ở trang 404.
+  const activeTab = tabOfPath(location.pathname) ?? '';
   const setActiveTab = (tab: string) => navigate(pathOfTab(tab));
 
   setActiveCurrency(state.settings.currency);
@@ -272,7 +275,7 @@ export default function App() {
                   <Route path={TAB_PATHS.calendar} element={<CalendarView state={state} />} />
                   <Route path={TAB_PATHS.ai_insights} element={<AIInsights state={state} />} />
                   <Route path={TAB_PATHS.profile} element={<ProfileSettings settings={state.settings} currentUser={currentUser} />} />
-                  <Route path="*" element={<Navigate to={TAB_PATHS.dashboard} replace />} />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
             </Layout>

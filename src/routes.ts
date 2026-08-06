@@ -23,7 +23,13 @@ export function pathOfTab(tab: string): string {
   return TAB_PATHS[tab as TabKey] ?? TAB_PATHS.dashboard;
 }
 
-/** Đường dẫn lạ được coi như trang Tổng quan, khớp với route fallback trong App. */
-export function tabOfPath(pathname: string): TabKey {
-  return PATH_TO_TAB[pathname.replace(/\/+$/, '') || '/'] ?? 'dashboard';
+/**
+ * Tab ứng với đường dẫn, hoặc null nếu đường dẫn không thuộc ứng dụng.
+ *
+ * Trả null chứ không rơi về 'dashboard': đường dẫn lạ nay dẫn tới trang 404, và nếu
+ * hàm này nói dối là 'dashboard' thì sidebar sẽ tô sáng mục Tổng quan trong khi màn
+ * hình đang báo không tìm thấy trang.
+ */
+export function tabOfPath(pathname: string): TabKey | null {
+  return PATH_TO_TAB[pathname.replace(/\/+$/, '') || '/'] ?? null;
 }

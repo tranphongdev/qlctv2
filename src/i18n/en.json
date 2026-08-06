@@ -529,6 +529,11 @@
   "error.reload": "Reload the page",
   "error.details": "Technical details",
 
+  "notfound.title": "Page not found",
+  "notfound.description": "The address you opened isn't part of this app. It may be a typo, or a bookmark from an older version.",
+  "notfound.back": "Go back",
+  "notfound.home": "Back to Dashboard",
+
   "avatar.canvas_unavailable": "Canvas 2D context is unavailable",
   "sidebar.tagline": "Expense management",
 

@@ -529,6 +529,11 @@
   "error.reload": "Tải lại trang",
   "error.details": "Chi tiết kỹ thuật",
 
+  "notfound.title": "Không tìm thấy trang",
+  "notfound.description": "Đường dẫn bạn vừa mở không thuộc ứng dụng. Có thể bạn gõ nhầm, hoặc đã lưu một liên kết cũ.",
+  "notfound.back": "Quay lại",
+  "notfound.home": "Về trang Tổng quan",
+
   "avatar.canvas_unavailable": "Canvas 2D context không khả dụng",
   "sidebar.tagline": "Quản lý chi tiêu",
 
