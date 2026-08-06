@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ConfigProvider, Layout, Button, App as AntdApp } from 'antd';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -6,7 +6,8 @@ import { getAppTheme } from './theme';
 import { isSupabaseConfigured } from './lib/supabase';
 import { message, AntdStaticBridge } from './lib/antdApp';
 import { antdLocale, setActiveLang, t } from './i18n';
-import { setActiveCurrency } from './utils/currency';
+import { setActiveCurrency, subscribeRates, getRatesVersion } from './utils/currency';
+import { ensureExchangeRates } from './lib/exchangeRates';
 import { useAppState, deleteTransaction, bulkDeleteTransactions, restoreTransaction, addTransaction, updateTransaction, startRemoteSync, stopRemoteSync, useRemoteLoading } from './store/appStore';
 import { Header } from './components/Header';
 import { Sidebar, MobileSidebarDrawer } from './components/Sidebar';
@@ -39,16 +40,27 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // URL là nguồn sự thật của điều hướng. Vẫn giữ API activeTab/onSelectTab để
-  // Sidebar, BottomNav, CommandPalette và Header không phải sửa gì.
   const activeTab = tabOfPath(location.pathname);
   const setActiveTab = (tab: string) => navigate(pathOfTab(tab));
 
-  // Đồng bộ ngay trong thân render (không dùng useEffect) để các trang con render
-  // trong cùng lượt này đã đọc được đơn vị tiền / ngôn ngữ mới. Nếu đặt trong effect,
-  // lượt render đầu sau khi đổi cài đặt sẽ hiển thị bằng giá trị cũ.
   setActiveCurrency(state.settings.currency);
   setActiveLang(state.settings.language);
+
+  // Tỷ giá về sau lượt render đầu (đọc từ máy rồi tải mới từ mạng). Bảng tỷ giá nằm
+  // ngoài React nên phải đăng ký nghe: thiếu dòng này, số tiền quy đổi sẽ đứng im ở
+  // tỷ giá cũ cho tới lần render kế tiếp vì lý do khác.
+  useSyncExternalStore(subscribeRates, getRatesVersion, getRatesVersion);
+
+  useEffect(() => {
+    ensureExchangeRates();
+    // Máy để yên qua đêm rồi mở lại: tỷ giá đã sang ngày mới. Kiểm lúc tab sáng lên
+    // thay vì hẹn giờ chạy nền — PWA bị treo timer khi ở nền.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') ensureExchangeRates();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, []);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -65,16 +77,12 @@ export default function App() {
   const [checkingSession, setCheckingSession] = useState(isSupabaseConfigured);
 
   useEffect(() => {
-    // Không cấu hình Supabase thì không có phiên nào để khôi phục; giữ nguyên chế
-    // độ demo khách thay vì khoá toàn bộ ứng dụng sau trang đăng nhập.
     if (!isSupabaseConfigured) return;
 
     const unsubscribe = onAuthChange((user) => {
       setCurrentUser(user);
       setCheckingSession(false);
       if (user) {
-        // startRemoteSync tự lo thứ tự: nạp dữ liệu đã lưu xong mới áp hồ sơ từ
-        // nhà cung cấp đăng nhập, tránh ghi đè cài đặt cũ bằng giá trị mặc định.
         startRemoteSync(user.id, {
           username: user.username,
           fullName: user.name,
@@ -157,8 +165,6 @@ export default function App() {
     return <LoadingScreen message={t('auth.restoring_session')} />;
   }
 
-  // Trong lúc kéo dữ liệu lần đầu, kho cục bộ đã bị dọn về rỗng nên dashboard sẽ
-  // hiện ra như thể mất sạch số liệu. Che bằng màn chờ cho tới khi có dữ liệu thật.
   if (loadingRemote) {
     return <LoadingScreen message={t('auth.loading_data')} />;
   }
@@ -173,12 +179,7 @@ export default function App() {
       <AntdApp>
       <AntdStaticBridge />
       {requireAuth ? (
-        // Chưa đăng nhập: mọi đường dẫn khác đều bị đẩy về trang đăng nhập thay vì
-        // render dashboard rỗng.
         isAuthRoute ? (
-          // Trang đăng nhập được thiết kế cố định theo tông sáng (thẻ form nền
-          // trắng, chữ #1E293B). Nếu để nó thừa hưởng darkAlgorithm thì ô nhập
-          // liệu của antd sẽ đen sì trên nền trắng, nên ép riêng thuật toán sáng.
           <ConfigProvider theme={getAppTheme(false)}>
             <AuthPage
               onSuccess={(user) => {

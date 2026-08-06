@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
+import dayjs from 'dayjs';
 import { Form, Input, Button, Select, Avatar, Upload, Divider, Tag, Alert, Modal, Popconfirm, Space, Spin } from 'antd';
 import { message } from '../lib/antdApp';
-import { User, Shield, Database, Download, Upload as UploadIcon, Server, CheckCircle2, AlertCircle, Camera, Trash2, KeyRound, AtSign } from 'lucide-react';
+import { User, Shield, Database, Download, Upload as UploadIcon, Server, CheckCircle2, AlertCircle, Camera, Trash2, KeyRound, AtSign, RefreshCw } from 'lucide-react';
 import type { UserSettings } from '../types';
 import { exportBackupJSON, importBackupJSON, updateSettings } from '../store/appStore';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -11,7 +12,9 @@ import { updateContactEmail } from '../lib/auth';
 import { contactEmailSchema } from '../features/auth/schemas';
 import type { AuthUser } from '../lib/auth';
 import { AvatarCropModal } from '../components/AvatarCropModal';
-import { VND_PER_UNIT } from '../utils/currency';
+import { getRate, getRateStatus, subscribeRates, getRatesVersion } from '../utils/currency';
+import type { RateStatus } from '../utils/currency';
+import { refreshExchangeRates } from '../lib/exchangeRates';
 import { t } from '../i18n';
 
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
@@ -21,6 +24,37 @@ interface ProfileSettingsProps {
   settings: UserSettings;
   currentUser: AuthUser | null;
 }
+
+/** Tỷ giá thật có phần lẻ (26.331,47). Người dùng chỉ cần phần nghìn để đối chiếu. */
+function formatRate(vndPerUnit: number): string {
+  return Math.round(vndPerUnit).toLocaleString('vi-VN');
+}
+
+/** Dòng chú thích dưới ô chọn tiền tệ: tỷ giá lấy lúc nào, và nút hỏi lại ngay. */
+const RateNote: React.FC<{ status: RateStatus; onRefresh: () => void }> = ({ status, onRefresh }) => {
+  let text = t('settings.fx_fallback');
+  if (status.loading) {
+    text = t('settings.fx_loading');
+  } else if (status.updatedAt) {
+    text = t('settings.fx_updated', { time: dayjs(status.updatedAt).format('HH:mm DD/MM') });
+  }
+
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+      <span>{text}</span>
+      <Button
+        type="link"
+        size="small"
+        style={{ padding: 0, height: 'auto', fontSize: 'inherit' }}
+        icon={<RefreshCw size={12} />}
+        loading={status.loading}
+        onClick={onRefresh}
+      >
+        {t('settings.fx_refresh')}
+      </Button>
+    </span>
+  );
+};
 
 export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, currentUser }) => {
   const [form] = Form.useForm();
@@ -35,6 +69,17 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
   const [verifying, setVerifying] = useState(false);
 
   const canUseMfa = isSupabaseConfigured && !!currentUser;
+
+  // Bảng tỷ giá sống ngoài React. Đăng ký nghe để nhãn "1 USD ≈ …₫" đổi theo ngay khi
+  // tải xong, thay vì đứng im ở con số của lượt render trước.
+  useSyncExternalStore(subscribeRates, getRatesVersion, getRatesVersion);
+  const rateStatus = getRateStatus();
+
+  const handleRefreshRates = async () => {
+    const ok = await refreshExchangeRates();
+    if (ok) message.success(t('settings.fx_refresh_ok'));
+    else message.warning(t('settings.fx_refresh_fail'));
+  };
 
   useEffect(() => {
     if (!canUseMfa) {
@@ -258,12 +303,12 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
             </Form.Item>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12 }}>
-              <Form.Item name="currency" label={t('settings.currency')}>
+              <Form.Item name="currency" label={t('settings.currency')} extra={<RateNote status={rateStatus} onRefresh={handleRefreshRates} />}>
                 <Select
                   options={[
                     { value: 'VND', label: t('settings.currency_vnd') },
-                    { value: 'USD', label: t('settings.currency_usd', { rate: VND_PER_UNIT.USD.toLocaleString('vi-VN') }) },
-                    { value: 'EUR', label: t('settings.currency_eur', { rate: VND_PER_UNIT.EUR.toLocaleString('vi-VN') }) },
+                    { value: 'USD', label: t('settings.currency_usd', { rate: formatRate(getRate('USD')) }) },
+                    { value: 'EUR', label: t('settings.currency_eur', { rate: formatRate(getRate('EUR')) }) },
                   ]}
                 />
               </Form.Item>
