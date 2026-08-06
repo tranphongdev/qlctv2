@@ -732,12 +732,10 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
 @media (max-width: 992px) {
   .auth-shell {
     grid-template-columns: minmax(0, 1fr);
-    /* Một cột thì hero nằm trên form chứ không cạnh nhau, nên không còn chuyện
-       lệch chiều cao — trả lại cho cả trang cuộn như bình thường, tránh kiểu
-       cuộn lồng vốn rất khó thao tác trên điện thoại. */
     height: auto;
     min-height: 100dvh;
     overflow: visible;
+    grid-template-rows: auto 1fr;
   }
 
   .auth-hero {

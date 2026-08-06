@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Checkbox, Select } from 'antd';
+import { Form, Input, Button, Checkbox } from 'antd';
 import { message } from '~/lib/antdApp';
-import { AtSign, Lock, Coins } from 'lucide-react';
+import { AtSign, Lock } from 'lucide-react';
 import { registerSchema } from '~/features/auth/schemas';
 import { signUpWithUsername, normalizeUsername } from '~/lib/auth';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
@@ -64,12 +64,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
         <p className="auth-card__subtitle">{t('auth.register_subtitle')}</p>
       </div>
 
-      <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false} initialValues={{ currency: 'VND' }}>
+      <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false}>
         <Form.Item
           name="username"
           label={<FieldLabel>{t('auth.username_label')}</FieldLabel>}
           rules={[{ required: true, message: t('validation.username_required') }]}
-          extra={<span style={{ fontSize: 11 }}>{t('auth.username_hint')}</span>}
           style={{ marginBottom: 14 }}
         >
           <Input
@@ -126,24 +125,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
         </div>
 
         <PasswordStrengthMeter password={password} />
-
-        <Form.Item
-          name="currency"
-          label={<FieldLabel>{t('auth.currency_label')}</FieldLabel>}
-          rules={[{ required: true, message: t('validation.currency_required_short') }]}
-          style={{ marginBottom: 14 }}
-        >
-          <Select
-            size="large"
-            style={{ height: 46 }}
-            prefix={<Coins size={18} color="#94A3B8" />}
-            options={[
-              { value: 'VND', label: t('auth.currency_vnd') },
-              { value: 'USD', label: t('auth.currency_usd') },
-              { value: 'EUR', label: t('auth.currency_eur') },
-            ]}
-          />
-        </Form.Item>
 
         <Form.Item
           name="agreeTerms"
