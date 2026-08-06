@@ -224,6 +224,23 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
   overflow-y: auto;
 }
 
+/* Cuộn bên trong lớp nổi không được kéo theo trang nền.
+   Khi danh sách cuộn tới đầu hoặc cuối, trình duyệt chuyển tiếp cú vuốt còn lại
+   sang phần tử cha (scroll chaining): trang nền chạy, lớp nổi bị định vị lại theo
+   nên danh sách option giật. overscroll-behavior cắt chuỗi đó ngay tại lớp nổi.
+   .rc-virtual-list-holder là phần tử cuộn thật của Select / TreeSelect / Cascader;
+   .ant-select-dropdown chỉ là khung bao ngoài nên đặt riêng ở đây là chưa đủ. */
+.rc-virtual-list-holder,
+.ant-select-dropdown,
+.ant-dropdown-menu,
+.ant-picker-time-panel-column,
+.ant-picker-dropdown,
+.ant-modal-content,
+.ant-drawer-body,
+.auth-card-scroll {
+  overscroll-behavior: contain;
+}
+
 /* Pulse Glow Animation */
 @keyframes pulseGlow {
   0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
