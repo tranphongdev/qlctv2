@@ -3,11 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- iOS không đọc manifest để lấy icon và cũng không nhận SVG, nên bản PNG
+         180x180 này là thứ duy nhất dùng được khi thêm vào màn hình chính. -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <!-- Màu thanh trạng thái trên trình duyệt di động, khớp hai giao diện. -->
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F8FAFC" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F172A" />
+    <!-- iOS chạy toàn màn hình khi mở từ màn hình chính. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Financial" />
     <meta name="description" content="Quản lý chi tiêu cá nhân: ví, giao dịch, ngân sách và mục tiêu tiết kiệm." />
     <title>Financial — Quản lý chi tiêu</title>
   </head>
