@@ -51,14 +51,19 @@ export function formatDate(dateStr: string, format = 'DD/MM/YYYY'): string {
   return dayjs(dateStr).format(format);
 }
 
-export function getTimeAwareGreeting(name: string): { greeting: string; icon: string } {
+/**
+ * Lời chào theo giờ trong ngày, KHÔNG kèm tên người dùng: Header hiển thị tên ở
+ * dòng riêng ngay bên dưới, nhét tên vào đây nữa là lặp hai lần — và vì dòng chào
+ * bị chặn bề ngang kèm ellipsis, chuỗi sẽ bị cắt ngay sau dấu phẩy.
+ */
+export function getTimeAwareGreeting(): { greeting: string; icon: string } {
   const hour = dayjs().hour();
   if (hour >= 5 && hour < 12) {
-    return { greeting: t('header.greeting_morning', { name }), icon: '🌅' };
+    return { greeting: t('header.greeting_morning'), icon: '🌅' };
   } else if (hour >= 12 && hour < 18) {
-    return { greeting: t('header.greeting_afternoon', { name }), icon: '☀️' };
+    return { greeting: t('header.greeting_afternoon'), icon: '☀️' };
   } else {
-    return { greeting: t('header.greeting_evening', { name }), icon: '🌙' };
+    return { greeting: t('header.greeting_evening'), icon: '🌙' };
   }
 }
 

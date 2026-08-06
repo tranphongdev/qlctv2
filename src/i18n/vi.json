@@ -498,7 +498,7 @@
   "cmd.esc_hint_suffix": "để thoát",
 
   "header.guest": "Khách",
-  "header.greeting_default": "Chào bạn!",
+  "header.greeting_default": "Chào bạn",
   "header.demo_mode": "Chế độ Demo Khách",
   "header.profile_settings": "Hồ sơ & Cài đặt",
   "header.logout": "Đăng xuất",
@@ -507,9 +507,9 @@
   "header.tip_sync_email": "Đồng bộ Email Ngân hàng",
   "header.tip_toggle_theme": "Chuyển giao diện Sáng / Tối",
   "header.tip_notifications": "Thông báo hệ thống",
-  "header.greeting_morning": "Chào buổi sáng, {name}!",
-  "header.greeting_afternoon": "Chào buổi chiều, {name}!",
-  "header.greeting_evening": "Chào buổi tối, {name}!",
+  "header.greeting_morning": "Chào buổi sáng",
+  "header.greeting_afternoon": "Chào buổi chiều",
+  "header.greeting_evening": "Chào buổi tối",
 
   "notif.title": "Thông báo",
   "notif.new_count": "{count} thông báo mới",

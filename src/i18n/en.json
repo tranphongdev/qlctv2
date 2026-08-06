@@ -498,7 +498,7 @@
   "cmd.esc_hint_suffix": "to close",
 
   "header.guest": "Guest",
-  "header.greeting_default": "Hello there!",
+  "header.greeting_default": "Hello there",
   "header.demo_mode": "Guest demo mode",
   "header.profile_settings": "Profile & Settings",
   "header.logout": "Sign out",
@@ -507,9 +507,9 @@
   "header.tip_sync_email": "Sync bank emails",
   "header.tip_toggle_theme": "Toggle light / dark theme",
   "header.tip_notifications": "System notifications",
-  "header.greeting_morning": "Good morning, {name}!",
-  "header.greeting_afternoon": "Good afternoon, {name}!",
-  "header.greeting_evening": "Good evening, {name}!",
+  "header.greeting_morning": "Good morning",
+  "header.greeting_afternoon": "Good afternoon",
+  "header.greeting_evening": "Good evening",
 
   "notif.title": "Notifications",
   "notif.new_count": "{count} new notifications",

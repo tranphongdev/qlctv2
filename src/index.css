@@ -505,13 +505,6 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  /* Chừa cả chiều cao header cố định: né được thanh trạng thái rồi thì toast vẫn
-     rơi đúng vào dải header (avatar, ô tìm kiếm, cụm icon) và đè lên nhau. Thả
-     xuống ngay dưới header, vẫn nằm trên vùng nội dung bắt đầu ở 84px. */
-  .ant-message {
-    top: calc(72px + env(safe-area-inset-top, 0px)) !important;
-  }
-
   /* Màn hẹp: chừa lề hai bên để toast dài không chạm mép kính. */
   .ant-message-notice-content {
     max-width: calc(100vw - 24px);

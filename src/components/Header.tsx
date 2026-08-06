@@ -49,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
   const userName = currentUser ? settings.userName || currentUser.name : t('header.guest');
   const avatarUrl = settings.avatarUrl || currentUser?.avatarUrl;
   const { greeting, icon } = currentUser
-    ? getTimeAwareGreeting(userName)
+    ? getTimeAwareGreeting()
     : { greeting: t('header.greeting_default'), icon: '👋' };
 
   const userMenuItems: MenuProps['items'] = [
@@ -132,10 +132,13 @@ export const Header: React.FC<HeaderProps> = ({
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>
               <span>{icon}</span>
-              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 90 }}>{greeting}</span>
+              {/* 90px không đủ cho "Chào buổi chiều" ở cỡ chữ 11 nên vẫn bị cắt dù
+                  đã bỏ tên khỏi chuỗi; nới lên 130px. Cụm này nằm trong flex có
+                  minWidth: 0 nên màn hẹp vẫn co lại được, không đẩy vỡ header. */}
+              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>{greeting}</span>
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 90 }}>{userName}</span>
+              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>{userName}</span>
             </div>
           </div>
         </div>
