@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Progress, Button, Tag, Modal, Form, Select, InputNumber, Popconfirm } from 'antd';
-import { message } from '../lib/antdApp';
+import { Progress, Button, Tag, Modal, Form, Select, InputNumber, Popconfirm, Empty } from 'antd';
+import { message } from '~/lib/antdApp';
 import { Plus, AlertTriangle, CheckCircle, ShieldAlert, Trash2 } from 'lucide-react';
 import dayjs from 'dayjs';
-import type { AppState, Category } from '../types';
-import { formatMoney } from '../utils/format';
-import { addBudget, deleteBudget } from '../store/appStore';
-import { t } from '../i18n';
+import type { AppState, Category } from '~/types';
+import { formatMoney } from '~/utils/format';
+import { addBudget, deleteBudget } from '~/store/appStore';
+import { t } from '~/i18n';
 
 /** "2026-08" -> "08/2026". Trả về chuỗi gốc nếu khoá tháng không đúng định dạng. */
 function formatMonthKey(monthKey: string): string {
@@ -61,6 +61,13 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
       {/* Budgets Grid */}
       {/* Trần 380px: một ngân sách vẫn giữ dáng thẻ thay vì kéo dài hết chiều ngang.
           Trần bị bỏ dưới 600px để thẻ trải hết bề ngang (xem .card-grid). */}
+      {/* Ngoài .card-grid: nằm trong lưới thì Empty bị bó vào bề rộng một cột. */}
+      {budgets.length === 0 && (
+        <div className="glass-card" style={{ padding: '40px 20px' }}>
+          <Empty description={t('budgets.empty')} />
+        </div>
+      )}
+
       <div className="card-grid">
         {budgets.map((b) => {
           const cat = categoriesMap[b.category];

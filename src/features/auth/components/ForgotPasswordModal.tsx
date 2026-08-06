@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, Button, Alert } from 'antd';
-import { message } from '../../../lib/antdApp';
+import { message } from '~/lib/antdApp';
 import { Mail, KeyRound, CheckCircle2 } from 'lucide-react';
-import { forgotPasswordSchema } from '../schemas';
-import { t } from '../../../i18n';
+import { forgotPasswordSchema } from '~/features/auth/schemas';
+import { t } from '~/i18n';
 
 interface ForgotPasswordModalProps {
   open: boolean;

@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Checkbox, Select } from 'antd';
-import { message } from '../../../lib/antdApp';
+import { message } from '~/lib/antdApp';
 import { AtSign, Lock, Coins } from 'lucide-react';
-import { registerSchema } from '../schemas';
-import { signUpWithUsername, normalizeUsername } from '../../../lib/auth';
+import { registerSchema } from '~/features/auth/schemas';
+import { signUpWithUsername, normalizeUsername } from '~/lib/auth';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 import { SocialAuthButtons } from './SocialAuthButtons';
 import { FieldLabel } from './FieldLabel';
-import { t } from '../../../i18n';
-import type { AuthUser } from '../../../lib/auth';
+import { t } from '~/i18n';
+import type { AuthUser } from '~/lib/auth';
 
 interface RegisterFormProps {
   onSuccess: (user: AuthUser) => void;

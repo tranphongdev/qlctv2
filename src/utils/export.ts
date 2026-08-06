@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
-import type { Transaction, Wallet, Category } from '../types';
+import type { Transaction, Wallet, Category } from '~/types';
 import { formatMoney } from './format';
-import { t } from '../i18n';
+import { t } from '~/i18n';
 
 export function exportTransactionsToExcel(
   transactions: Transaction[],

@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, TrendingUp, PieChart, Wallet, ArrowUpRight, Lock, Sparkles } from 'lucide-react';
-import { formatMoney } from '../../../utils/format';
-import { t } from '../../../i18n';
+import { formatMoney } from '~/utils/format';
+import { t } from '~/i18n';
 
 /** Ba lời hứa ngắn ở chân hero; icon lấy từ lucide như phần còn lại của app. */
 const TRUST_POINTS = [

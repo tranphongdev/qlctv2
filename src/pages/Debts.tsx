@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Table, Button, Tag, Modal, Form, Input, InputNumber, Select, DatePicker } from 'antd';
-import { message } from '../lib/antdApp';
+import { Table, Button, Tag, Modal, Form, Input, InputNumber, Select, DatePicker, Empty } from 'antd';
+import { message } from '~/lib/antdApp';
 import { Plus, CheckCircle, Clock } from 'lucide-react';
-import type { AppState, Debt } from '../types';
-import { formatMoney } from '../utils/format';
-import { addDebt, payDebt } from '../store/appStore';
-import { t } from '../i18n';
+import type { AppState, Debt } from '~/types';
+import { formatMoney } from '~/utils/format';
+import { addDebt, payDebt } from '~/store/appStore';
+import { t } from '~/i18n';
 
 interface DebtsProps {
   state: AppState;
@@ -132,7 +132,12 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
           <div className="desktop-only">
             <Table columns={columns} dataSource={lendingList} rowKey="id" pagination={false} style={{ width: '100%' }} />
           </div>
+          {/* Bản desktop dùng Table nên antd tự lo trạng thái rỗng; danh sách thẻ
+              ở mobile là JSX thuần nên phải tự xử. */}
           <div className="mobile-only" style={{ flexDirection: 'column', gap: 12 }}>
+            {lendingList.length === 0 && (
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('debts.empty_lending')} />
+            )}
             {lendingList.map((d) => {
               const rem = Math.max(0, d.amount - d.paid);
               return (
@@ -163,6 +168,9 @@ export const Debts: React.FC<DebtsProps> = ({ state }) => {
             <Table columns={columns} dataSource={borrowingList} rowKey="id" pagination={false} style={{ width: '100%' }} />
           </div>
           <div className="mobile-only" style={{ flexDirection: 'column', gap: 12 }}>
+            {borrowingList.length === 0 && (
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('debts.empty_borrowing')} />
+            )}
             {borrowingList.map((d) => {
               const rem = Math.max(0, d.amount - d.paid);
               return (

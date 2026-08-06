@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { formatMoney } from '../utils/format';
-import { getActiveCurrency } from '../utils/currency';
-import type { CurrencyCode } from '../utils/currency';
+import { formatMoney } from '~/utils/format';
+import { getActiveCurrency } from '~/utils/currency';
+import type { CurrencyCode } from '~/utils/currency';
 
 interface CounterAnimationProps {
   value: number;

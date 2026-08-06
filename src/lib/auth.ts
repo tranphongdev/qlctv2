@@ -1,6 +1,6 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import { t } from '../i18n';
-import { TAB_PATHS } from '../routes';
+import { t } from '~/i18n';
+import { TAB_PATHS } from '~/routes';
 import type { Session } from '@supabase/supabase-js';
 
 export interface AuthUser {

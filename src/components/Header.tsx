@@ -3,10 +3,10 @@ import { Avatar, Badge, Button, Input, Space, Dropdown } from 'antd';
 import { HintTooltip } from './HintTooltip';
 import type { MenuProps } from 'antd';
 import { Search, Bell, Sun, Moon, Sparkles, Command, Menu as MenuIcon, LogIn, LogOut, User as UserIcon } from 'lucide-react';
-import type { UserSettings, NotificationItem } from '../types';
-import type { AuthUser } from '../lib/auth';
-import { getTimeAwareGreeting } from '../utils/format';
-import { t } from '../i18n';
+import type { UserSettings, NotificationItem } from '~/types';
+import type { AuthUser } from '~/lib/auth';
+import { getTimeAwareGreeting } from '~/utils/format';
+import { t } from '~/i18n';
 import { NotificationDrawer } from './NotificationDrawer';
 
 interface HeaderProps {

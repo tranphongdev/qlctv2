@@ -1,4 +1,4 @@
-import type { UserSettings } from '../types';
+import type { UserSettings } from '~/types';
 
 export type CurrencyCode = UserSettings['currency'];
 

@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
 import 'dayjs/locale/en';
 import { fromVnd, getActiveCurrency, localeOfCurrency } from './currency';
-import { t } from '../i18n';
+import { t } from '~/i18n';
 import type { CurrencyCode } from './currency';
 
 dayjs.locale('vi');

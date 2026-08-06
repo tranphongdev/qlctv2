@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Input, List, Tag } from 'antd';
-import { t } from '../i18n';
+import { t } from '~/i18n';
 import {
   Search,
   LayoutDashboard,
@@ -16,7 +16,7 @@ import {
   PlusCircle,
   ArrowRight,
 } from 'lucide-react';
-import { removeAccents } from '../utils/format';
+import { removeAccents } from '~/utils/format';
 
 interface CommandPaletteProps {
   open: boolean;

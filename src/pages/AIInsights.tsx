@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Button, Input, Tag, Space, Spin } from 'antd';
 import { Sparkles, Send, BrainCircuit, TrendingUp, Lightbulb, Bot } from 'lucide-react';
-import type { AppState } from '../types';
-import { t } from '../i18n';
+import type { AppState } from '~/types';
+import { t } from '~/i18n';
 
 interface AIInsightsProps {
   state: AppState;

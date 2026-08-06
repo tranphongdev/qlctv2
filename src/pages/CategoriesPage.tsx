@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Button, Modal, Form, Input, Select } from 'antd';
-import { message } from '../lib/antdApp';
+import { Button, Modal, Form, Input, Select, Empty } from 'antd';
+import { message } from '~/lib/antdApp';
 import { Plus } from 'lucide-react';
-import type { AppState } from '../types';
-import { DynamicIcon } from '../components/DynamicIcon';
+import type { AppState } from '~/types';
+import { DynamicIcon } from '~/components/DynamicIcon';
 
-import { addCategory } from '../store/appStore';
-import { t } from '../i18n';
+import { addCategory } from '~/store/appStore';
+import { t } from '~/i18n';
 
 interface CategoriesPageProps {
   state: AppState;
@@ -51,6 +51,9 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
         <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: '#EF4444' }}>
           {t('cats.expense_section', { count: expCategories.length })}
         </div>
+        {expCategories.length === 0 && (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('cats.empty_expense')} />
+        )}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
           {expCategories.map((c) => (
             <div
@@ -93,6 +96,9 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
         <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: '#22C55E' }}>
           {t('cats.income_section', { count: incCategories.length })}
         </div>
+        {incCategories.length === 0 && (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('cats.empty_income')} />
+        )}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
           {incCategories.map((c) => (
             <div

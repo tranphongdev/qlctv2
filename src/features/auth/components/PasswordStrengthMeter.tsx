@@ -1,8 +1,8 @@
 import React from 'react';
 import { Progress } from 'antd';
 import { Check, X } from 'lucide-react';
-import { t } from '../../../i18n';
-import type { PasswordStrengthResult } from '../types';
+import { t } from '~/i18n';
+import type { PasswordStrengthResult } from '~/features/auth/types';
 
 interface PasswordStrengthMeterProps {
   password?: string;

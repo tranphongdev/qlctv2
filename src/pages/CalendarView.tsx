@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Calendar, Drawer, List } from 'antd';
 import type { Dayjs } from 'dayjs';
-import type { AppState, Category } from '../types';
-import { formatMoney } from '../utils/format';
-import { DynamicIcon } from '../components/DynamicIcon';
-import { t } from '../i18n';
+import type { AppState, Category } from '~/types';
+import { formatMoney } from '~/utils/format';
+import { DynamicIcon } from '~/components/DynamicIcon';
+import { t } from '~/i18n';
 
 interface CalendarViewProps {
   state: AppState;

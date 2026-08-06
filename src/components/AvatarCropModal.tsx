@@ -1,10 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { Modal, Slider, Button } from 'antd';
-import { message } from '../lib/antdApp';
+import { message } from '~/lib/antdApp';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import { ZoomIn } from 'lucide-react';
-import { t } from '../i18n';
+import { t } from '~/i18n';
 
 /** Cạnh ảnh đầu ra. Avatar hiển thị tối đa 64px nên 256px là đủ nét cho màn Retina. */
 const OUTPUT_SIZE = 256;

@@ -2,8 +2,8 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'antd';
 import { Compass, ArrowLeft, LayoutDashboard } from 'lucide-react';
-import { TAB_PATHS } from '../routes';
-import { t } from '../i18n';
+import { TAB_PATHS } from '~/routes';
+import { t } from '~/i18n';
 
 /**
  * Trang 404, hiển thị BÊN TRONG khung ứng dụng (còn nguyên sidebar, header, thanh

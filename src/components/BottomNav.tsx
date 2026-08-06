@@ -6,7 +6,7 @@ import {
   User,
   Plus,
 } from 'lucide-react';
-import { t } from '../i18n';
+import { t } from '~/i18n';
 
 interface BottomNavProps {
   activeTab: string;

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Progress, Button, Tag, Modal, Form, Input, InputNumber, DatePicker, Popconfirm } from 'antd';
-import { message } from '../lib/antdApp';
+import { Progress, Button, Tag, Modal, Form, Input, InputNumber, DatePicker, Popconfirm, Empty } from 'antd';
+import { message } from '~/lib/antdApp';
 import { Plus, Sparkles, CheckCircle2, Trash2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import type { AppState, Goal } from '../types';
-import { formatMoney } from '../utils/format';
-import { addGoal, depositToGoal, deleteGoal } from '../store/appStore';
-import { t } from '../i18n';
+import type { AppState, Goal } from '~/types';
+import { formatMoney } from '~/utils/format';
+import { addGoal, depositToGoal, deleteGoal } from '~/store/appStore';
+import { t } from '~/i18n';
 
 interface GoalsProps {
   state: AppState;
@@ -74,6 +74,14 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
       {/* Trần 380px cho cột: một mục tiêu duy nhất vẫn giữ dáng thẻ thay vì giãn hết
           chiều ngang biến ảnh bìa thành banner. Trần này bị bỏ dưới 600px, nơi bề
           ngang màn hình đã tự giới hạn thẻ (xem .card-grid trong index.css). */}
+      {/* Empty đặt ngoài .card-grid: nằm trong lưới thì nó bị bó vào bề rộng một
+          cột và lệch hẳn sang trái thay vì nằm giữa vùng trống. */}
+      {goals.length === 0 && (
+        <div className="glass-card" style={{ padding: '40px 20px' }}>
+          <Empty description={t('goals.empty')} />
+        </div>
+      )}
+
       <div className="card-grid">
         {goals.map((g) => {
           const pct = Math.min(100, Math.round((g.saved / g.target) * 100));

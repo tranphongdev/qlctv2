@@ -1,4 +1,4 @@
-import { setLiveRates, setRatesLoading, getRateStatus } from '../utils/currency';
+import { setLiveRates, setRatesLoading, getRateStatus } from '~/utils/currency';
 
 /**
  * Tỷ giá VND/USD và VND/EUR lấy từ thị trường, thay cho bảng số cứng trong mã.

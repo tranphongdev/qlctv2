@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import viVN from 'antd/locale/vi_VN';
 import enUS from 'antd/locale/en_US';
 import type { Locale } from 'antd/es/locale';
-import type { UserSettings } from '../types';
+import type { UserSettings } from '~/types';
 import vi from './vi.json';
 import en from './en.json';
 

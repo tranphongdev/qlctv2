@@ -1,8 +1,8 @@
 import React from 'react';
 import { Drawer, Button, List, Empty } from 'antd';
 import { CheckCheck, AlertTriangle, Wallet, Target, Sparkles, Bell } from 'lucide-react';
-import { t } from '../i18n';
-import type { NotificationItem } from '../types';
+import { t } from '~/i18n';
+import type { NotificationItem } from '~/types';
 
 interface NotificationDrawerProps {
   open: boolean;

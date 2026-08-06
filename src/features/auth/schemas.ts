@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { t } from '../../i18n';
+import { t } from '~/i18n';
 
 /**
  * Các schema được dựng qua hàm chứ không phải hằng số module: thông báo lỗi lấy từ

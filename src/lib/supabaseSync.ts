@@ -1,7 +1,7 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import type { AppState, UserSettings, Transaction, Wallet, Goal, Debt, Budget, Category, NotificationItem } from '../types';
-import { defaultCategories } from '../store/appStore';
-import { sortTxNewestFirst } from '../utils/transactionOrder';
+import type { AppState, UserSettings, Transaction, Wallet, Goal, Debt, Budget, Category, NotificationItem } from '~/types';
+import { defaultCategories } from '~/store/appStore';
+import { sortTxNewestFirst } from '~/utils/transactionOrder';
 
 /**
  * Id của người dùng đang đăng nhập, dùng làm khoá phân vùng dữ liệu.

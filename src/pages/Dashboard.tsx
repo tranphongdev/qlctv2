@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Progress, Space } from 'antd';
+import { Button, Empty, Progress, Space } from 'antd';
 import {
   TrendingUp,
   TrendingDown,
@@ -13,13 +13,13 @@ import {
 import dayjs from 'dayjs';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import type { ChartData, ChartOptions } from 'chart.js';
-import { tooltipStyle, chartTheme } from '../utils/chartSetup';
-import { useIsDarkTheme } from '../hooks/useIsDarkTheme';
-import type { AppState } from '../types';
-import { CounterAnimation } from '../components/CounterAnimation';
-import { formatMoney, formatCompactNumber, formatDate } from '../utils/format';
-import { DynamicIcon } from '../components/DynamicIcon';
-import { t } from '../i18n';
+import { tooltipStyle, chartTheme } from '~/utils/chartSetup';
+import { useIsDarkTheme } from '~/hooks/useIsDarkTheme';
+import type { AppState } from '~/types';
+import { CounterAnimation } from '~/components/CounterAnimation';
+import { formatMoney, formatCompactNumber, formatDate } from '~/utils/format';
+import { DynamicIcon } from '~/components/DynamicIcon';
+import { t } from '~/i18n';
 
 /** Số tháng hiển thị trên chart xu hướng. Ít cột -> cột dày và dễ đọc hơn. */
 const TREND_MONTHS = 6;
@@ -367,6 +367,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {transactions.length === 0 && (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={t('dash.empty_tx')}
+                style={{ margin: '24px 0' }}
+              />
+            )}
             {transactions.slice(0, 5).map((tx) => {
               const cat = categoriesMap[tx.category];
               const isThu = tx.type === 'thu';
@@ -432,6 +439,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {goals.length === 0 && (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={t('dash.empty_goals')}
+                style={{ margin: '24px 0' }}
+              />
+            )}
             {goals.slice(0, 2).map((goal) => {
               const pct = Math.round((goal.saved / goal.target) * 100);
               return (

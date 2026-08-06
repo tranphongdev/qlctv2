@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Checkbox } from 'antd';
-import { message } from '../../../lib/antdApp';
+import { message } from '~/lib/antdApp';
 import { AtSign, Lock } from 'lucide-react';
-import { loginSchema } from '../schemas';
-import { signInWithUsername, normalizeUsername } from '../../../lib/auth';
+import { loginSchema } from '~/features/auth/schemas';
+import { signInWithUsername, normalizeUsername } from '~/lib/auth';
 import { SocialAuthButtons } from './SocialAuthButtons';
 import { FieldLabel } from './FieldLabel';
-import { t } from '../../../i18n';
-import type { AuthUser } from '../../../lib/auth';
+import { t } from '~/i18n';
+import type { AuthUser } from '~/lib/auth';
 
 interface LoginFormProps {
   onSuccess: (user: AuthUser) => void;

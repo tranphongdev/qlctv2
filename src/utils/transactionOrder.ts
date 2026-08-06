@@ -1,4 +1,4 @@
-import type { Transaction } from '../types';
+import type { Transaction } from '~/types';
 
 /**
  * Thứ tự hiển thị giao dịch: mới nhất lên đầu.

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from 'antd';
-import { message } from '../../../lib/antdApp';
-import { signInWithProvider, isOAuthEnabled } from '../../../lib/auth';
-import { t } from '../../../i18n';
-import type { OAuthProvider } from '../../../lib/auth';
+import { message } from '~/lib/antdApp';
+import { signInWithProvider, isOAuthEnabled } from '~/lib/auth';
+import { t } from '~/i18n';
+import type { OAuthProvider } from '~/lib/auth';
 
 /**
  * Logo hai nhà cung cấp vẽ thẳng bằng SVG.

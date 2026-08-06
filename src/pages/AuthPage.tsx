@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { AuthUser } from '../lib/auth';
-import { HeroSection } from '../features/auth/components/HeroSection';
-import { LoginForm } from '../features/auth/components/LoginForm';
-import { RegisterForm } from '../features/auth/components/RegisterForm';
-import { ForgotPasswordModal } from '../features/auth/components/ForgotPasswordModal';
-import type { AuthMode } from '../features/auth/types';
+import type { AuthUser } from '~/lib/auth';
+import { HeroSection } from '~/features/auth/components/HeroSection';
+import { LoginForm } from '~/features/auth/components/LoginForm';
+import { RegisterForm } from '~/features/auth/components/RegisterForm';
+import { ForgotPasswordModal } from '~/features/auth/components/ForgotPasswordModal';
+import type { AuthMode } from '~/features/auth/types';
 
 interface AuthPageProps {
   onSuccess: (user: AuthUser) => void;

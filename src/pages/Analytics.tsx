@@ -3,11 +3,11 @@ import { Progress, Segmented } from 'antd';
 import dayjs from 'dayjs';
 import { Bar } from 'react-chartjs-2';
 import type { ChartData, ChartOptions } from 'chart.js';
-import { tooltipStyle, chartTheme } from '../utils/chartSetup';
-import { useIsDarkTheme } from '../hooks/useIsDarkTheme';
-import type { AppState } from '../types';
-import { formatMoney, formatCompactNumber } from '../utils/format';
-import { t } from '../i18n';
+import { tooltipStyle, chartTheme } from '~/utils/chartSetup';
+import { useIsDarkTheme } from '~/hooks/useIsDarkTheme';
+import type { AppState } from '~/types';
+import { formatMoney, formatCompactNumber } from '~/utils/format';
+import { t } from '~/i18n';
 
 /** Quy điểm sức khỏe tài chính (0-100) thành xếp hạng chữ. */
 function rankOf(score: number): string {

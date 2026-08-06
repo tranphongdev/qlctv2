@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tooltip } from 'antd';
 import type { TooltipProps } from 'antd';
-import { useCanHover } from '../hooks/useCanHover';
+import { useCanHover } from '~/hooks/useCanHover';
 
 /**
  * Tooltip chỉ gắn khi thiết bị có hover thật.

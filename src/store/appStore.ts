@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import type { AppState, Category, Transaction, Wallet, Budget, Goal, Debt, NotificationItem, UserSettings } from '../types';
-import { DEFAULT_USER_SETTINGS } from '../types';
-import { todayStr } from '../utils/format';
+import type { AppState, Category, Transaction, Wallet, Budget, Goal, Debt, NotificationItem, UserSettings } from '~/types';
+import { DEFAULT_USER_SETTINGS } from '~/types';
+import { todayStr } from '~/utils/format';
+import { sortTxNewestFirst } from '~/utils/transactionOrder';
 import {
   fetchRemoteState,
   syncTransactionToSupabase,
@@ -19,9 +20,9 @@ import {
   syncProfileToSupabase,
   setSyncUserId,
   getSyncUserId,
-} from '../lib/supabaseSync';
-import { t } from '../i18n';
-import type { TranslationKey } from '../i18n';
+} from '~/lib/supabaseSync';
+import { t } from '~/i18n';
+import type { TranslationKey } from '~/i18n';
 
 const STORAGE_KEY = 'quan_ly_chi_tieu_pro_v2';
 /** Tài khoản sở hữu dữ liệu đang nằm trong localStorage của máy này. */

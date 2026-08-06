@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import { t } from '../i18n';
+import { t } from '~/i18n';
 
 /**
  * Xác thực 2 lớp dạng TOTP, chạy trên Supabase Auth MFA. Mã bí mật do Supabase sinh

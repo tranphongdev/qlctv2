@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Input, Select, Space, Tag, Modal, Popconfirm } from 'antd';
-import { message } from '../lib/antdApp';
+import { message } from '~/lib/antdApp';
 import {
   Plus,
   Search,
@@ -11,12 +11,12 @@ import {
   Edit,
   Eye,
 } from 'lucide-react';
-import type { AppState, Category, Transaction, Wallet } from '../types';
-import { formatMoney, removeAccents } from '../utils/format';
-import { compareTxNewestFirst } from '../utils/transactionOrder';
-import { DynamicIcon } from '../components/DynamicIcon';
-import { exportTransactionsToExcel, exportTransactionsToCSV, printFinancialReport } from '../utils/export';
-import { t } from '../i18n';
+import type { AppState, Category, Transaction, Wallet } from '~/types';
+import { formatMoney, removeAccents } from '~/utils/format';
+import { compareTxNewestFirst } from '~/utils/transactionOrder';
+import { DynamicIcon } from '~/components/DynamicIcon';
+import { exportTransactionsToExcel, exportTransactionsToCSV, printFinancialReport } from '~/utils/export';
+import { t } from '~/i18n';
 
 interface TransactionsProps {
   state: AppState;

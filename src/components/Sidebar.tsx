@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout, Button, Drawer } from 'antd';
 import { HintTooltip } from './HintTooltip';
-import { t } from '../i18n';
+import { t } from '~/i18n';
 import {
   LayoutDashboard,
   Receipt,
