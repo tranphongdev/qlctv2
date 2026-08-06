@@ -625,5 +625,23 @@
   "app.all_notifications_read": "All notifications marked as read",
   "mfa.not_configured": "Supabase is not configured.",
   "parser.fallback_bank": "Bank",
-  "parser.fallback_note": "{bank} transaction"
+  "parser.fallback_note": "{bank} transaction",
+
+  "auth.username_label": "Username",
+  "auth.username_placeholder": "e.g. tranphong",
+  "auth.username_taken": "That username is already taken!",
+  "auth.username_hint": "Letters, numbers, dots, hyphens and underscores only. Cannot be changed later.",
+  "validation.username_required": "Please enter a username",
+  "validation.username_min": "Username must be at least 3 characters",
+  "validation.username_max": "Username must be at most 30 characters",
+  "validation.username_format": "Use letters, numbers, dots, hyphens and underscores only",
+  "settings.username": "Username",
+  "settings.username_hint": "Used to sign in. This cannot be changed.",
+  "settings.email_optional": "Email address (optional)",
+  "settings.email_hint": "You can leave this empty. Adding an email helps with account recovery later.",
+  "settings.email_placeholder": "example@gmail.com",
+  "settings.email_saved": "Email address saved!",
+  "settings.email_pending": "Contact email saved. Supabase needs you to confirm it by email before it can be used to sign in.",
+  "settings.email_none": "No email added",
+  "auth.name_label_optional": "Full name (optional)"
 }

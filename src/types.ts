@@ -90,7 +90,11 @@ export interface NotificationItem {
 }
 
 export interface UserSettings {
-  userName: string;
+  /** Tên đăng nhập: duy nhất, không đổi, dùng để xác thực. */
+  username: string;
+  /** Tên hiển thị, người dùng sửa thoải mái và có thể trùng nhau. */
+  fullName: string;
+  /** Email liên hệ, tuỳ chọn. Chuỗi rỗng nghĩa là người dùng chưa khai báo. */
   userEmail: string;
   avatarUrl: string;
   theme: 'light' | 'dark';
@@ -121,8 +125,9 @@ export interface AppState {
 }
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
-  userName: 'User Demo',
-  userEmail: 'userdemo.dev@gmail.com',
+  username: 'userdemo',
+  fullName: 'User Demo',
+  userEmail: '',
   avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=UserDemo',
   theme: 'light',
   accentColor: '#4F46E5',

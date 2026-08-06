@@ -4,42 +4,199 @@ import type { Session } from '@supabase/supabase-js';
 
 export interface AuthUser {
   id: string;
+  username: string;
+  /** Email liên hệ do người dùng tự khai trong Hồ sơ. Rỗng nếu chưa khai. */
   email: string;
   name: string;
   avatarUrl: string;
 }
 
-export async function signUpWithEmail(email: string, pass: string, name: string) {
+/**
+ * Miền của email nội bộ. Supabase Auth bắt buộc mỗi tài khoản phải có email, nhưng
+ * người dùng chỉ đăng nhập bằng username — nên mỗi username được gán một địa chỉ
+ * suy ra theo công thức. `.local` là miền dành riêng cho mạng nội bộ (RFC 6762)
+ * nên chắc chắn không đụng địa chỉ thật của ai.
+ */
+const INTERNAL_EMAIL_DOMAIN = 'internal.local';
+
+/**
+ * Chuẩn hoá username về một dạng duy nhất: bỏ khoảng trắng thừa và hạ chữ thường.
+ * Phải khớp với `lower(trim(...))` của unique index và hai hàm RPC trong
+ * supabase_schema.sql, nếu lệch thì "Phong" và "phong" sẽ thành hai tài khoản.
+ */
+export function normalizeUsername(username: string): string {
+  return username.trim().toLowerCase();
+}
+
+/** Địa chỉ nội bộ mà Supabase Auth dùng cho một username mới đăng ký. */
+export function internalEmailFor(username: string): string {
+  return `${normalizeUsername(username)}@${INTERNAL_EMAIL_DOMAIN}`;
+}
+
+/** True nếu địa chỉ này là email nội bộ do app sinh ra, không phải email thật. */
+export function isInternalEmail(email?: string | null): boolean {
+  return !!email && email.toLowerCase().endsWith(`@${INTERNAL_EMAIL_DOMAIN}`);
+}
+
+function requireClient() {
   if (!isSupabaseConfigured || !supabase) {
     throw new Error(t('auth.not_configured'));
   }
+  return supabase;
+}
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
+/**
+ * Dựng AuthUser từ phiên Supabase.
+ *
+ * Email nội bộ bị lọc thành chuỗi rỗng: nó là chi tiết kỹ thuật của tầng xác thực,
+ * để lộ ra giao diện thì người dùng sẽ thấy "phong@internal.local" như thể đó là
+ * email của họ và tưởng app gửi thư tới đó được.
+ */
+function toAuthUser(u: {
+  id: string;
+  email?: string;
+  user_metadata?: Record<string, unknown>;
+}): AuthUser {
+  const meta = u.user_metadata ?? {};
+  const username = (meta.username as string) || (u.email ? u.email.split('@')[0] : '');
+  const contactEmail = (meta.contact_email as string) || (isInternalEmail(u.email) ? '' : u.email || '');
+
+  return {
+    id: u.id,
+    username,
+    email: contactEmail,
+    name: (meta.full_name as string) || username || t('auth.default_user_name'),
+    avatarUrl: (meta.avatar_url as string) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.id}`,
+  };
+}
+
+/** Email mà Supabase Auth đang thực sự giữ cho phiên hiện tại. */
+export function authEmailOfSession(session: Session | null): string {
+  return session?.user?.email ?? '';
+}
+
+/**
+ * Hỏi máy chủ xem username còn trống chưa.
+ *
+ * Trả về true khi không kiểm tra được (chưa cấu hình, RPC lỗi) — đây là bước báo
+ * lỗi sớm cho đẹp, không phải hàng rào bảo vệ. Ràng buộc thật nằm ở unique index
+ * trên profiles và ở tính duy nhất của email trong Supabase Auth, nên cho qua ở
+ * đây cũng không tạo được tài khoản trùng.
+ */
+export async function isUsernameAvailable(username: string): Promise<boolean> {
+  if (!isSupabaseConfigured || !supabase) return true;
+
+  const { data, error } = await supabase.rpc('username_available', {
+    p_username: normalizeUsername(username),
+  });
+
+  if (error) {
+    console.error('[auth] username_available lỗi:', error);
+    return true;
+  }
+  return data !== false;
+}
+
+/**
+ * Tìm email đăng nhập ứng với username.
+ *
+ * Người dùng chưa đăng nhập nên RLS chặn đọc thẳng bảng profiles; phải đi qua RPC
+ * SECURITY DEFINER. Nếu chưa có hồ sơ (tài khoản vừa tạo, chưa kịp đồng bộ) thì
+ * quay về địa chỉ nội bộ suy từ username — đúng cái đã dùng lúc đăng ký.
+ */
+async function resolveAuthEmail(username: string): Promise<string> {
+  const fallback = internalEmailFor(username);
+  if (!isSupabaseConfigured || !supabase) return fallback;
+
+  const { data, error } = await supabase.rpc('auth_email_for_username', {
+    p_username: normalizeUsername(username),
+  });
+
+  if (error) {
+    console.error('[auth] auth_email_for_username lỗi:', error);
+    return fallback;
+  }
+  return (data as string | null) || fallback;
+}
+
+export async function signUpWithUsername(username: string, pass: string, displayName?: string) {
+  const client = requireClient();
+  const normalized = normalizeUsername(username);
+
+  if (!(await isUsernameAvailable(normalized))) {
+    throw new Error(t('auth.username_taken'));
+  }
+
+  const { data, error } = await client.auth.signUp({
+    email: internalEmailFor(normalized),
     password: pass,
     options: {
       data: {
-        full_name: name,
+        username: normalized,
+        full_name: displayName?.trim() || normalized,
       },
     },
   });
 
-  if (error) throw error;
+  if (error) {
+    // Supabase báo trùng email nội bộ, tức là username đã có người dùng. Dịch
+    // sang thông điệp người dùng hiểu được thay vì "User already registered".
+    if (/already registered|already exists/i.test(error.message)) {
+      throw new Error(t('auth.username_taken'));
+    }
+    throw error;
+  }
   return data;
 }
 
-export async function signInWithEmail(email: string, pass: string) {
-  if (!isSupabaseConfigured || !supabase) {
-    throw new Error(t('auth.not_configured'));
+export async function signInWithUsername(username: string, pass: string) {
+  const client = requireClient();
+  const email = await resolveAuthEmail(username);
+
+  const { data, error } = await client.auth.signInWithPassword({ email, password: pass });
+
+  if (error) {
+    if (/invalid login credentials/i.test(error.message)) {
+      throw new Error(t('auth.login_failed'));
+    }
+    throw error;
+  }
+  return data;
+}
+
+/**
+ * Lưu email liên hệ do người dùng khai trong trang Hồ sơ.
+ *
+ * Địa chỉ được ghi vào user_metadata.contact_email NGAY — đây là nguồn hiển thị
+ * nên phải thấy hiệu lực tức thì. Việc đổi email đăng nhập của Supabase Auth chỉ
+ * là nỗ lực thêm: Supabase gửi thư xác nhận và địa chỉ cũ (@internal.local) thì
+ * không ai nhận được, nên rất có thể xác nhận không bao giờ hoàn tất.
+ *
+ * Trả về `authEmailChanged` để người gọi biết có nên cập nhật cột auth_email
+ * trong bảng profiles hay không. Chừng nào Auth chưa thực sự đổi email thì
+ * auth_email phải giữ nguyên địa chỉ nội bộ, nếu không lần đăng nhập tới sẽ tra
+ * ra một địa chỉ mà Auth không công nhận và người dùng bị khoá ngoài tài khoản.
+ */
+export async function updateContactEmail(email: string): Promise<{ authEmailChanged: boolean }> {
+  const client = requireClient();
+  const trimmed = email.trim();
+
+  const { error: metaError } = await client.auth.updateUser({
+    data: { contact_email: trimmed },
+  });
+  if (metaError) throw metaError;
+
+  if (!trimmed) return { authEmailChanged: false };
+
+  const { data, error } = await client.auth.updateUser({ email: trimmed });
+  if (error) {
+    // Không ném lỗi: email liên hệ đã lưu xong ở trên và app vẫn chạy bình thường
+    // khi Auth giữ nguyên địa chỉ nội bộ.
+    console.error('[auth] Không đổi được email đăng nhập:', error);
+    return { authEmailChanged: false };
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password: pass,
-  });
-
-  if (error) throw error;
-  return data;
+  return { authEmailChanged: data.user?.email?.toLowerCase() === trimmed.toLowerCase() };
 }
 
 export async function signOutUser() {
@@ -51,35 +208,14 @@ export async function signOutUser() {
 export async function getCurrentUser(): Promise<AuthUser | null> {
   if (!isSupabaseConfigured || !supabase) return null;
   const { data } = await supabase.auth.getUser();
-  if (!data.user) return null;
-
-  const u = data.user;
-  return {
-    id: u.id,
-    email: u.email || '',
-    name: u.user_metadata?.full_name || u.email?.split('@')[0] || t('auth.default_user_name'),
-    avatarUrl: u.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.id}`,
-  };
+  return data.user ? toAuthUser(data.user) : null;
 }
 
 export function onAuthChange(callback: (user: AuthUser | null, session: Session | null) => void) {
   if (!isSupabaseConfigured || !supabase) return () => {};
 
   const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-    if (session?.user) {
-      const u = session.user;
-      callback(
-        {
-          id: u.id,
-          email: u.email || '',
-          name: u.user_metadata?.full_name || u.email?.split('@')[0] || t('auth.default_user_name'),
-          avatarUrl: u.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.id}`,
-        },
-        session
-      );
-    } else {
-      callback(null, null);
-    }
+    callback(session?.user ? toAuthUser(session.user) : null, session);
   });
 
   return () => {

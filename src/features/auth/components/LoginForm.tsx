@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Checkbox } from 'antd';
 import { message } from '../../../lib/antdApp';
-import { Mail, Lock } from 'lucide-react';
+import { AtSign, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { loginSchema } from '../schemas';
-import { signInWithEmail } from '../../../lib/auth';
+import { signInWithUsername, normalizeUsername } from '../../../lib/auth';
 import { t } from '../../../i18n';
 import type { AuthUser } from '../../../lib/auth';
 
@@ -29,18 +29,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchRegiste
 
     setLoading(true);
     try {
-      const data = await signInWithEmail(values.email, values.password);
+      const data = await signInWithUsername(values.username, values.password);
       if (data.user) {
-        message.success(
-          t('auth.login_success', {
-            name: data.user.user_metadata?.full_name || data.user.email || '',
-          }),
-        );
+        const meta = data.user.user_metadata ?? {};
+        const username = (meta.username as string) || normalizeUsername(values.username);
+        message.success(t('auth.login_success', { name: (meta.full_name as string) || username }));
         onSuccess({
           id: data.user.id,
-          email: data.user.email || '',
-          name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || t('auth.default_user_name'),
-          avatarUrl: data.user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.id}`,
+          username,
+          // Email nội bộ không phải email của người dùng: để rỗng cho tới khi họ
+          // tự khai địa chỉ thật trong trang Hồ sơ.
+          email: (meta.contact_email as string) || '',
+          name: (meta.full_name as string) || username,
+          avatarUrl: (meta.avatar_url as string) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.id}`,
         });
         form.resetFields();
       }
@@ -63,18 +64,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchRegiste
 
       <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false}>
         <Form.Item
-          name="email"
-          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.email_label')}</span>}
-          rules={[
-            { required: true, message: t('validation.email_short') },
-            { type: 'email', message: t('validation.email_format') },
-          ]}
+          name="username"
+          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.username_label')}</span>}
+          rules={[{ required: true, message: t('validation.username_required') }]}
         >
           <Input
-            prefix={<Mail size={18} color="#94A3B8" style={{ marginRight: 6 }} />}
-            placeholder="example@gmail.com"
+            prefix={<AtSign size={18} color="#94A3B8" style={{ marginRight: 6 }} />}
+            placeholder={t('auth.username_placeholder')}
             size="large"
             autoFocus
+            autoComplete="username"
             style={{ borderRadius: 4, height: 48, fontSize: 14 }}
           />
         </Form.Item>

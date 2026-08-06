@@ -46,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
   const unreadCount = notifications.filter((n) => !n.read).length;
   // settings là nguồn sự thật vì người dùng sửa được tên và ảnh trong trang Cài đặt;
   // currentUser chỉ là ảnh chụp lúc đăng nhập nên không phản ánh thay đổi sau đó.
-  const userName = currentUser ? settings.userName || currentUser.name : t('header.guest');
+  const displayName = currentUser ? settings.fullName || currentUser.name : t('header.guest');
   const avatarUrl = settings.avatarUrl || currentUser?.avatarUrl;
   const { greeting, icon } = currentUser
     ? getTimeAwareGreeting()
@@ -58,8 +58,13 @@ export const Header: React.FC<HeaderProps> = ({
       disabled: true,
       label: (
         <div style={{ padding: '4px 0', borderBottom: '1px solid #f1f5f9' }}>
-          <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{userName}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{currentUser?.email || t('header.demo_mode')}</div>
+          <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{displayName}</div>
+          {/* Email giờ là tuỳ chọn, nên không dùng nó để phân biệt đã đăng nhập hay
+              chưa: người vừa đăng ký chưa khai email sẽ bị gắn nhãn "Chế độ Demo
+              Khách" dù đang đăng nhập hẳn hoi. Danh tính luôn có là username. */}
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+            {currentUser ? currentUser.email || `@${currentUser.username}` : t('header.demo_mode')}
+          </div>
         </div>
       ),
     },
@@ -122,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
                 size={36}
                 style={{ border: '2px solid #4F46E5', cursor: 'pointer', flexShrink: 0 }}
               >
-                {userName.charAt(0).toUpperCase()}
+                {displayName.charAt(0).toUpperCase()}
               </Avatar>
             </Dropdown>
           ) : (
@@ -138,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>{greeting}</span>
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>{userName}</span>
+              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>{displayName}</span>
             </div>
           </div>
         </div>

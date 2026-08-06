@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Checkbox, Select } from 'antd';
 import { message } from '../../../lib/antdApp';
-import { Mail, Lock, User, Coins } from 'lucide-react';
+import { AtSign, Lock, User, Coins } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { registerSchema } from '../schemas';
-import { signUpWithEmail } from '../../../lib/auth';
+import { signUpWithUsername, normalizeUsername } from '../../../lib/auth';
 import { t } from '../../../i18n';
 import type { AuthUser } from '../../../lib/auth';
 
@@ -28,13 +28,16 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
 
     setLoading(true);
     try {
-      const data = await signUpWithEmail(values.email, values.password, values.name);
+      const username = normalizeUsername(values.username);
+      const data = await signUpWithUsername(username, values.password, values.name);
       if (data.user) {
         message.success(t('auth.register_success'));
         onSuccess({
           id: data.user.id,
-          email: data.user.email || '',
-          name: values.name || t('auth.default_user_name'),
+          username,
+          // Tài khoản mới chưa có email thật; người dùng thêm sau trong trang Hồ sơ.
+          email: '',
+          name: values.name?.trim() || username,
           avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.id}`,
         });
         form.resetFields();
@@ -58,32 +61,31 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchL
 
       <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false} initialValues={{ currency: 'VND' }}>
         <Form.Item
+          name="username"
+          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.username_label')}</span>}
+          rules={[{ required: true, message: t('validation.username_required') }]}
+          extra={<span style={{ fontSize: 11 }}>{t('auth.username_hint')}</span>}
+          style={{ marginBottom: 12 }}
+        >
+          <Input
+            prefix={<AtSign size={18} color="#94A3B8" style={{ marginRight: 6 }} />}
+            placeholder={t('auth.username_placeholder')}
+            size="large"
+            autoFocus
+            autoComplete="username"
+            style={{ borderRadius: 4, height: 44, fontSize: 14 }}
+          />
+        </Form.Item>
+
+        {/* Tên hiển thị không bắt buộc — bỏ trống thì lấy chính username. */}
+        <Form.Item
           name="name"
-          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.name_label')}</span>}
-          rules={[{ required: true, message: t('validation.name_required') }]}
+          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.name_label_optional')}</span>}
           style={{ marginBottom: 12 }}
         >
           <Input
             prefix={<User size={18} color="#94A3B8" style={{ marginRight: 6 }} />}
             placeholder={t('auth.name_placeholder')}
-            size="large"
-            autoFocus
-            style={{ borderRadius: 4, height: 44, fontSize: 14 }}
-          />
-        </Form.Item>
-
-        <Form.Item
-          name="email"
-          label={<span style={{ fontWeight: 600, fontSize: 13, color: '#475569' }}>{t('auth.email_label')}</span>}
-          rules={[
-            { required: true, message: t('validation.email_short') },
-            { type: 'email', message: t('validation.email_format') },
-          ]}
-          style={{ marginBottom: 12 }}
-        >
-          <Input
-            prefix={<Mail size={18} color="#94A3B8" style={{ marginRight: 6 }} />}
-            placeholder="example@gmail.com"
             size="large"
             style={{ borderRadius: 4, height: 44, fontSize: 14 }}
           />

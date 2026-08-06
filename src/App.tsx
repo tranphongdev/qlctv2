@@ -76,7 +76,8 @@ export default function App() {
         // startRemoteSync tự lo thứ tự: nạp dữ liệu đã lưu xong mới áp hồ sơ từ
         // nhà cung cấp đăng nhập, tránh ghi đè cài đặt cũ bằng giá trị mặc định.
         startRemoteSync(user.id, {
-          userName: user.name,
+          username: user.username,
+          fullName: user.name,
           userEmail: user.email,
           avatarUrl: user.avatarUrl,
         });

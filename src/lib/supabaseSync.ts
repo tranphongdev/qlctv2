@@ -180,8 +180,11 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
 /** Chỉ lấy các cột hồ sơ có trong bảng; phần còn lại của UserSettings do cục bộ giữ. */
 function mapProfileRow(row: Record<string, unknown>): Partial<UserSettings> {
   return {
-    userName: row.user_name as string,
-    userEmail: row.user_email as string,
+    username: (row.username as string) ?? '',
+    fullName: row.user_name as string,
+    // Cột này giờ nullable (tài khoản chưa khai email thật), nhưng UserSettings
+    // dùng chuỗi rỗng để biểu thị "chưa có" nên phải quy đổi, không để lọt null.
+    userEmail: (row.user_email as string) ?? '',
     avatarUrl: (row.avatar_url as string) ?? '',
     currency: row.currency as UserSettings['currency'],
     language: row.language as UserSettings['language'],
@@ -196,11 +199,24 @@ function mapProfileRow(row: Record<string, unknown>): Partial<UserSettings> {
  */
 export async function syncProfileToSupabase(settings: UserSettings) {
   if (!canSync() || !supabase) return;
+
+  // auth_email phải lấy từ chính phiên đang chạy chứ không suy ra từ username:
+  // đây là địa chỉ Supabase Auth thực sự đang giữ, và là thứ hàm RPC
+  // auth_email_for_username sẽ trả về cho lần đăng nhập sau. Ghi sai một lần là
+  // người dùng mất luôn đường vào tài khoản. getSession() đọc từ bộ nhớ cục bộ
+  // nên không tốn thêm một vòng mạng.
+  const { data: sessionData } = await supabase.auth.getSession();
+  const authEmail = sessionData.session?.user?.email ?? null;
+
   const { error } = await supabase.from('profiles').upsert(
     {
       user_id: currentUserId,
-      user_name: settings.userName,
-      user_email: settings.userEmail,
+      username: settings.username || null,
+      auth_email: authEmail,
+      user_name: settings.fullName,
+      // Chuỗi rỗng nghĩa là chưa khai email; lưu NULL để phân biệt rõ với một
+      // địa chỉ thật và để unique index / truy vấn phía DB xử lý đúng.
+      user_email: settings.userEmail || null,
       avatar_url: settings.avatarUrl,
       currency: settings.currency,
       language: settings.language,

@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, Select, Avatar, Upload, Divider, Tag, Alert, Modal, Popconfirm, Space, Spin } from 'antd';
 import { message } from '../lib/antdApp';
-import { User, Shield, Database, Download, Upload as UploadIcon, Server, CheckCircle2, AlertCircle, Camera, Trash2, KeyRound } from 'lucide-react';
+import { User, Shield, Database, Download, Upload as UploadIcon, Server, CheckCircle2, AlertCircle, Camera, Trash2, KeyRound, AtSign } from 'lucide-react';
 import type { UserSettings } from '../types';
 import { exportBackupJSON, importBackupJSON, updateSettings } from '../store/appStore';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { getActiveTotpFactorId, startTotpEnrollment, verifyTotpEnrollment, disableTotp } from '../lib/mfa';
 import type { TotpEnrollment } from '../lib/mfa';
+import { updateContactEmail } from '../lib/auth';
+import { contactEmailSchema } from '../features/auth/schemas';
 import type { AuthUser } from '../lib/auth';
 import { AvatarCropModal } from '../components/AvatarCropModal';
 import { VND_PER_UNIT } from '../utils/currency';
@@ -59,13 +61,37 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
     };
   }, [canUseMfa]);
 
-  const handleSaveProfile = (values: any) => {
+  const handleSaveProfile = async (values: any) => {
+    const email = (values.userEmail ?? '').trim();
+
+    const parsed = contactEmailSchema().safeParse(email);
+    if (!parsed.success) {
+      message.error(parsed.error.issues[0]?.message || t('validation.email_format'));
+      return;
+    }
+
     updateSettings({
-      userName: values.userName,
-      userEmail: values.userEmail,
+      fullName: values.fullName,
+      userEmail: email,
       currency: values.currency,
       language: values.language,
     });
+
+    // Đẩy email lên Supabase Auth trước khi báo thành công. Chỉ làm khi địa chỉ
+    // thực sự đổi, để mỗi lần lưu cài đặt ngôn ngữ không kích hoạt lại luồng xác
+    // nhận email của Supabase.
+    if (currentUser && email !== settings.userEmail) {
+      try {
+        const { authEmailChanged } = await updateContactEmail(email);
+        message.success(email && !authEmailChanged ? t('settings.email_pending') : t('settings.saved'));
+        return;
+      } catch (err: any) {
+        console.error('[profile] Lưu email thất bại:', err);
+        message.error(err?.message || t('settings.saved'));
+        return;
+      }
+    }
+
     message.success(t('settings.saved'));
   };
 
@@ -178,11 +204,16 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
           {/* Ảnh đại diện */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
             <Avatar src={settings.avatarUrl || undefined} size={64} style={{ border: '3px solid #4F46E5', flexShrink: 0 }}>
-              {settings.userName?.charAt(0)?.toUpperCase()}
+              {settings.fullName?.charAt(0)?.toUpperCase()}
             </Avatar>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 16 }}>{settings.userName}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{settings.userEmail}</div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>{settings.fullName}</div>
+              {/* Username là danh tính đăng nhập nên hiện luôn dưới tên; email có
+                  thể chưa có nên chỉ là dòng phụ, không để trống trơ ra. */}
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>@{settings.username}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
+                {settings.userEmail || <em>{t('settings.email_none')}</em>}
+              </div>
               <Space wrap size={8}>
                 <Upload beforeUpload={handleAvatarSelect} showUploadList={false} accept={AVATAR_MIME.join(',')}>
                   <Button size="small" icon={<Camera size={14} />}>
@@ -208,12 +239,22 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
           </div>
 
           <Form form={form} layout="vertical" initialValues={settings} onFinish={handleSaveProfile}>
-            <Form.Item name="userName" label={t('settings.display_name')} rules={[{ required: true }]}>
+            {/* Username không sửa được: nó là khoá đăng nhập và là gốc của email
+                nội bộ trong Supabase Auth. Đổi ở đây sẽ khiến người dùng không
+                đăng nhập lại được. Dùng Input disabled thay vì chữ tĩnh để giữ
+                đúng dáng với các trường còn lại của form. */}
+            <Form.Item label={t('settings.username')} extra={t('settings.username_hint')}>
+              <Input value={settings.username} disabled prefix={<AtSign size={14} color="#94a3b8" />} />
+            </Form.Item>
+
+            <Form.Item name="fullName" label={t('settings.display_name')} rules={[{ required: true }]}>
               <Input placeholder={t('settings.name_placeholder')} />
             </Form.Item>
 
-            <Form.Item name="userEmail" label={t('settings.email')} rules={[{ required: true, type: 'email' }]}>
-              <Input placeholder="user@gmail.com" />
+            {/* Email là tuỳ chọn: không có rule required, và ô trống là hợp lệ.
+                Định dạng được kiểm ở handleSaveProfile qua contactEmailSchema. */}
+            <Form.Item name="userEmail" label={t('settings.email_optional')} extra={t('settings.email_hint')}>
+              <Input placeholder={t('settings.email_placeholder')} allowClear />
             </Form.Item>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12 }}>

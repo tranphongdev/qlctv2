@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { AppState, Category, Transaction, Wallet, Budget, Goal, Debt, NotificationItem } from '../types';
+import type { AppState, Category, Transaction, Wallet, Budget, Goal, Debt, NotificationItem, UserSettings } from '../types';
 import { DEFAULT_USER_SETTINGS } from '../types';
 import { todayStr } from '../utils/format';
 import {
@@ -80,6 +80,29 @@ export const DEFAULT_APP_STATE: AppState = {
   plans: {},
 };
 
+/**
+ * Nâng cấp hồ sơ đã lưu từ các bản trước.
+ *
+ * Bản cũ dùng `userName` cho tên hiển thị và chưa có khái niệm `username`. Đọc
+ * thẳng dữ liệu đó bằng cấu trúc mới sẽ cho tên hiển thị rỗng và người dùng thấy
+ * hồ sơ trống trơn sau khi cập nhật. Trải DEFAULT ra trước rồi mới đè bằng giá
+ * trị đã lưu, nên trường mới thêm sau này luôn có giá trị mặc định.
+ */
+function migrateSettings(stored: Record<string, unknown> | undefined): UserSettings {
+  const s = stored ?? {};
+  return {
+    ...DEFAULT_USER_SETTINGS,
+    ...(s as Partial<UserSettings>),
+    fullName: (s.fullName as string) || (s.userName as string) || DEFAULT_USER_SETTINGS.fullName,
+    // Chưa có username thì suy từ email cũ, khớp với cách vá hồ sơ ở mục 8 của
+    // supabase_schema.sql để hai bên không lệch nhau.
+    username:
+      (s.username as string) ||
+      ((s.userEmail as string) || '').split('@')[0] ||
+      DEFAULT_USER_SETTINGS.username,
+  };
+}
+
 function loadStoredState(): AppState {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
@@ -90,6 +113,7 @@ function loadStoredState(): AppState {
         ...parsed,
         wallets: parsed.wallets ?? [],
         categories: parsed.categories?.length ? parsed.categories : defaultCategories(),
+        settings: migrateSettings(parsed.settings),
       };
     }
   } catch (e) {
@@ -144,7 +168,7 @@ function notifyListeners() {
  */
 export async function startRemoteSync(
   userId: string,
-  authProfile: { userName: string; userEmail: string; avatarUrl: string },
+  authProfile: { username: string; fullName: string; userEmail: string; avatarUrl: string },
 ) {
   // onAuthChange còn bắn cả khi làm mới token (khoảng mỗi giờ). Đã đồng bộ cho
   // đúng tài khoản này rồi thì không kéo lại toàn bộ bảng lần nữa.
@@ -454,11 +478,15 @@ export function updateSettings(newSettings: Partial<AppState['settings']>) {
  * vì avatar chỉ được lấy từ nhà cung cấp khi người dùng CHƯA tự đặt ảnh — nếu không,
  * mỗi lần refresh token sẽ ghi đè mất ảnh do người dùng tải lên.
  */
-export function syncAuthProfile(profile: { userName: string; userEmail: string; avatarUrl: string }) {
+export function syncAuthProfile(profile: { username: string; fullName: string; userEmail: string; avatarUrl: string }) {
   const current = globalState.settings;
   updateSettings({
-    userName: profile.userName,
-    userEmail: profile.userEmail,
+    username: profile.username,
+    fullName: profile.fullName,
+    // Email thật do người dùng khai trong trang Hồ sơ; Auth chỉ giữ email nội bộ
+    // nên không lấy nó ghi đè, nếu không mỗi lần làm mới token sẽ xoá mất địa chỉ
+    // người dùng vừa nhập.
+    userEmail: profile.userEmail || current.userEmail,
     avatarUrl: current.avatarUrl || profile.avatarUrl,
   });
 }

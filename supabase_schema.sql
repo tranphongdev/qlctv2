@@ -210,3 +210,77 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.notifications(user_i
 --
 -- Các lệnh trên phải chạy trong SQL Editor của Dashboard (quyền service_role,
 -- không bị RLS chặn).
+
+-- ============================================================================
+-- 8. XÁC THỰC THEO USERNAME (chạy được nhiều lần, an toàn với dữ liệu đang có)
+-- ============================================================================
+-- Supabase Auth bắt buộc phải có email, nên mỗi tài khoản vẫn giữ một email nội
+-- bộ dạng <username>@internal.local. Người dùng chỉ nhìn thấy và chỉ nhập
+-- username; email thật là tuỳ chọn, thêm sau trong trang Hồ sơ.
+--
+-- Vì sao tách auth_email khỏi user_email:
+--   user_email = email liên hệ thật, có thể trống, người dùng sửa thoải mái.
+--   auth_email = email mà Supabase Auth đang thực sự giữ, dùng để đăng nhập.
+-- Nếu gộp làm một thì lúc người dùng đổi email liên hệ, hàm tra cứu sẽ trả về
+-- một địa chỉ mà Auth không công nhận và họ mất luôn khả năng đăng nhập.
+-- auth_email chỉ được cập nhật SAU KHI Supabase xác nhận đã đổi email thành công.
+
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS username   TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS auth_email TEXT;
+
+-- Email thật giờ là tuỳ chọn. Dữ liệu cũ có NOT NULL nên phải gỡ ràng buộc,
+-- nếu không tài khoản mới (chưa có email) sẽ không ghi được hồ sơ.
+ALTER TABLE public.profiles ALTER COLUMN user_email DROP NOT NULL;
+
+-- Username là duy nhất, không phân biệt hoa thường: "Phong" và "phong" phải là
+-- một người. Partial index để các hồ sơ cũ (username NULL) không đụng nhau.
+CREATE UNIQUE INDEX IF NOT EXISTS profiles_username_lower_key
+  ON public.profiles (lower(username))
+  WHERE username IS NOT NULL;
+
+-- Tra email đăng nhập từ username. Bắt buộc phải là SECURITY DEFINER: lúc gọi
+-- hàm này người dùng CHƯA đăng nhập, mà RLS ở mục 4 chỉ cho 'authenticated' đọc
+-- hồ sơ của chính mình — truy vấn thẳng bảng sẽ luôn trả về rỗng.
+-- Chỉ trả đúng một cột auth_email, không lộ phần còn lại của hồ sơ.
+CREATE OR REPLACE FUNCTION public.auth_email_for_username(p_username TEXT)
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT auth_email
+  FROM public.profiles
+  WHERE lower(username) = lower(trim(p_username))
+  LIMIT 1;
+$$;
+
+-- Kiểm tra username còn trống, dùng lúc đăng ký để báo lỗi sớm và dễ hiểu thay
+-- vì để Supabase Auth trả về "User already registered" khó hiểu với người dùng.
+CREATE OR REPLACE FUNCTION public.username_available(p_username TEXT)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT NOT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE lower(username) = lower(trim(p_username))
+  );
+$$;
+
+REVOKE ALL ON FUNCTION public.auth_email_for_username(TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.username_available(TEXT)      FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.auth_email_for_username(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.username_available(TEXT)      TO anon, authenticated;
+
+-- Vá hồ sơ đã tồn tại từ trước: suy username từ phần trước @ của email hiện có,
+-- và ghi nhận email đó chính là email đăng nhập. Chỉ chạm vào dòng chưa có
+-- username nên chạy lại nhiều lần không làm hỏng dữ liệu.
+UPDATE public.profiles
+SET username   = COALESCE(username, split_part(user_email, '@', 1)),
+    auth_email = COALESCE(auth_email, user_email)
+WHERE username IS NULL
+  AND user_email IS NOT NULL
+  AND user_email <> '';

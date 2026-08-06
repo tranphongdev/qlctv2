@@ -18,7 +18,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
     {
       sender: 'ai',
       text: t('ai.greeting', {
-        name: state.settings.userName || t('auth.default_user_name'),
+        name: state.settings.fullName || t('auth.default_user_name'),
       }),
     },
   ]);

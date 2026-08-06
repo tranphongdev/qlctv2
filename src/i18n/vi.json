@@ -625,5 +625,23 @@
   "app.all_notifications_read": "Đã đọc tất cả thông báo",
   "mfa.not_configured": "Supabase chưa được cấu hình.",
   "parser.fallback_bank": "Ngân hàng",
-  "parser.fallback_note": "Giao dịch {bank}"
+  "parser.fallback_note": "Giao dịch {bank}",
+
+  "auth.username_label": "Tên đăng nhập",
+  "auth.username_placeholder": "vidu: tranphong",
+  "auth.username_taken": "Tên đăng nhập này đã có người sử dụng!",
+  "auth.username_hint": "Chỉ dùng chữ không dấu, số, dấu chấm, gạch ngang và gạch dưới. Không đổi được sau khi tạo.",
+  "validation.username_required": "Vui lòng nhập tên đăng nhập",
+  "validation.username_min": "Tên đăng nhập phải có ít nhất 3 ký tự",
+  "validation.username_max": "Tên đăng nhập tối đa 30 ký tự",
+  "validation.username_format": "Chỉ dùng chữ không dấu, số, dấu chấm, gạch ngang và gạch dưới",
+  "settings.username": "Tên đăng nhập",
+  "settings.username_hint": "Dùng để đăng nhập, không thay đổi được.",
+  "settings.email_optional": "Địa chỉ Email (tuỳ chọn)",
+  "settings.email_hint": "Để trống cũng được. Thêm email giúp khôi phục tài khoản sau này.",
+  "settings.email_placeholder": "example@gmail.com",
+  "settings.email_saved": "Đã lưu địa chỉ Email!",
+  "settings.email_pending": "Đã lưu Email liên hệ. Supabase cần bạn xác nhận qua thư trước khi dùng địa chỉ này để đăng nhập.",
+  "settings.email_none": "Chưa thêm email",
+  "auth.name_label_optional": "Họ và tên (tuỳ chọn)"
 }
