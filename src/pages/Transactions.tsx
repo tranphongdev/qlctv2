@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Table, Button, Input, Select, Space, Tag, Modal, Popconfirm } from 'antd';
 import { message } from '../lib/antdApp';
 import {
@@ -10,11 +10,10 @@ import {
   Trash2,
   Edit,
   Eye,
-  Mail,
 } from 'lucide-react';
-import dayjs from 'dayjs';
 import type { AppState, Category, Transaction, Wallet } from '../types';
 import { formatMoney, removeAccents } from '../utils/format';
+import { compareTxNewestFirst } from '../utils/transactionOrder';
 import { DynamicIcon } from '../components/DynamicIcon';
 import { exportTransactionsToExcel, exportTransactionsToCSV, printFinancialReport } from '../utils/export';
 import { t } from '../i18n';
@@ -25,7 +24,6 @@ interface TransactionsProps {
   onDeleteTx: (id: string) => void;
   onBulkDelete: (ids: string[]) => void;
   onRestoreTx?: (tx: Transaction) => void;
-  onOpenBankSync?: () => void;
 }
 
 export const Transactions: React.FC<TransactionsProps> = ({
@@ -34,7 +32,6 @@ export const Transactions: React.FC<TransactionsProps> = ({
   onDeleteTx,
   onBulkDelete,
   onRestoreTx: _onRestoreTx,
-  onOpenBankSync,
 }) => {
   const { transactions, categories, wallets } = state;
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -43,6 +40,20 @@ export const Transactions: React.FC<TransactionsProps> = ({
   const [catFilter, setCatFilter] = useState<string>('all');
   const [walletFilter, setWalletFilter] = useState<string>('all');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
+
+  /**
+   * Về trang đầu khi tập dữ liệu đổi.
+   *
+   * Bảng luôn xếp mới nhất lên trước, nên giao dịch vừa thêm rơi vào trang 1.
+   * Nếu người dùng đang đứng ở trang 3 mà antd giữ nguyên trang, họ bấm lưu xong
+   * không thấy gì thay đổi và tưởng danh sách chưa cập nhật. Đổi bộ lọc cũng
+   * vậy: số trang cũ thường không còn tồn tại trong kết quả mới.
+   */
+  useEffect(() => {
+    setPage(1);
+  }, [transactions.length, typeFilter, catFilter, walletFilter, searchText]);
 
   const categoriesMap = categories.reduce((acc, c) => ({ ...acc, [c.id]: c }), {} as Record<string, Category>);
   const walletsMap = wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>);
@@ -92,7 +103,10 @@ export const Transactions: React.FC<TransactionsProps> = ({
       title: t('tx.col_datetime'),
       dataIndex: 'date',
       key: 'date',
-      sorter: (a: Transaction, b: Transaction) => dayjs(a.date).unix() - dayjs(b.date).unix(),
+      // Đảo dấu vì compareTxNewestFirst xếp giảm dần, còn sorter của antd nhận
+      // hàm so sánh tăng dần. Bảng vốn đã hiện mới nhất trước, đây là để người
+      // dùng bấm đảo chiều mà vẫn tính cả giờ chứ không chỉ ngày.
+      sorter: (a: Transaction, b: Transaction) => -compareTxNewestFirst(a, b),
       render: (date: string, record: Transaction) => (
         <div>
           <div style={{ fontWeight: 600, fontSize: 13 }}>{date}</div>
@@ -223,9 +237,6 @@ export const Transactions: React.FC<TransactionsProps> = ({
           <Button icon={<Plus size={14} />} type="primary" onClick={() => onOpenAddModal()} style={{ flex: 1 }}>
             {t('tx.add')}
           </Button>
-          {onOpenBankSync && (
-            <Button icon={<Mail size={14} color="#7C3AED" />} onClick={onOpenBankSync} />
-          )}
           <Button icon={<FileSpreadsheet size={14} color="#16A34A" />} onClick={handleExportExcel} />
           <Button icon={<FileText size={14} color="#2563EB" />} onClick={handleExportCSV} />
           <Button icon={<Printer size={14} color="#7C3AED" />} onClick={handlePrintPDF} />
@@ -240,11 +251,6 @@ export const Transactions: React.FC<TransactionsProps> = ({
             </Popconfirm>
           )}
 
-          {onOpenBankSync && (
-            <Button icon={<Mail size={16} color="#7C3AED" />} onClick={onOpenBankSync}>
-              {t('tx.sync_email')}
-            </Button>
-          )}
           <Button icon={<FileSpreadsheet size={16} color="#16A34A" />} onClick={handleExportExcel}>
             {t('tx.export_excel')}
           </Button>
@@ -314,7 +320,15 @@ export const Transactions: React.FC<TransactionsProps> = ({
           columns={columns}
           dataSource={filteredData}
           rowKey="id"
-          pagination={{ pageSize: 8, showSizeChanger: true }}
+          pagination={{
+            current: page,
+            pageSize,
+            showSizeChanger: true,
+            onChange: (nextPage, nextSize) => {
+              setPage(nextPage);
+              setPageSize(nextSize);
+            },
+          }}
           style={{ width: '100%' }}
         />
       </div>

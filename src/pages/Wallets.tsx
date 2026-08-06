@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Modal, Form, Input, InputNumber, Select, Space, Popconfirm } from 'antd';
 import { message } from '../lib/antdApp';
-import { Plus, ArrowRightLeft, Building2, Smartphone, Banknote, Bitcoin, Mail, Trash2, Pencil } from 'lucide-react';
+import { Plus, ArrowRightLeft, Building2, Smartphone, Banknote, Bitcoin, Trash2, Pencil } from 'lucide-react';
 import type { AppState, Wallet } from '../types';
 import { formatMoney } from '../utils/format';
 import { addWallet, updateWallet, deleteWallet, addTransaction } from '../store/appStore';
@@ -47,10 +47,9 @@ const ContactlessIcon: React.FC = () => (
 
 interface WalletsProps {
   state: AppState;
-  onOpenBankSync?: () => void;
 }
 
-export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
+export const Wallets: React.FC<WalletsProps> = ({ state }) => {
   const { wallets } = state;
   const [isAddOpen, setIsAddOpen] = useState(false);
   /** Ví đang sửa; null nghĩa là modal đang ở chế độ thêm mới. */
@@ -161,11 +160,6 @@ export const Wallets: React.FC<WalletsProps> = ({ state, onOpenBankSync }) => {
         </div>
 
         <Space wrap>
-          {onOpenBankSync && (
-            <Button icon={<Mail size={16} color="#7C3AED" />} size="middle" onClick={onOpenBankSync}>
-              {t('wallets.sync_email')}
-            </Button>
-          )}
           <Button icon={<ArrowRightLeft size={16} />} size="middle" onClick={() => setIsTransferOpen(true)}>
             {t('wallets.transfer')}
           </Button>

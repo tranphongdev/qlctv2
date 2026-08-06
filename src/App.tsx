@@ -14,7 +14,6 @@ import { Sidebar, MobileSidebarDrawer } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
 import { CommandPalette } from './components/CommandPalette';
 import { AddTransactionModal } from './components/AddTransactionModal';
-import { BankEmailSyncModal } from './components/BankEmailSyncModal';
 import { AuthPage } from './pages/AuthPage';
 import { onAuthChange, signOutUser } from './lib/auth';
 import type { AuthUser } from './lib/auth';
@@ -69,7 +68,6 @@ export default function App() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [bankEmailModalOpen, setBankEmailModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
@@ -228,7 +226,6 @@ export default function App() {
                 notifications={state.notifications}
                 onMarkRead={() => message.success(t('app.all_notifications_read'))}
                 onOpenMobileMenu={() => setMobileDrawerOpen(true)}
-                onOpenBankSync={() => setBankEmailModalOpen(true)}
                 onOpenAuthModal={() => setActiveTab('auth')}
                 onLogout={async () => {
                   await signOutUser();
@@ -259,13 +256,12 @@ export default function App() {
                         onOpenAddModal={handleOpenAddModal}
                         onDeleteTx={handleDeleteTx}
                         onBulkDelete={bulkDeleteTransactions}
-                        onOpenBankSync={() => setBankEmailModalOpen(true)}
                       />
                     }
                   />
                   <Route
                     path={TAB_PATHS.wallets}
-                    element={<Wallets state={state} onOpenBankSync={() => setBankEmailModalOpen(true)} />}
+                    element={<Wallets state={state} />}
                   />
                   <Route path={TAB_PATHS.categories} element={<CategoriesPage state={state} />} />
                   <Route path={TAB_PATHS.budgets} element={<Budgets state={state} />} />
@@ -312,15 +308,6 @@ export default function App() {
             wallets={state.wallets}
             categories={state.categories}
             initialData={editingTx}
-          />
-
-          {/* Bank Email Sync Modal */}
-          <BankEmailSyncModal
-            open={bankEmailModalOpen}
-            onClose={() => setBankEmailModalOpen(false)}
-            onSaveTransaction={(txData) => addTransaction(txData)}
-            wallets={state.wallets}
-            categories={state.categories}
           />
         </Layout>
       )}

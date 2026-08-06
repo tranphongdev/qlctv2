@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Avatar, Badge, Button, Input, Space, Dropdown } from 'antd';
 import { HintTooltip } from './HintTooltip';
 import type { MenuProps } from 'antd';
-import { Search, Bell, Sun, Moon, Sparkles, Command, Menu as MenuIcon, Mail, LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import { Search, Bell, Sun, Moon, Sparkles, Command, Menu as MenuIcon, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 import type { UserSettings, NotificationItem } from '../types';
 import type { AuthUser } from '../lib/auth';
 import { getTimeAwareGreeting } from '../utils/format';
@@ -21,7 +21,6 @@ interface HeaderProps {
   notifications: NotificationItem[];
   onMarkRead: () => void;
   onOpenMobileMenu?: () => void;
-  onOpenBankSync?: () => void;
   onOpenAuthModal: () => void;
   onLogout: () => void;
   onSelectTab: (tab: string) => void;
@@ -37,7 +36,6 @@ export const Header: React.FC<HeaderProps> = ({
   notifications,
   onMarkRead,
   onOpenMobileMenu,
-  onOpenBankSync,
   onOpenAuthModal,
   onLogout,
   onSelectTab,
@@ -199,17 +197,6 @@ export const Header: React.FC<HeaderProps> = ({
               {t('header.login_register')}
             </Button>
           )}
-
-          {/* Bank Email Sync Button */}
-          <HintTooltip title={t('header.tip_sync_email')}>
-            <Button
-              type="text"
-              shape="circle"
-              icon={<Mail size={18} color="#7C3AED" />}
-              onClick={onOpenBankSync}
-              style={{ width: 34, height: 34 }}
-            />
-          </HintTooltip>
 
           {/* Mobile Search Button */}
           <Button

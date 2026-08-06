@@ -266,7 +266,9 @@ export function addTransaction(tx: Omit<Transaction, 'id'>) {
 
   globalState = {
     ...globalState,
-    transactions: [newTx, ...globalState.transactions],
+    // Không chỉ ghép vào đầu: người dùng ghi lùi ngày cho một khoản quên nhập
+    // thì nó phải nằm đúng chỗ của nó chứ không nhảy lên trên cùng.
+    transactions: sortTxNewestFirst([newTx, ...globalState.transactions]),
     wallets: updatedWallets,
   };
   notifyListeners();
@@ -289,7 +291,8 @@ export function updateTransaction(tx: Transaction) {
 
   globalState = {
     ...globalState,
-    transactions: globalState.transactions.map((t) => (t.id === tx.id ? tx : t)),
+    // Sửa lại ngày giờ là đổi luôn vị trí trong danh sách.
+    transactions: sortTxNewestFirst(globalState.transactions.map((t) => (t.id === tx.id ? tx : t))),
     wallets: updatedWallets,
   };
   notifyListeners();
@@ -335,7 +338,8 @@ export function bulkDeleteTransactions(ids: string[]) {
 export function restoreTransaction(tx: Transaction) {
   globalState = {
     ...globalState,
-    transactions: [tx, ...globalState.transactions],
+    // Hoàn tác một giao dịch cũ phải trả nó về đúng vị trí cũ, không phải lên đầu.
+    transactions: sortTxNewestFirst([tx, ...globalState.transactions]),
   };
   notifyListeners();
   syncTransactionToSupabase(tx);

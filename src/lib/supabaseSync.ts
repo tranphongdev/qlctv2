@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from './supabase';
 import type { AppState, UserSettings, Transaction, Wallet, Goal, Debt, Budget, Category, NotificationItem } from '../types';
 import { defaultCategories } from '../store/appStore';
+import { sortTxNewestFirst } from '../utils/transactionOrder';
 
 /**
  * Id của người dùng đang đăng nhập, dùng làm khoá phân vùng dữ liệu.
@@ -51,7 +52,16 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
 
   try {
     const [txRes, walletRes, goalRes, debtRes, catRes, budgetRes, notifRes, profileRes] = await Promise.all([
-      supabase.from('transactions').select('*').eq('user_id', uid).order('date', { ascending: false }),
+      // Sắp theo cả ngày lẫn giờ: chỉ sắp theo ngày thì các giao dịch cùng ngày
+      // trả về theo thứ tự tuỳ ý của Postgres. nullsFirst: false để bản ghi chưa
+      // có giờ nằm cuối ngày của nó thay vì chen lên đầu (DESC mặc định là
+      // NULLS FIRST).
+      supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', uid)
+        .order('date', { ascending: false })
+        .order('time', { ascending: false, nullsFirst: false }),
       supabase.from('wallets').select('*').eq('user_id', uid),
       supabase.from('goals').select('*').eq('user_id', uid),
       supabase.from('debts').select('*').eq('user_id', uid),
@@ -70,8 +80,11 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
     }
 
     const result: RemoteState = {
+      // Sắp lại lần nữa ở phía client dù truy vấn đã ORDER BY: thứ tự này là quy
+      // ước hiển thị của app, không nên phụ thuộc vào việc câu truy vấn ở trên có
+      // bị sửa hay không.
       transactions: txRes.data
-        ? txRes.data.map((t) => ({
+        ? sortTxNewestFirst(txRes.data.map((t) => ({
             id: t.id,
             type: t.type,
             amount: Number(t.amount),
@@ -87,7 +100,7 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
             counterparty: t.counterparty,
             recurring: t.recurring,
             status: t.status,
-          }))
+          })))
         : [],
       wallets: walletRes.data
         ? walletRes.data.map((w) => ({
