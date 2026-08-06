@@ -179,12 +179,17 @@ export default function App() {
         // Chưa đăng nhập: mọi đường dẫn khác đều bị đẩy về trang đăng nhập thay vì
         // render dashboard rỗng.
         isAuthRoute ? (
-          <AuthPage
-            onSuccess={(user) => {
-              setCurrentUser(user);
-              setActiveTab('dashboard');
-            }}
-          />
+          // Trang đăng nhập được thiết kế cố định theo tông sáng (thẻ form nền
+          // trắng, chữ #1E293B). Nếu để nó thừa hưởng darkAlgorithm thì ô nhập
+          // liệu của antd sẽ đen sì trên nền trắng, nên ép riêng thuật toán sáng.
+          <ConfigProvider theme={getAppTheme(false)}>
+            <AuthPage
+              onSuccess={(user) => {
+                setCurrentUser(user);
+                setActiveTab('dashboard');
+              }}
+            />
+          </ConfigProvider>
         ) : (
           <Navigate to={TAB_PATHS.auth} replace />
         )
