@@ -43,6 +43,8 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
       size={Math.min(380, typeof window !== 'undefined' ? window.innerWidth : 380)}
       onClose={onClose}
       open={open}
+      /* Né thanh trạng thái khi mở từ app đã cài (PWA standalone). */
+      styles={{ header: { paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))' } }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>

@@ -461,6 +461,20 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
   }
 }
 
+/* ===== Vùng an toàn khi cài app (PWA standalone) =====
+   Lúc đó không còn thanh địa chỉ, webview trải hết màn hình (viewport-fit=cover +
+   thanh trạng thái trong suốt của iOS) nên header cố định nằm đè lên đồng hồ / % pin.
+   Chừa thêm đúng chiều cao thanh trạng thái; trên trình duyệt thường env() = 0 nên
+   không đổi gì. Dùng !important vì các trị số này đang nằm ở style inline. */
+.header-fixed-bar {
+  height: calc(64px + env(safe-area-inset-top, 0px)) !important;
+  padding-top: env(safe-area-inset-top, 0px) !important;
+}
+
+.app-main {
+  padding-top: calc(84px + env(safe-area-inset-top, 0px)) !important;
+}
+
 /* Mobile First Responsive Utilities & Safe Areas */
 .mobile-only {
   display: none !important;

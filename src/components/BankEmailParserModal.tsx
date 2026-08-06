@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Input, Button, Tag, Space, Select } from 'antd';
 import { message } from '../lib/antdApp';
 import { Mail, Sparkles, CheckCircle, Copy } from 'lucide-react';
-import { parseBankEmailOrText, SAMPLE_BANK_EMAILS } from '../utils/bankEmailParser';
+import { parseBankEmailOrText, normalizeVn, SAMPLE_BANK_EMAILS } from '../utils/bankEmailParser';
 import type { ParsedBankTransaction } from '../utils/bankEmailParser';
 import type { Category, Wallet, Transaction } from '../types';
 import { formatMoney } from '../utils/format';
@@ -36,7 +36,13 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
     const result = parseBankEmailOrText(text);
     setParsedResult(result);
 
-    const matchedW = wallets.find((w) => w.id === result.suggestedWalletId) || wallets[0];
+    // Ví người dùng tự tạo nên ưu tiên khớp theo tên ngân hàng, id gợi ý chỉ là dự phòng.
+    const flatBank = normalizeVn(result.bankName);
+    const matchedW =
+      (flatBank !== 'ngan hang' &&
+        wallets.find((w) => normalizeVn(`${w.bankName || ''} ${w.name}`).includes(flatBank))) ||
+      wallets.find((w) => w.id === result.suggestedWalletId) ||
+      wallets[0];
     setSelectedWalletId(matchedW?.id || wallets[0]?.id || '');
 
     const matchedC = categories.find((c) => c.id === result.suggestedCategory) || categories[0];
@@ -212,6 +218,11 @@ export const BankEmailParserModal: React.FC<BankEmailParserModalProps> = ({
 
             <div style={{ fontSize: 13, color: 'var(--text-secondary)', background: 'rgba(148, 163, 184, 0.12)', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(148, 163, 184, 0.25)' }}>
               <div><b>Ghi chú:</b> {parsedResult.note}</div>
+              {parsedResult.counterparty && (
+                <div style={{ marginTop: 2 }}>
+                  <b>{parsedResult.type === 'thu' ? 'Người chuyển:' : 'Người hưởng:'}</b> {parsedResult.counterparty}
+                </div>
+              )}
               <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
                 Thời gian: {parsedResult.date} {parsedResult.time} {parsedResult.accountNumber ? `| TK: ${parsedResult.accountNumber}` : ''}
               </div>

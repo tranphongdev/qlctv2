@@ -230,7 +230,8 @@ export const MobileSidebarDrawer: React.FC<MobileSidebarDrawerProps> = ({
       onClose={onClose}
       open={open}
       closeIcon={null}
-      styles={{ body: { padding: '16px 12px' } }}
+      /* paddingTop né thanh trạng thái khi mở từ app đã cài (PWA standalone). */
+      styles={{ body: { padding: '16px 12px', paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))' } }}
     >
       {/* Drawer Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, marginBottom: 12, borderBottom: '1px solid rgba(148, 163, 184, 0.15)' }}>

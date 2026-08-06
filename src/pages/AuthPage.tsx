@@ -27,6 +27,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
         position: 'relative',
         overflowX: 'hidden',
         padding: 0,
+        /* Khi mở từ app đã cài, trang chạy sát mép trên nên phải né thanh trạng thái. */
+        paddingTop: 'env(safe-area-inset-top, 0px)',
         margin: 0,
       }}
     >
