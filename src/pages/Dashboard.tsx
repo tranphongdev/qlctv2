@@ -7,7 +7,6 @@ import {
   PiggyBank,
   ArrowUpRight,
   ArrowDownRight,
-  ChevronRight,
   Plus,
   Calendar as CalendarIcon,
 } from 'lucide-react';
