@@ -342,6 +342,10 @@
   "budgets.field_category_required": "Choose a category",
   "budgets.field_amount": "Spending limit (VND)",
   "budgets.submit": "Set budget",
+  "budgets.delete_title": "Delete this budget?",
+  "budgets.delete_desc": "The limit for \"{name}\" will be removed; recorded transactions stay untouched.",
+  "budgets.deleted": "Budget {name} deleted!",
+  "budgets.delete_aria": "Delete budget {name}",
 
   "cats.added": "New category added!",
   "cats.title": "Expense & Income Categories",

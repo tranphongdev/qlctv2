@@ -342,6 +342,10 @@
   "budgets.field_category_required": "Chọn danh mục",
   "budgets.field_amount": "Hạn mức chi tiêu (VNĐ)",
   "budgets.submit": "Thiết Lập Ngân Sách",
+  "budgets.delete_title": "Xóa ngân sách này?",
+  "budgets.delete_desc": "Hạn mức của \"{name}\" sẽ bị xóa, các giao dịch đã ghi vẫn giữ nguyên.",
+  "budgets.deleted": "Đã xóa ngân sách {name}!",
+  "budgets.delete_aria": "Xóa ngân sách {name}",
 
   "cats.added": "Đã thêm danh mục mới!",
   "cats.title": "Quản lý Danh mục Chi tiêu & Thu nhập",

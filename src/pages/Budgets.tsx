@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Progress, Button, Tag, Modal, Form, Select, InputNumber } from 'antd';
+import { Progress, Button, Tag, Modal, Form, Select, InputNumber, Popconfirm } from 'antd';
 import { message } from '../lib/antdApp';
-import { Plus, AlertTriangle, CheckCircle, ShieldAlert } from 'lucide-react';
+import { Plus, AlertTriangle, CheckCircle, ShieldAlert, Trash2 } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { AppState, Category } from '../types';
 import { formatMoney } from '../utils/format';
-import { addBudget } from '../store/appStore';
+import { addBudget, deleteBudget } from '../store/appStore';
 import { t } from '../i18n';
 
 /** "2026-08" -> "08/2026". Trả về chuỗi gốc nếu khoá tháng không đúng định dạng. */
@@ -64,6 +64,9 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
       <div className="card-grid">
         {budgets.map((b) => {
           const cat = categoriesMap[b.category];
+          // Danh mục có thể đã bị xóa khỏi hệ thống; khi đó dùng thẳng id để câu
+          // xác nhận không hiện chuỗi rỗng.
+          const catName = cat?.name || b.category;
           const spent = spentMap[b.category] || 0;
           const pct = Math.round((spent / b.amount) * 100);
           const isOver = spent > b.amount;
@@ -83,10 +86,32 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
             <div key={b.id} className="glass-card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: cat?.color || '#4F46E5' }}>{cat?.name || b.category}</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: cat?.color || '#4F46E5' }}>{catName}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{t('budgets.month_label', { value: formatMonthKey(b.monthKey) })}</div>
                 </div>
-                {alertTag}
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {alertTag}
+                  <Popconfirm
+                    title={t('budgets.delete_title')}
+                    description={t('budgets.delete_desc', { name: catName })}
+                    onConfirm={() => {
+                      deleteBudget(b.id);
+                      message.success(t('budgets.deleted', { name: catName }));
+                    }}
+                    okText={t('common.delete')}
+                    cancelText={t('common.cancel')}
+                    okButtonProps={{ danger: true }}
+                  >
+                    <Button
+                      type="text"
+                      size="small"
+                      danger
+                      aria-label={t('budgets.delete_aria', { name: catName })}
+                      icon={<Trash2 size={16} />}
+                    />
+                  </Popconfirm>
+                </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 16 }}>
