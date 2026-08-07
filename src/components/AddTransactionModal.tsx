@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Select, DatePicker, TimePicker, Segmented, Upload, Button, Space, Alert } from 'antd';
+import { Modal, Form, Input, InputNumber, Select, DatePicker, TimePicker, Segmented, Button, Space, Alert } from 'antd';
 import { message } from '~/lib/antdApp';
-import { UploadOutlined, PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { TX_TYPE, WALLET_TYPE, type Category, type Transaction, type TxType, type Wallet } from '~/types';
 import { addWallet } from '~/store/appStore';
@@ -27,13 +27,11 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [txType, setTxType] = useState<TxType>(TX_TYPE.EXPENSE);
-  const [receiptUrl, setReceiptUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (open) {
       if (initialData) {
         setTxType(initialData.type);
-        setReceiptUrl(initialData.receiptUrl);
         form.setFieldsValue({
           type: initialData.type,
           amount: initialData.amount,
@@ -47,7 +45,6 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         });
       } else {
         setTxType(TX_TYPE.EXPENSE);
-        setReceiptUrl(undefined);
         form.resetFields();
         form.setFieldsValue({
           type: TX_TYPE.EXPENSE,
@@ -87,7 +84,6 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       date: values.date.format('YYYY-MM-DD'),
       time: values.time ? values.time.format('HH:mm') : undefined,
       note: values.note,
-      receiptUrl: receiptUrl,
       tags: initialData?.tags,
       location: initialData?.location,
       counterparty: initialData?.counterparty,
@@ -98,18 +94,6 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     onSave(data);
     message.success(initialData ? t('atm.updated') : t('atm.added'));
     onClose();
-  };
-
-  const handleUpload = (info: any) => {
-    const file = info.file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setReceiptUrl(e.target?.result as string);
-      message.success(t('atm.receipt_uploaded'));
-    };
-    if (file.originFileObj) {
-      reader.readAsDataURL(file.originFileObj);
-    }
   };
 
   const filteredCategories = categories.filter(
@@ -243,27 +227,6 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         {/* Note */}
         <Form.Item name="note" label={t('common.note')}>
           <Input.TextArea rows={2} placeholder={t('atm.note_placeholder')} />
-        </Form.Item>
-
-        {/* Image Receipt Upload */}
-        <Form.Item label={t('atm.receipt_label')}>
-          <Upload
-            beforeUpload={() => false}
-            onChange={handleUpload}
-            maxCount={1}
-            showUploadList={false}
-          >
-            <Button icon={<UploadOutlined />}>{t('atm.receipt_upload')}</Button>
-          </Upload>
-          {receiptUrl && (
-            <div style={{ marginTop: 10 }}>
-              <img
-                src={receiptUrl}
-                alt="Receipt"
-                style={{ maxHeight: 120, borderRadius: 12, border: '1px solid #cbd5e1' }}
-              />
-            </div>
-          )}
         </Form.Item>
 
         {/* Submit */}

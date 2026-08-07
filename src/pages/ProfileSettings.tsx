@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useSyncExternalStore } from 'react';
-import dayjs from 'dayjs';
-import { Form, Input, Button, Select, Avatar, Upload, Divider, Tag, Alert, Modal, Popconfirm, Space, Spin } from 'antd';
+import { Form, Input, Button, Select, Avatar, Upload, Modal, Popconfirm, Spin } from 'antd';
 import { message } from '~/lib/antdApp';
-import { User, Shield, Database, Download, Upload as UploadIcon, Server, CheckCircle2, AlertCircle, Camera, Trash2, KeyRound, AtSign, RefreshCw } from 'lucide-react';
+import { User, Shield, ShieldOff, Database, Download, Upload as UploadIcon, CheckCircle2, AlertCircle, Camera, Trash2, KeyRound, AtSign, Check, Pencil } from 'lucide-react';
+import { PageHead } from '~/components/PageHead';
+import { SettingsCard, SettingsRow, StatusPill } from '~/components/SettingsCard';
 import type { UserSettings } from '~/types';
 import { exportBackupJSON, importBackupJSON, updateSettings } from '~/store/appStore';
 import { isSupabaseConfigured } from '~/lib/supabase';
@@ -12,9 +13,7 @@ import { updateContactEmail } from '~/lib/auth';
 import { contactEmailSchema } from '~/features/auth/schemas';
 import type { AuthUser } from '~/lib/auth';
 import { AvatarCropModal } from '~/components/AvatarCropModal';
-import { getRate, getRateStatus, subscribeRates, getRatesVersion } from '~/utils/currency';
-import type { RateStatus } from '~/utils/currency';
-import { refreshExchangeRates } from '~/lib/exchangeRates';
+import { getRate, subscribeRates, getRatesVersion } from '~/utils/currency';
 import { t } from '~/i18n';
 
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
@@ -30,32 +29,6 @@ function formatRate(vndPerUnit: number): string {
   return Math.round(vndPerUnit).toLocaleString('vi-VN');
 }
 
-/** Dòng chú thích dưới ô chọn tiền tệ: tỷ giá lấy lúc nào, và nút hỏi lại ngay. */
-const RateNote: React.FC<{ status: RateStatus; onRefresh: () => void }> = ({ status, onRefresh }) => {
-  let text = t('settings.fx_fallback');
-  if (status.loading) {
-    text = t('settings.fx_loading');
-  } else if (status.updatedAt) {
-    text = t('settings.fx_updated', { time: dayjs(status.updatedAt).format('HH:mm DD/MM') });
-  }
-
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-      <span>{text}</span>
-      <Button
-        type="link"
-        size="small"
-        style={{ padding: 0, height: 'auto', fontSize: 'inherit' }}
-        icon={<RefreshCw size={12} />}
-        loading={status.loading}
-        onClick={onRefresh}
-      >
-        {t('settings.fx_refresh')}
-      </Button>
-    </span>
-  );
-};
-
 export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, currentUser }) => {
   const [form] = Form.useForm();
   const [mfaForm] = Form.useForm();
@@ -70,14 +43,6 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
   const canUseMfa = isSupabaseConfigured && !!currentUser;
 
   useSyncExternalStore(subscribeRates, getRatesVersion, getRatesVersion);
-  const rateStatus = getRateStatus();
-
-  const handleRefreshRates = async () => {
-    const ok = await refreshExchangeRates();
-    if (ok) message.success(t('settings.fx_refresh_ok'));
-    else message.warning(t('settings.fx_refresh_fail'));
-  };
-
   useEffect(() => {
     if (!canUseMfa) {
       setTotpFactorId(null);
@@ -226,47 +191,80 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
     return false;
   };
 
+  /**
+   * Dòng thứ hai của thẻ Bảo mật đổi vai theo trạng thái: chưa bật thì là lối
+   * bật, đã bật thì là lối tắt. Gói vào một biến vì mỗi nhánh cần một vỏ bọc
+   * khác nhau (Popconfirm cho nhánh tắt) — nhét cả vào JSX chính thì ba tầng
+   * ternary lồng nhau che mất cấu trúc của thẻ.
+   */
+  let mfaAction: React.ReactNode = null;
+  if (!isSupabaseConfigured) {
+    mfaAction = <p className="settings-note">{t('mfa.need_supabase')}</p>;
+  } else if (!currentUser) {
+    mfaAction = <p className="settings-note">{t('mfa.need_login')}</p>;
+  } else if (mfaLoading) {
+    mfaAction = (
+      <p className="settings-note">
+        <Spin size="small" />
+      </p>
+    );
+  } else if (totpFactorId) {
+    mfaAction = (
+      <Popconfirm
+        title={t('mfa.disable_confirm')}
+        description={t('mfa.disable_confirm_desc')}
+        onConfirm={handleDisableMfa}
+        okText={t('common.delete')}
+        cancelText={t('common.cancel')}
+        okButtonProps={{ danger: true }}
+      >
+        <div className="settings-row-wrap">
+          <SettingsRow title={t('mfa.disable')} icon={<ShieldOff size={18} />} danger onClick={() => {}} />
+        </div>
+      </Popconfirm>
+    );
+  } else {
+    mfaAction = (
+      <SettingsRow title={t('mfa.enable')} icon={<KeyRound size={18} />} onClick={handleStartEnrollment} />
+    );
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Header */}
-      <div className="glass-card" style={{ padding: '20px 24px' }}>
-        <div style={{ fontSize: 20, fontWeight: 800 }}>{t('settings.title')}</div>
-        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('settings.subtitle')}</div>
-      </div>
+    <div className="settings-page">
+      <PageHead title={t('settings.title')} subtitle={t('settings.subtitle')} />
 
-      {/* Main Settings Form */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-        {/* Left: General Settings */}
-        <div className="glass-card" style={{ padding: 20 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <User size={20} color="#2563EB" />
-            <span>{t('settings.user_section')}</span>
-          </div>
+      <div className="settings-grid">
+        <SettingsCard icon={<User size={20} />} title={t('settings.user_section')}>
+          {/* ---- Danh tính + ảnh đại diện ---- */}
+          <div className="settings-identity">
+            <div className="settings-identity__avatar">
+              <Avatar src={settings.avatarUrl || undefined} size={96}>
+                {settings.fullName?.charAt(0)?.toUpperCase()}
+              </Avatar>
+              <Upload beforeUpload={handleAvatarSelect} showUploadList={false} accept={AVATAR_MIME.join(',')}>
+                <button type="button" className="settings-identity__edit" aria-label={t('avatar.change')}>
+                  <Pencil size={14} />
+                </button>
+              </Upload>
+            </div>
 
-          {/* Ảnh đại diện */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
-            <Avatar src={settings.avatarUrl || undefined} size={64} style={{ border: '3px solid #2563EB', flexShrink: 0 }}>
-              {settings.fullName?.charAt(0)?.toUpperCase()}
-            </Avatar>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 16 }}>{settings.fullName}</div>
+            <div className="settings-identity__info">
+              <div className="settings-identity__name">{settings.fullName}</div>
               {/* Username là danh tính đăng nhập nên hiện luôn dưới tên; email có
                   thể chưa có nên chỉ là dòng phụ, không để trống trơ ra. */}
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>@{settings.username}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
+              <div className="settings-identity__meta">@{settings.username}</div>
+              <div className="settings-identity__meta">
                 {settings.userEmail || <em>{t('settings.email_none')}</em>}
               </div>
-              <Space wrap size={8}>
+
+              <div className="settings-identity__actions">
                 <Upload beforeUpload={handleAvatarSelect} showUploadList={false} accept={AVATAR_MIME.join(',')}>
-                  <Button size="small" icon={<Camera size={14} />}>
-                    {t('avatar.change')}
-                  </Button>
+                  <Button icon={<Camera size={15} />}>{t('avatar.change')}</Button>
                 </Upload>
                 {settings.avatarUrl && (
                   <Button
-                    size="small"
                     danger
-                    icon={<Trash2 size={14} />}
+                    icon={<Trash2 size={15} />}
                     onClick={() => {
                       updateSettings({ avatarUrl: '' });
                       message.success(t('avatar.removed'));
@@ -275,26 +273,31 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
                     {t('avatar.remove')}
                   </Button>
                 )}
-              </Space>
-              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>{t('avatar.hint')}</div>
+              </div>
+
+              <div className="settings-identity__hint">{t('avatar.hint')}</div>
             </div>
           </div>
 
+          <hr className="settings-rule" />
           <Form form={form} layout="vertical" initialValues={settings} onFinish={handleSaveProfile}>
-            <Form.Item label={t('settings.username')} extra={t('settings.username_hint')}>
-              <Input value={settings.username} disabled prefix={<AtSign size={14} color="#94a3b8" />} />
-            </Form.Item>
-
             <Form.Item name="fullName" label={t('settings.display_name')} rules={[{ required: true }]}>
               <Input placeholder={t('settings.name_placeholder')} />
             </Form.Item>
 
-            <Form.Item name="userEmail" label={t('settings.email_optional')} extra={t('settings.email_hint')}>
+            <Form.Item label={t('settings.username')}>
+              <Input value={settings.username} disabled prefix={<AtSign size={15} />} />
+            </Form.Item>
+
+            <Form.Item name="userEmail" label={t('settings.email_optional')}>
               <Input placeholder={t('settings.email_placeholder')} allowClear />
             </Form.Item>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12 }}>
-              <Form.Item name="currency" label={t('settings.currency')} extra={<RateNote status={rateStatus} onRefresh={handleRefreshRates} />}>
+            <div className="settings-field-pair">
+              <Form.Item
+                name="currency"
+                label={t('settings.currency')}
+              >
                 <Select
                   options={[
                     { value: 'VND', label: t('settings.currency_vnd') },
@@ -314,97 +317,79 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
               </Form.Item>
             </div>
 
-            <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
-              <Button type="primary" htmlType="submit">
+            <Form.Item className="settings-submit">
+              <Button type="primary" htmlType="submit" icon={<Check size={16} />}>
                 {t('common.save')}
               </Button>
             </Form.Item>
           </Form>
+        </SettingsCard>
 
-          <Divider />
-
-          {/* Xác thực 2 lớp */}
-          <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Shield size={20} color="#10B981" />
-              <span>{t('mfa.section')}</span>
-            </div>
-            {totpFactorId ? (
-              <Tag color="green" icon={<CheckCircle2 size={12} />}>{t('mfa.status_on')}</Tag>
-            ) : (
-              <Tag color="default">{t('mfa.status_off')}</Tag>
-            )}
-          </div>
-
-          <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.5 }}>
-            {t('mfa.description')}
-          </div>
-
-          {!isSupabaseConfigured ? (
-            <Alert type="warning" showIcon title={t('mfa.need_supabase')} />
-          ) : !currentUser ? (
-            <Alert type="info" showIcon title={t('mfa.need_login')} />
-          ) : mfaLoading ? (
-            <Spin size="small" />
-          ) : totpFactorId ? (
-            <Popconfirm
-              title={t('mfa.disable_confirm')}
-              description={t('mfa.disable_confirm_desc')}
-              onConfirm={handleDisableMfa}
-              okText={t('common.delete')}
-              cancelText={t('common.cancel')}
-              okButtonProps={{ danger: true }}
-            >
-              <Button danger icon={<Shield size={16} />}>
-                {t('mfa.disable')}
-              </Button>
-            </Popconfirm>
-          ) : (
-            <Button type="primary" icon={<KeyRound size={16} />} onClick={handleStartEnrollment}>
-              {t('mfa.enable')}
-            </Button>
-          )}
-        </div>
-
-        {/* Right: Supabase Database & Backup */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Supabase Connection Card */}
-          <div className="glass-card" style={{ padding: 24 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Server size={20} color="#10B981" />
-                <span>{t('settings.supabase_section')}</span>
-              </div>
-              {isSupabaseConfigured ? (
-                <Tag color="green" icon={<CheckCircle2 size={12} />}>{t('settings.connected')}</Tag>
+        <div className="settings-side">
+          <SettingsCard
+            icon={<Database size={20} />}
+            title={t('settings.data_section')}
+            tone="green"
+            badge={
+              isSupabaseConfigured ? (
+                <StatusPill tone="green" icon={<CheckCircle2 size={13} />}>
+                  {t('settings.connected')}
+                </StatusPill>
               ) : (
-                <Tag color="orange" icon={<AlertCircle size={12} />}>LocalStorage</Tag>
-              )}
-            </div>
-          </div>
+                <StatusPill tone="amber" icon={<AlertCircle size={13} />}>
+                  LocalStorage
+                </StatusPill>
+              )
+            }
+          >
+            <SettingsRow
+              title={t('settings.supabase_section')}
+              desc={isSupabaseConfigured ? t('settings.supabase_row_desc') : t('settings.local_row_desc')}
+            />
+          </SettingsCard>
 
-          {/* Backup JSON Card */}
-          <div className="glass-card" style={{ padding: 24 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Database size={20} color="#7C3AED" />
-              <span>{t('settings.backup_section')}</span>
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, lineHeight: '1.5' }}>
-              {t('settings.backup_desc')}
-            </div>
+          <SettingsCard icon={<UploadIcon size={20} />} title={t('settings.backup_section')} tone="violet">
+            <div className="settings-block">
+              <div className="settings-block__title">{t('settings.backup_subtitle')}</div>
+              <p className="settings-block__desc">{t('settings.backup_desc')}</p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Button icon={<Download size={16} />} type="primary" onClick={handleExportBackup} block style={{ borderRadius: 12 }}>
+              <Button
+                icon={<Download size={16} />}
+                type="primary"
+                onClick={handleExportBackup}
+                block
+                className="settings-cta"
+              >
                 {t('settings.backup_button')}
               </Button>
 
-              <Upload beforeUpload={handleImportBackup} showUploadList={false}>
-                <Button icon={<UploadIcon size={16} />} block style={{ borderRadius: 12 }}>
+              {/* `block` của antd không xuyên qua vỏ Upload — vỏ đó là một <span>
+                  co theo nội dung, nên nút bên trong vẫn hẹp. Class dưới đây kéo
+                  chính cái vỏ ra đủ bề ngang. */}
+              <Upload beforeUpload={handleImportBackup} showUploadList={false} className="settings-upload-block">
+                <Button icon={<UploadIcon size={16} />} block>
                   {t('settings.restore_button')}
                 </Button>
               </Upload>
             </div>
-          </div>
+          </SettingsCard>
+
+          <SettingsCard icon={<Shield size={20} />} title={t('settings.security_section')}>
+            <SettingsRow
+              title={t('mfa.section')}
+              desc={t('mfa.description')}
+              badge={
+                totpFactorId ? (
+                  <StatusPill tone="green" icon={<CheckCircle2 size={13} />}>
+                    {t('mfa.status_on')}
+                  </StatusPill>
+                ) : (
+                  <StatusPill tone="muted">{t('mfa.status_off')}</StatusPill>
+                )
+              }
+            />
+            {mfaAction}
+          </SettingsCard>
         </div>
       </div>
 

@@ -61,7 +61,6 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   date DATE NOT NULL DEFAULT CURRENT_DATE,
   time TIME DEFAULT CURRENT_TIME,
   note TEXT,
-  receipt_url TEXT,
   tags TEXT[],
   location TEXT,
   counterparty TEXT,

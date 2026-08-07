@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Input, Select, Space, Tag, Modal, Popconfirm } from 'antd';
+import { Table, Button, Input, Select, Space, Tag, Popconfirm } from 'antd';
 import { message } from '~/lib/antdApp';
 import {
   Plus,
@@ -9,7 +9,6 @@ import {
   Printer,
   Trash2,
   Edit,
-  Eye,
 } from 'lucide-react';
 import { TX_TYPE, type AppState, type Category, type Transaction, type Wallet } from '~/types';
 import { formatMoney, removeAccents } from '~/utils/format';
@@ -41,7 +40,6 @@ export const Transactions: React.FC<TransactionsProps> = ({
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [catFilter, setCatFilter] = useState<string>('all');
   const [walletFilter, setWalletFilter] = useState<string>('all');
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
   /** Giao dịch đang mở ở màn chi tiết. */
   const [detailTx, setDetailTx] = useState<Transaction | null>(null);
   const [page, setPage] = useState(1);
@@ -185,24 +183,6 @@ export const Transactions: React.FC<TransactionsProps> = ({
           </span>
         );
       },
-    },
-    {
-      title: t('tx.col_receipt'),
-      dataIndex: 'receiptUrl',
-      key: 'receiptUrl',
-      render: (url?: string) =>
-        url ? (
-          <Button
-            size="small"
-            type="text"
-            icon={<Eye size={16} color="#2563EB" />}
-            onClick={() => setPreviewImage(url)}
-          >
-            {t('tx.view_image')}
-          </Button>
-        ) : (
-          <span style={{ fontSize: 12, color: '#cbd5e1' }}>{t('tx.none')}</span>
-        ),
     },
     {
       title: t('common.actions'),
@@ -414,9 +394,6 @@ export const Transactions: React.FC<TransactionsProps> = ({
                   </div>
 
                   <Space size="small">
-                    {tx.receiptUrl && (
-                      <Button size="small" type="text" icon={<Eye size={16} color="#2563EB" />} onClick={() => setPreviewImage(tx.receiptUrl || null)} />
-                    )}
                     <Button size="small" type="text" icon={<Edit size={16} color="#3B82F6" />} onClick={() => onOpenAddModal(tx)} />
                     <Popconfirm title={t('tx.delete_title')} onConfirm={() => onDeleteTx(tx.id)}>
                       <Button size="small" type="text" icon={<Trash2 size={16} color="#EF4444" />} />
@@ -428,11 +405,6 @@ export const Transactions: React.FC<TransactionsProps> = ({
           })
         )}
       </div>
-
-      {/* Image Preview Modal */}
-      <Modal open={!!previewImage} footer={null} onCancel={() => setPreviewImage(null)} width={600}>
-        {previewImage && <img src={previewImage} alt="Receipt Full" style={{ width: '100%', borderRadius: 14 }} />}
-      </Modal>
 
       <TransactionDetailModal
         tx={detailTx}

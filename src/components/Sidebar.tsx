@@ -87,10 +87,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         boxShadow: 'none',
       }}
     >
-      {/* Brand Header */}
+      {/* Khối thương hiệu — cao đúng bằng thanh trên cùng để đường kẻ dưới của
+          hai bên nối thành một nét chạy hết bề ngang. Xem --app-header-h. */}
       <div
         style={{
-          height: 64,
+          height: 'var(--app-header-h)',
           padding: collapsed ? '0 12px' : '0 20px',
           display: 'flex',
           alignItems: 'center',

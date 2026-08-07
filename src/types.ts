@@ -18,7 +18,6 @@ export interface Transaction {
   date: string; // YYYY-MM-DD
   time?: string; // HH:mm
   note?: string;
-  receiptUrl?: string; // Image URL / Base64
   tags?: string[];
   location?: string;
   counterparty?: string; // Người liên quan

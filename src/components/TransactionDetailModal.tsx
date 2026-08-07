@@ -1,6 +1,6 @@
 import React from 'react';
-import { Modal, Button, Tag, Popconfirm, Image } from 'antd';
-import { Pencil, Trash2, ImageOff } from 'lucide-react';
+import { Modal, Button, Tag, Popconfirm } from 'antd';
+import { Pencil, Trash2 } from 'lucide-react';
 import { TX_TYPE, type Category, type Transaction, type Wallet } from '~/types';
 import { formatMoney } from '~/utils/format';
 import { resolveCategory } from '~/utils/categories';
@@ -146,38 +146,6 @@ const Body: React.FC<Omit<TransactionDetailModalProps, 'tx'> & { tx: Transaction
         <Row label={t('txd.counterparty')}>{tx.counterparty}</Row>
 
         {tx.status === 'pending' && <Row label={t('common.status')}>{t('txd.status_pending')}</Row>}
-
-        {/* Hóa đơn không dùng bố cục nhãn-bên-trái như các dòng trên: ảnh cần cả
-            bề ngang. Nhét vào cột giá trị thì trên điện thoại nó chỉ còn hơn nửa
-            màn hình mà vẫn cao như cũ, chữ trên hóa đơn nhỏ tới mức không đọc nổi. */}
-        <div style={{ paddingTop: 10, borderTop: '1px solid var(--surface-border)' }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{t('tx.col_receipt')}</div>
-          {tx.receiptUrl ? (
-            /* Ảnh thu nhỏ chứ không phải ảnh đầy đủ: hóa đơn chụp bằng điện thoại
-               rất cao, để nguyên thì cụm nút Sửa/Xóa bị đẩy khỏi màn hình và người
-               dùng phải cuộn mới thấy. Bấm vào ảnh mở trình xem toàn màn hình của
-               antd (phóng to, xoay) — chỗ để đọc kỹ hóa đơn là ở đó. */
-            <Image
-              src={tx.receiptUrl}
-              alt={t('tx.col_receipt')}
-              width="100%"
-              height={160}
-              rootClassName="tx-receipt-thumb"
-              style={{
-                objectFit: 'cover',
-                objectPosition: 'center top',
-                borderRadius: 12,
-                border: '1px solid var(--surface-border)',
-                background: 'var(--surface-subtle)',
-                cursor: 'zoom-in',
-              }}
-            />
-          ) : (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-muted)' }}>
-              <ImageOff size={14} /> {t('txd.no_receipt')}
-            </span>
-          )}
-        </div>
       </div>
 
       <div

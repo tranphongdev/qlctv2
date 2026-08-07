@@ -225,7 +225,9 @@ export default function App() {
               <main
                 key={location.pathname}
                 className="app-main page-enter"
-                style={{ paddingTop: 84, paddingLeft: 24, paddingRight: 24, paddingBottom: 20, minHeight: '80vh', width: '100%', maxWidth: '100vw' }}
+                /* paddingTop do .app-main quyết định (nó phải cộng thêm vùng an
+                   toàn của PWA nên không đặt được ở đây). */
+                style={{ paddingLeft: 24, paddingRight: 24, paddingBottom: 20, minHeight: '80vh', width: '100%', maxWidth: '100vw' }}
               >
                 <Routes>
                   <Route

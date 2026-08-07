@@ -107,6 +107,28 @@ function migrateSettings(stored: Record<string, unknown> | undefined): UserSetti
   };
 }
 
+/**
+ * Bỏ ảnh hoá đơn khỏi dữ liệu cũ.
+ *
+ * Tính năng đính ảnh hoá đơn đã gỡ, nhưng hàm đọc bên dưới chỉ JSON.parse rồi
+ * trải ra — trường nào không còn ai đọc vẫn sống sót nguyên vẹn qua từng lượt
+ * đọc rồi ghi lại. Mỗi ảnh là một chuỗi base64 vài trăm KB, mà toàn bộ trạng
+ * thái app nằm trong MỘT khoá localStorage hạn mức khoảng 5MB: để nguyên thì
+ * chỗ đó bị chiếm vĩnh viễn, đúng cái lý do tính năng bị gỡ. Cắt lúc đọc, lần
+ * ghi kế tiếp là lúc chỗ trống được trả lại.
+ *
+ * Bỏ được hàm này sau khi mọi máy đã mở app ít nhất một lần kể từ bản gỡ.
+ */
+function dropLegacyReceipts(list: unknown): Transaction[] {
+  if (!Array.isArray(list)) return [];
+  return list.map((tx) => {
+    if (!tx || typeof tx !== 'object' || !('receiptUrl' in tx)) return tx as Transaction;
+    const copy: Record<string, unknown> = { ...tx };
+    delete copy.receiptUrl;
+    return copy as unknown as Transaction;
+  });
+}
+
 function loadStoredState(): AppState {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
@@ -118,6 +140,7 @@ function loadStoredState(): AppState {
         wallets: parsed.wallets ?? [],
         categories: parsed.categories?.length ? parsed.categories : defaultCategories(),
         settings: migrateSettings(parsed.settings),
+        transactions: dropLegacyReceipts(parsed.transactions),
       };
     }
   } catch (e) {
@@ -578,7 +601,10 @@ export function importBackupJSON(jsonStr: string): boolean {
   try {
     const data = JSON.parse(jsonStr);
     if (data && Array.isArray(data.transactions)) {
-      globalState = { ...DEFAULT_APP_STATE, ...data };
+      // File sao lưu tạo trước bản gỡ vẫn còn ảnh hoá đơn, phải lọc y như lúc
+      // đọc từ localStorage — nếu không, khôi phục một bản cũ là nạp lại đúng
+      // mấy megabyte vừa dọn đi.
+      globalState = { ...DEFAULT_APP_STATE, ...data, transactions: dropLegacyReceipts(data.transactions) };
       notifyListeners();
       return true;
     }
