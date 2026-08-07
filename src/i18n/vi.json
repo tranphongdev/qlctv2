@@ -251,6 +251,8 @@
   "tx.add": "Thêm Giao Dịch",
   "tx.bulk_delete_confirm": "Xóa {count} giao dịch đã chọn?",
   "tx.bulk_delete_button": "Xóa {count} mục",
+  "tx.export_menu": "Xuất dữ liệu",
+  "tx.clear_filters": "Xóa bộ lọc",
   "tx.export_excel": "Xuất Excel",
   "tx.export_csv": "Xuất CSV",
   "tx.print_report": "In Báo cáo",

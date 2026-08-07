@@ -160,6 +160,12 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
       title={t('cats.edit_hint')}
       style={{
         font: 'inherit',
+        /* Bắt buộc phải có, cùng lý do với `font`. Thẻ <button> mang sẵn
+           `color: buttontext` của trình duyệt — một màu gần đen KHÔNG đổi theo
+           giao diện — nên tên danh mục ở dòng dưới, vốn không tự đặt màu, sẽ
+           thừa hưởng màu đó và thành chữ đen trên nền tối. Dòng "n giao dịch"
+           đọc được là vì nó có đặt màu riêng. */
+        color: 'var(--text-body)',
         textAlign: 'left',
         padding: '12px 14px',
         borderRadius: 14,

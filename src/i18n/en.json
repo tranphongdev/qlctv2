@@ -251,6 +251,8 @@
   "tx.add": "Add transaction",
   "tx.bulk_delete_confirm": "Delete the {count} selected transactions?",
   "tx.bulk_delete_button": "Delete {count} items",
+  "tx.export_menu": "Export",
+  "tx.clear_filters": "Clear filters",
   "tx.export_excel": "Export Excel",
   "tx.export_csv": "Export CSV",
   "tx.print_report": "Print report",

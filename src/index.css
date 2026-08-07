@@ -2429,6 +2429,20 @@ textarea.ant-input::placeholder {
   outline-offset: 2px;
 }
 
+/* ...trừ ô nhập, vì chúng đã có vòng sáng 3px ở quy tắc ngay trên — chính vòng
+   đó là chỉ báo focus, nên bỏ outline ở đây không làm mất khả năng tiếp cận.
+   Để nguyên thì mỗi ô focus mang HAI chỉ báo chồng nhau, và với ô có icon thì
+   còn sai hơn: thứ nhận focus là thẻ <input> nằm BÊN TRONG lớp bọc, nên outline
+   được vẽ thành một khung VUÔNG lọt trong khung bo tròn 14px — hai cạnh dọc của
+   nó chạy sát mép chữ và bốn góc đâm vào phần bo, trông như chữ bị cắt cụt. */
+.ant-input:focus-visible,
+textarea.ant-input:focus-visible,
+.ant-input-number-input:focus-visible,
+.ant-select-selection-search-input:focus-visible,
+.ant-picker-input > input:focus-visible {
+  outline: none;
+}
+
 /* ---- Nút ---- */
 .ant-btn {
   font-weight: 600;
@@ -2438,17 +2452,24 @@ textarea.ant-input::placeholder {
     filter 0.2s ease !important;
 }
 
-/* :not(.ant-btn-dangerous) là bắt buộc chứ không phải cho gọn: nếu không loại
-   trừ, `!important` ở đây tô xanh cả nút xác nhận xoá của mọi Popconfirm trong
-   app (ví, mục tiêu, ngân sách, giao dịch, danh mục) — nút phá huỷ dữ liệu trông
-   y hệt nút hành động thường. */
-.ant-btn-primary:not(.ant-btn-dangerous) {
+/* Hai bộ loại trừ dưới đây đều bắt buộc, không phải cho gọn:
+
+   `:not(.ant-btn-dangerous)` — thiếu nó thì `!important` tô xanh cả nút xác nhận
+   xoá của mọi Popconfirm trong app (ví, mục tiêu, ngân sách, giao dịch, danh
+   mục), nút phá huỷ dữ liệu trông y hệt nút hành động thường.
+
+   `:not(:disabled)` — antd tạo trạng thái vô hiệu bằng MỘT cặp nền nhạt + chữ
+   xám. Ép nền màu trở lại mà không đụng tới chữ thì được một nút nền gradient
+   rực rỡ mang chữ xám của trạng thái vô hiệu: vừa không đọc nổi, vừa trông y
+   như đang bấm được. Bỏ ép nền đi, để antd tự lo, thì cả hai vế khớp lại.
+   (`loading` không đặt thuộc tính disabled nên nút đang gửi vẫn giữ gradient.) */
+.ant-btn-primary:not(.ant-btn-dangerous):not(:disabled) {
   background: var(--accent-gradient) !important;
   border: none !important;
   box-shadow: 0 4px 14px -4px rgba(37, 99, 235, 0.5), var(--glass-sheen) !important;
 }
 
-.ant-btn-primary.ant-btn-dangerous {
+.ant-btn-primary.ant-btn-dangerous:not(:disabled) {
   background: linear-gradient(135deg, #f87171 0%, #ef4444 55%, #dc2626 100%) !important;
   border: none !important;
   box-shadow: 0 4px 14px -4px rgba(239, 68, 68, 0.5), var(--glass-sheen) !important;
@@ -2474,7 +2495,9 @@ textarea.ant-input::placeholder {
   transform: scale(0.97);
 }
 
-.ant-btn-default {
+/* Cùng lý do `:not(:disabled)` như nút chính ở trên: nút thường bị vô hiệu mà
+   vẫn mang nền và viền của nút bấm được thì không có gì báo rằng nó đã tắt. */
+.ant-btn-default:not(:disabled) {
   background: var(--surface-elevated) !important;
   border: 1px solid var(--glass-border) !important;
 }
@@ -3272,6 +3295,44 @@ body.dark-theme .app-header__search:hover {
   padding-top: calc(var(--app-header-h) + 20px + env(safe-area-inset-top, 0px)) !important;
 }
 
+/* ---- Thanh công cụ trang Giao dịch ----
+   Hai cụm tách hẳn nhau: tìm kiếm bên trái, lọc bên phải. Khoảng trống ở giữa
+   là chủ ý — nó chia thanh công cụ thành hai nhóm có nghĩa, thay vì một dãy bốn
+   ô dính nhau dồn hết về trái rồi bỏ trống nửa phải. */
+.tx-toolbar__search {
+  /* Co giãn, có trần. Không trần thì trên màn 1600px ô tìm kiếm dài cả gang tay
+     mà chẳng ai gõ tới đó; không co thì nó kẹt ở 220px và gợi ý bị cắt cụt. */
+  flex: 1 1 220px;
+  max-width: 380px;
+}
+
+.tx-toolbar__filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* Màn hẹp: bỏ trần và bỏ việc đẩy sang phải, cả hai cụm cùng trải hết bề ngang
+   — ở đó không còn chỗ trống nào để chia nhóm nữa. */
+@media (max-width: 768px) {
+  .tx-toolbar__search {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .tx-toolbar__filters {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .tx-toolbar__filters .ant-select {
+    flex: 1 1 130px;
+    width: auto !important;
+  }
+}
+
 /* ===================================================================
    TRANG HỒ SƠ & CÀI ĐẶT
    =================================================================== */
@@ -3285,7 +3346,16 @@ body.dark-theme .app-header__search:hover {
 /* ---- Đầu trang dùng chung (components/PageHead.tsx) ----
    Cùng số đo với khuôn đang được chép tay ở các trang khác, để trang Hồ sơ
    không còn là trang duy nhất lệch nhịp. */
+/* Đệm nằm ở từng hàng con, không ở đây: đường kẻ ngăn hàng công cụ phải chạm
+   hai mép viên kính, có đệm ở ngoài thì nó thành một nét cụt lơ lửng. */
 .page-head {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.page-head__main {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3296,6 +3366,42 @@ body.dark-theme .app-header__search:hover {
 
 .page-head__text {
   min-width: 0;
+}
+
+.page-head__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.page-head__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  border-top: 1px solid var(--surface-border);
+}
+
+/* Màn hẹp: cụm nút xuống hàng riêng và trải hết bề ngang. Để chúng co theo nội
+   dung thì bốn nút xếp so le thành hình bậc thang. */
+@media (max-width: 768px) {
+  .page-head__actions {
+    width: 100%;
+  }
+
+  /* Có flex-basis chứ không phải `flex: 1` trần. Với basis 0 thì flexbox luôn
+     nhét vừa mọi nút trên một hàng bằng cách bóp chúng lại — ba nút trên màn
+     360px còn hơn 100px mỗi cái và nhãn vỡ dòng bên trong. Có basis 140px thì
+     nút nào không đủ chỗ sẽ xuống hàng, đúng thứ cần. */
+  .page-head__actions > * {
+    flex: 1 1 140px;
+  }
+
+  .page-head__actions .ant-btn {
+    width: 100%;
+  }
 }
 
 /* Không thêm letter-spacing hay margin ở đây: khuôn đang chép tay ở các trang

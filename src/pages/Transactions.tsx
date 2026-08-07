@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Input, Select, Space, Tag, Popconfirm } from 'antd';
+import { Table, Button, Input, Select, Space, Tag, Popconfirm, Dropdown } from 'antd';
 import { message } from '~/lib/antdApp';
 import {
   Plus,
@@ -9,7 +9,11 @@ import {
   Printer,
   Trash2,
   Edit,
+  Download,
+  ChevronDown,
+  X,
 } from 'lucide-react';
+import { PageHead } from '~/components/PageHead';
 import { TX_TYPE, type AppState, type Category, type Transaction, type Wallet } from '~/types';
 import { formatMoney, removeAccents } from '~/utils/format';
 import { compareTxNewestFirst } from '~/utils/transactionOrder';
@@ -91,6 +95,18 @@ export const Transactions: React.FC<TransactionsProps> = ({
     const inc = filteredData.filter((tx) => tx.type === TX_TYPE.INCOME).reduce((a, b) => a + b.amount, 0);
     const exp = filteredData.filter((tx) => tx.type === TX_TYPE.EXPENSE).reduce((a, b) => a + b.amount, 0);
     printFinancialReport(t('tx.report_title'), { income: inc, expense: exp, balance: inc - exp }, filteredData);
+  };
+
+  // Ô tìm kiếm tính vào đây: với người dùng thì gõ chữ để lọc bớt danh sách cũng
+  // là một bộ lọc đang bật, không có lý do gì nút xoá lọc lại bỏ sót nó.
+  const hasActiveFilters =
+    typeFilter !== 'all' || catFilter !== 'all' || walletFilter !== 'all' || searchText !== '';
+
+  const handleClearFilters = () => {
+    setTypeFilter('all');
+    setCatFilter('all');
+    setWalletFilter('all');
+    setSearchText('');
   };
 
   const handleBulkDeleteAction = () => {
@@ -210,89 +226,127 @@ export const Transactions: React.FC<TransactionsProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Header Bar */}
-      <div className="glass-card" style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <div style={{ fontSize: 18, fontWeight: 800 }}>{t('tx.title')}</div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('tx.subtitle', { count: filteredData.length })}</div>
-        </div>
+      <PageHead
+        title={t('tx.title')}
+        subtitle={t('tx.subtitle', { count: filteredData.length })}
+        actions={
+          <>
+            {/* Nút xoá hàng loạt chỉ hiện khi có dòng được chọn, và đứng trước
+                nút chính để nó không bị coi là một việc thường ngày. */}
+            {selectedRowKeys.length > 0 && (
+              <Popconfirm
+                title={t('tx.bulk_delete_confirm', { count: selectedRowKeys.length })}
+                onConfirm={handleBulkDeleteAction}
+              >
+                <Button danger icon={<Trash2 size={16} />}>
+                  {t('tx.bulk_delete_button', { count: selectedRowKeys.length })}
+                </Button>
+              </Popconfirm>
+            )}
 
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', width: '100%', justifyContent: 'flex-start' }} className="mobile-only">
-          <Button icon={<Plus size={14} />} type="primary" onClick={() => onOpenAddModal()} style={{ flex: 1 }}>
-            {t('tx.add')}
-          </Button>
-          <Button icon={<FileSpreadsheet size={14} color="#16A34A" />} onClick={handleExportExcel} />
-          <Button icon={<FileText size={14} color="#2563EB" />} onClick={handleExportCSV} />
-          <Button icon={<Printer size={14} color="#7C3AED" />} onClick={handlePrintPDF} />
-        </div>
-
-        <Space wrap className="desktop-only">
-          {selectedRowKeys.length > 0 && (
-            <Popconfirm title={t('tx.bulk_delete_confirm', { count: selectedRowKeys.length })} onConfirm={handleBulkDeleteAction}>
-              <Button danger icon={<Trash2 size={16} />}>
-                {t('tx.bulk_delete_button', { count: selectedRowKeys.length })}
+            {/* Ba việc xuất/in gom vào một menu. Trước đây chúng là ba nút ngang
+                hàng với nút chính, nên hàng nút có bốn thứ nặng bằng nhau và mắt
+                không tìm ra đâu là việc chính của trang — trong khi xuất file là
+                việc thỉnh thoảng mới làm, còn thêm giao dịch là việc hằng ngày. */}
+            <Dropdown
+              trigger={['click']}
+              menu={{
+                items: [
+                  {
+                    key: 'excel',
+                    icon: <FileSpreadsheet size={15} color="#16A34A" />,
+                    label: t('tx.export_excel'),
+                    onClick: handleExportExcel,
+                  },
+                  {
+                    key: 'csv',
+                    icon: <FileText size={15} color="#2563EB" />,
+                    label: t('tx.export_csv'),
+                    onClick: handleExportCSV,
+                  },
+                  { type: 'divider' },
+                  {
+                    key: 'print',
+                    icon: <Printer size={15} color="#7C3AED" />,
+                    label: t('tx.print_report'),
+                    onClick: handlePrintPDF,
+                  },
+                ],
+              }}
+            >
+              <Button icon={<Download size={16} />}>
+                {t('tx.export_menu')}
+                <ChevronDown size={14} />
               </Button>
-            </Popconfirm>
-          )}
+            </Dropdown>
 
-          <Button icon={<FileSpreadsheet size={16} color="#16A34A" />} onClick={handleExportExcel}>
-            {t('tx.export_excel')}
-          </Button>
-          <Button icon={<FileText size={16} color="#2563EB" />} onClick={handleExportCSV}>
-            {t('tx.export_csv')}
-          </Button>
-          <Button icon={<Printer size={16} color="#7C3AED" />} onClick={handlePrintPDF}>
-            {t('tx.print_report')}
-          </Button>
-          <Button type="primary" icon={<Plus size={16} />} onClick={() => onOpenAddModal()}>
-            {t('tx.add')}
-          </Button>
-        </Space>
-      </div>
+            <Button type="primary" icon={<Plus size={16} />} onClick={() => onOpenAddModal()}>
+              {t('tx.add')}
+            </Button>
+          </>
+        }
+        toolbar={
+          <>
+            {/* Ô tìm kiếm co giãn thay vì rộng 220px cố định: gợi ý trong ô bị cắt
+                thành "Tìm theo ghi chú, dan…" trong khi nửa phải thanh công cụ bỏ
+                trống hơn 900px. */}
+            <Input
+              className="tx-toolbar__search"
+              prefix={<Search size={16} />}
+              placeholder={t('tx.search_placeholder')}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+            />
 
-      {/* Filter & Search Toolbar */}
-      <div className="glass-card" style={{ padding: '12px 16px', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-        <Input
-          prefix={<Search size={16} />}
-          placeholder={t('tx.search_placeholder')}
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{ width: 220, flexShrink: 0 }}
-          allowClear
-        />
+            {/* Nhóm lọc dồn về phải, tách hẳn khỏi ô tìm kiếm. Khoảng trống ở giữa
+                là chủ ý: nó chia thanh công cụ thành hai cụm có nghĩa, thay vì một
+                dãy bốn ô dính nhau lệch hết về trái. */}
+            <div className="tx-toolbar__filters">
+              <Select
+                value={typeFilter}
+                onChange={setTypeFilter}
+                style={{ width: 140 }}
+                options={[
+                  { value: 'all', label: t('tx.filter_all_types') },
+                  { value: TX_TYPE.INCOME, label: t('tx.type_income') },
+                  { value: TX_TYPE.EXPENSE, label: t('tx.type_expense') },
+                  { value: TX_TYPE.TRANSFER, label: t('tx.type_transfer') },
+                ]}
+              />
 
-        <Select
-          value={typeFilter}
-          onChange={setTypeFilter}
-          style={{ width: 140, flexShrink: 0 }}
-          options={[
-            { value: 'all', label: t('tx.filter_all_types') },
-            { value: TX_TYPE.INCOME, label: t('tx.type_income') },
-            { value: TX_TYPE.EXPENSE, label: t('tx.type_expense') },
-            { value: TX_TYPE.TRANSFER, label: t('tx.type_transfer') },
-          ]}
-        />
+              <Select
+                value={catFilter}
+                onChange={setCatFilter}
+                style={{ width: 170 }}
+                options={[
+                  { value: 'all', label: t('tx.filter_all_categories') },
+                  ...categories.map((c) => ({ value: c.id, label: c.name })),
+                ]}
+              />
 
-        <Select
-          value={catFilter}
-          onChange={setCatFilter}
-          style={{ width: 170, flexShrink: 0 }}
-          options={[
-            { value: 'all', label: t('tx.filter_all_categories') },
-            ...categories.map((c) => ({ value: c.id, label: c.name })),
-          ]}
-        />
+              <Select
+                value={walletFilter}
+                onChange={setWalletFilter}
+                style={{ width: 150 }}
+                options={[
+                  { value: 'all', label: t('tx.filter_all_wallets') },
+                  ...wallets.map((w) => ({ value: w.id, label: w.name })),
+                ]}
+              />
 
-        <Select
-          value={walletFilter}
-          onChange={setWalletFilter}
-          style={{ width: 150, flexShrink: 0 }}
-          options={[
-            { value: 'all', label: t('tx.filter_all_wallets') },
-            ...wallets.map((w) => ({ value: w.id, label: w.name })),
-          ]}
-        />
-      </div>
+              {/* Chỉ hiện khi thật sự có bộ lọc đang bật. Một nút "Xoá lọc" luôn
+                  hiện là một nút chết trong phần lớn thời gian, mà nó lại nằm
+                  ngay cạnh mấy ô người dùng đang thao tác. */}
+              {hasActiveFilters && (
+                <Button type="text" icon={<X size={15} />} onClick={handleClearFilters}>
+                  {t('tx.clear_filters')}
+                </Button>
+              )}
+            </div>
+          </>
+        }
+      />
 
       {/* Desktop Table List */}
       <div className="desktop-only glass-card" style={{ padding: 12 }}>
