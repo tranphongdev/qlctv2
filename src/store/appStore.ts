@@ -18,6 +18,8 @@ import {
   deleteBudgetFromSupabase,
   syncCategoryToSupabase,
   deleteCategoryFromSupabase,
+  reassignCategoryInSupabase,
+  deleteBudgetsOfCategoryFromSupabase,
   syncProfileToSupabase,
   setSyncUserId,
   getSyncUserId,
@@ -481,9 +483,32 @@ export function updateCategory(category: Category) {
   syncCategoryToSupabase(category);
 }
 
-export function deleteCategory(id: string) {
-  globalState = { ...globalState, categories: globalState.categories.filter((c) => c.id !== id) };
+/**
+ * Xoá danh mục, kèm dọn những thứ đang trỏ vào nó.
+ *
+ * Hai loại tham chiếu được xử lý ngược nhau, và đó là chủ ý:
+ *
+ * - *Giao dịch* là dữ liệu lịch sử, không được mất. Xoá danh mục mà bỏ mặc chúng
+ *   thì mọi báo cáo hiện ra id thô (xem resolveCategory) và tiền rơi vào một
+ *   nhóm không tên. Nên khi còn giao dịch, người gọi phải đưa `replacementId`.
+ * - *Ngân sách* là hạn mức đặt cho chính danh mục này; danh mục biến mất thì hạn
+ *   mức hết nghĩa, nên xoá luôn. Chuyển nó sang danh mục thay thế sẽ tạo hai hạn
+ *   mức trùng danh mục trong cùng một tháng — màn Ngân sách vẽ ra hai thẻ giống
+ *   hệt nhau và không có cách nào phân biệt.
+ */
+export function deleteCategory(id: string, replacementId?: string) {
+  globalState = {
+    ...globalState,
+    transactions: replacementId
+      ? globalState.transactions.map((tx) => (tx.category === id ? { ...tx, category: replacementId } : tx))
+      : globalState.transactions,
+    budgets: globalState.budgets.filter((b) => b.category !== id),
+    categories: globalState.categories.filter((c) => c.id !== id),
+  };
   notifyListeners();
+
+  if (replacementId) reassignCategoryInSupabase(id, replacementId);
+  deleteBudgetsOfCategoryFromSupabase(id);
   deleteCategoryFromSupabase(id);
 }
 

@@ -60,7 +60,6 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
   const [form] = Form.useForm();
   const [mfaForm] = Form.useForm();
 
-  /** Ảnh vừa chọn, đang chờ người dùng cắt. Chưa ghi vào settings. */
   const [pendingAvatar, setPendingAvatar] = useState<string | null>(null);
 
   const [totpFactorId, setTotpFactorId] = useState<string | null>(null);
@@ -70,8 +69,6 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
 
   const canUseMfa = isSupabaseConfigured && !!currentUser;
 
-  // Bảng tỷ giá sống ngoài React. Đăng ký nghe để nhãn "1 USD ≈ …₫" đổi theo ngay khi
-  // tải xong, thay vì đứng im ở con số của lượt render trước.
   useSyncExternalStore(subscribeRates, getRatesVersion, getRatesVersion);
   const rateStatus = getRateStatus();
 

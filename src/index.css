@@ -442,9 +442,15 @@ body.dark-theme::after {
   background: transparent !important;
 }
 
-/* ---- Lớp nổi: modal, drawer, dropdown, popover, tooltip ---- */
+/* ---- Lớp nổi: modal, drawer, dropdown, popover, tooltip ----
+   Chú ý tên lớp: antd v6 đã đổi `-content`/`-inner` của mấy thành phần này thành
+   `-container`/`-section` (modal-content → modal-container, drawer-content →
+   drawer-section, popover-inner → popover-container, progress-inner → progress-rail,
+   message-notice-content → message-notice). Selector cũ không báo lỗi ở đâu cả —
+   nó chỉ lặng lẽ không khớp gì, nên mọi hiệu ứng kính bên dưới biến mất mà build
+   vẫn xanh. Kiểm bằng cách mở thật rồi soi class trong DOM, đừng đoán. */
 .ant-modal-container,
-.ant-drawer-content {
+.ant-drawer-section {
   background: var(--glass-bg-strong) !important;
   backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%) !important;
   -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%) !important;
@@ -471,7 +477,7 @@ body.dark-theme .ant-drawer-mask {
 }
 
 .ant-dropdown-menu,
-.ant-popover-inner,
+.ant-popover-container,
 .ant-select-dropdown,
 .ant-picker-dropdown .ant-picker-panel-container {
   background: var(--glass-bg-strong) !important;
@@ -480,6 +486,23 @@ body.dark-theme .ant-drawer-mask {
   border: 1px solid var(--glass-border) !important;
   box-shadow: var(--glass-shadow-hover), var(--glass-sheen) !important;
   border-radius: var(--radius-md) !important;
+}
+
+/* Popover/Popconfirm là ngoại lệ duy nhất không dùng kính: nền đục hẳn.
+   Nó gần như luôn bật lên ngay trên một lớp nổi khác (modal, drawer), mà portal
+   của nó gắn thẳng vào body — backdrop-filter vì thế chỉ làm mờ trang phía sau,
+   còn nội dung modal nằm giữa hai lớp thì hiện xuyên qua nguyên vẹn, không mờ
+   chút nào. Ở mức 0.78 chữ trong modal chồng lên chữ cảnh báo, 0.97 vẫn còn thấy
+   bóng chữ. Hộp hỏi trước khi xoá là chỗ cuối cùng nên đánh đổi độ đọc lấy hiệu
+   ứng. */
+.ant-popover-container {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.dark-theme .ant-popover-container {
+  background: #1e293b !important;
 }
 
 .ant-dropdown-menu-item,
@@ -596,17 +619,34 @@ textarea.ant-input::placeholder {
     filter 0.2s ease !important;
 }
 
-.ant-btn-primary {
+/* :not(.ant-btn-dangerous) là bắt buộc chứ không phải cho gọn: nếu không loại
+   trừ, `!important` ở đây tô xanh cả nút xác nhận xoá của mọi Popconfirm trong
+   app (ví, mục tiêu, ngân sách, giao dịch, danh mục) — nút phá huỷ dữ liệu trông
+   y hệt nút hành động thường. */
+.ant-btn-primary:not(.ant-btn-dangerous) {
   background: var(--accent-gradient) !important;
   border: none !important;
   box-shadow: 0 4px 14px -4px rgba(37, 99, 235, 0.5), var(--glass-sheen) !important;
+}
+
+.ant-btn-primary.ant-btn-dangerous {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 55%, #dc2626 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 14px -4px rgba(239, 68, 68, 0.5), var(--glass-sheen) !important;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .ant-btn-primary:hover:not(:disabled) {
     transform: translateY(-1px);
     filter: brightness(1.06);
+  }
+
+  .ant-btn-primary:not(.ant-btn-dangerous):hover:not(:disabled) {
     box-shadow: 0 8px 22px -6px rgba(37, 99, 235, 0.55), var(--glass-sheen) !important;
+  }
+
+  .ant-btn-primary.ant-btn-dangerous:hover:not(:disabled) {
+    box-shadow: 0 8px 22px -6px rgba(239, 68, 68, 0.55), var(--glass-sheen) !important;
   }
 }
 
@@ -621,7 +661,7 @@ textarea.ant-input::placeholder {
 }
 
 /* ---- Thông báo nổi ---- */
-.ant-message-notice-content,
+.ant-message-notice,
 .ant-notification-notice {
   background: var(--glass-bg-strong) !important;
   backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
@@ -644,7 +684,7 @@ textarea.ant-input::placeholder {
   border-radius: 14px !important;
 }
 
-.ant-drawer-content,
+.ant-drawer-section,
 .ant-segmented,
 .ant-alert {
   border-radius: var(--radius-lg) !important;
@@ -657,8 +697,8 @@ textarea.ant-input::placeholder {
   border-color: var(--glass-border) !important;
 }
 
-.ant-progress-inner,
-.ant-progress-bg {
+.ant-progress-rail,
+.ant-progress-track {
   border-radius: 999px !important;
 }
 
@@ -1231,7 +1271,7 @@ textarea.ant-input::placeholder {
   }
 
   /* Màn hẹp: chừa lề hai bên để toast dài không chạm mép kính. */
-  .ant-message-notice-content {
+  .ant-message-notice {
     max-width: calc(100vw - 24px);
   }
 

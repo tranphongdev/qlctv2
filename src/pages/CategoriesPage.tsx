@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { Button, Modal, Form, Input, Select, Empty, Alert, Tooltip } from 'antd';
+import { Button, Modal, Form, Input, Select, Empty, Alert, Tooltip, Popconfirm } from 'antd';
 import { message } from '~/lib/antdApp';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { TX_TYPE, type AppState, type Category, type CategoryType } from '~/types';
 import { DynamicIcon } from '~/components/DynamicIcon';
 import { IconPicker } from '~/components/IconPicker';
 
-import { addCategory, updateCategory } from '~/store/appStore';
+import { addCategory, updateCategory, deleteCategory } from '~/store/appStore';
 import { t } from '~/i18n';
 
 interface CategoriesPageProps {
@@ -27,10 +27,18 @@ const FALLBACK_ICON: Record<CategoryType, string> = {
 };
 
 export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
-  const { categories, transactions } = state;
+  const { categories, transactions, budgets } = state;
   const [isAddOpen, setIsAddOpen] = useState(false);
   /** Danh mục đang sửa. null nghĩa là modal đang ở chế độ thêm mới. */
   const [editing, setEditing] = useState<Category | null>(null);
+  /** Danh mục nhận lại số giao dịch khi xoá. Nằm ngoài form vì không phải là dữ liệu của danh mục. */
+  const [replacementId, setReplacementId] = useState<string | undefined>(undefined);
+  /**
+   * Khu vực xoá đóng lại mặc định. Người dùng mở modal này chủ yếu để sửa; bày sẵn
+   * cả phần xoá thì modal dài thêm một màn hình và lặp lại ba lần cùng một câu về
+   * số giao dịch đang dùng. Đóng lại cũng khiến việc xoá cần một cú bấm có chủ ý.
+   */
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [form] = Form.useForm<CategoryFormValues>();
 
   // Theo dõi màu đang chọn trong form để ô xem trước và bộ chọn icon đổi theo
@@ -56,8 +64,26 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
    */
   const typeLocked = editing !== null && usage > 0;
 
+  /** Số ngân sách sẽ bị xoá kèm nếu danh mục đang sửa bị xoá. */
+  const budgetUsage = editing ? budgets.filter((b) => b.category === editing.id).length : 0;
+  /**
+   * Chỉ nhận danh mục cùng loại: chuyển một khoản chi sang danh mục thu sẽ tạo ra
+   * đúng thứ dữ liệu hỏng mà `typeLocked` ở trên đang ngăn.
+   */
+  const replacementOptions = useMemo(() => {
+    if (!editing) return [];
+    return categories
+      .filter((c) => c.id !== editing.id && c.type === editing.type)
+      .map((c) => ({ value: c.id, label: c.name }));
+  }, [categories, editing]);
+
+  const needsReplacement = usage > 0;
+  const canDelete = editing !== null && (!needsReplacement || Boolean(replacementId));
+
   const openAdd = () => {
     setEditing(null);
+    setReplacementId(undefined);
+    setDeleteOpen(false);
     form.setFieldsValue({ name: '', type: TX_TYPE.EXPENSE, color: '#2563EB', icon: 'ShoppingBag' });
     setIsAddOpen(true);
   };
@@ -65,6 +91,8 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
   const openEdit = (category: Category) => {
     setIsAddOpen(false);
     setEditing(category);
+    setReplacementId(undefined);
+    setDeleteOpen(false);
     form.setFieldsValue({
       name: category.name,
       type: category.type,
@@ -76,7 +104,22 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
   const close = () => {
     setIsAddOpen(false);
     setEditing(null);
+    setReplacementId(undefined);
+    setDeleteOpen(false);
     form.resetFields();
+  };
+
+  const handleDelete = () => {
+    if (!editing || !canDelete) return;
+
+    const target = replacementOptions.find((o) => o.value === replacementId);
+    deleteCategory(editing.id, needsReplacement ? replacementId : undefined);
+    message.success(
+      target
+        ? t('cats.deleted_moved', { name: editing.name, count: usage, target: target.label })
+        : t('cats.deleted', { name: editing.name }),
+    );
+    close();
   };
 
   const handleSubmit = (values: CategoryFormValues) => {
@@ -265,7 +308,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
             <IconPicker color={color} />
           </Form.Item>
 
-          {editing && usage > 0 && (
+          {editing && usage > 0 && !deleteOpen && (
             <Alert
               type="info"
               showIcon
@@ -281,6 +324,88 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
             </Button>
           </Form.Item>
         </Form>
+
+        {/* Khu vực xoá nằm ngoài <Form>: nút xoá mà đứng trong form thì một lần
+            Enter nhầm chỗ cũng có thể chạm tới, và nó cũng không gửi giá trị nào
+            cho onFinish. */}
+        {editing && !deleteOpen && (
+          <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-border)' }}>
+            <Button
+              type="text"
+              danger
+              size="small"
+              icon={<Trash2 size={14} />}
+              onClick={() => setDeleteOpen(true)}
+              style={{ paddingLeft: 0 }}
+            >
+              {t('cats.delete_section')}
+            </Button>
+          </div>
+        )}
+
+        {editing && deleteOpen && (
+          <div
+            style={{
+              marginTop: 20,
+              paddingTop: 16,
+              borderTop: '1px solid var(--surface-border)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)' }}>
+              {t('cats.delete_section')}
+            </div>
+
+            {!needsReplacement && (
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('cats.delete_free')}</div>
+            )}
+
+            {needsReplacement &&
+              (replacementOptions.length > 0 ? (
+                <>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    {t('cats.delete_move_hint', { count: usage })}
+                  </div>
+                  <Select
+                    value={replacementId}
+                    onChange={setReplacementId}
+                    placeholder={t('cats.delete_move_placeholder')}
+                    options={replacementOptions}
+                    aria-label={t('cats.delete_move_label')}
+                  />
+                </>
+              ) : (
+                <Alert type="warning" showIcon title={t('cats.delete_no_target', { count: usage })} />
+              ))}
+
+            {budgetUsage > 0 && (
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                {t('cats.delete_budgets_hint', { count: budgetUsage })}
+              </div>
+            )}
+
+            <Popconfirm
+              title={t('cats.delete_title', { name: editing.name })}
+              description={t('cats.delete_desc')}
+              onConfirm={handleDelete}
+              okText={t('common.delete')}
+              cancelText={t('common.cancel')}
+              okButtonProps={{ danger: true }}
+              disabled={!canDelete}
+            >
+              <Button
+                danger
+                icon={<Trash2 size={15} />}
+                disabled={!canDelete}
+                style={{ alignSelf: 'flex-start' }}
+              >
+                {t('cats.delete_btn')}
+              </Button>
+            </Popconfirm>
+          </div>
+        )}
       </Modal>
     </div>
   );

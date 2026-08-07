@@ -6,7 +6,6 @@ import type { Session } from '@supabase/supabase-js';
 export interface AuthUser {
   id: string;
   username: string;
-  /** Email liên hệ do người dùng tự khai trong Hồ sơ. Rỗng nếu chưa khai. */
   email: string;
   name: string;
   avatarUrl: string;

@@ -52,10 +52,6 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
 
   try {
     const [txRes, walletRes, goalRes, debtRes, catRes, budgetRes, notifRes, profileRes] = await Promise.all([
-      // Sắp theo cả ngày lẫn giờ: chỉ sắp theo ngày thì các giao dịch cùng ngày
-      // trả về theo thứ tự tuỳ ý của Postgres. nullsFirst: false để bản ghi chưa
-      // có giờ nằm cuối ngày của nó thay vì chen lên đầu (DESC mặc định là
-      // NULLS FIRST).
       supabase
         .from('transactions')
         .select('*')
@@ -80,9 +76,6 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
     }
 
     const result: RemoteState = {
-      // Sắp lại lần nữa ở phía client dù truy vấn đã ORDER BY: thứ tự này là quy
-      // ước hiển thị của app, không nên phụ thuộc vào việc câu truy vấn ở trên có
-      // bị sửa hay không.
       transactions: txRes.data
         ? sortTxNewestFirst(txRes.data.map((t) => ({
             id: t.id,
@@ -320,8 +313,6 @@ export async function syncWalletToSupabase(wallet: Wallet) {
     balance: wallet.balance,
     color: wallet.color,
     icon: wallet.icon,
-    // fetchRemoteState vẫn đọc cột này nhưng lệnh ghi trước đây bỏ sót, nên cờ ví
-    // mặc định không bao giờ được lưu lại.
     is_default: wallet.isDefault ?? false,
   });
 }
@@ -390,6 +381,33 @@ export async function syncCategoryToSupabase(category: Category) {
 
 export async function deleteCategoryFromSupabase(id: string) {
   await deleteRow('categories', 'categories', id);
+}
+
+/**
+ * Chuyển toàn bộ giao dịch của một danh mục sang danh mục khác.
+ *
+ * Một câu UPDATE chứ không phải upsert lại từng bút toán: một danh mục dùng lâu
+ * năm có thể ôm hàng nghìn giao dịch, mà mỗi upsert là một vòng mạng riêng.
+ */
+export async function reassignCategoryInSupabase(fromId: string, toId: string) {
+  if (!canSync() || !supabase) return;
+  const { error } = await supabase
+    .from('transactions')
+    .update({ category: toId })
+    .eq('category', fromId)
+    .eq('user_id', currentUserId);
+  reportError('chuyển giao dịch sang danh mục khác', error);
+}
+
+/** Xoá mọi ngân sách đặt cho một danh mục — dùng khi danh mục đó bị xoá. */
+export async function deleteBudgetsOfCategoryFromSupabase(categoryId: string) {
+  if (!canSync() || !supabase) return;
+  const { error } = await supabase
+    .from('budgets')
+    .delete()
+    .eq('category', categoryId)
+    .eq('user_id', currentUserId);
+  reportError('xoá ngân sách theo danh mục', error);
 }
 
 export async function syncNotificationToSupabase(notif: NotificationItem) {

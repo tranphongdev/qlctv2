@@ -40,23 +40,16 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Đường dẫn lạ cho chuỗi rỗng: không mục nào trong sidebar được tô sáng khi đang
-  // đứng ở trang 404.
   const activeTab = tabOfPath(location.pathname) ?? '';
   const setActiveTab = (tab: string) => navigate(pathOfTab(tab));
 
   setActiveCurrency(state.settings.currency);
   setActiveLang(state.settings.language);
 
-  // Tỷ giá về sau lượt render đầu (đọc từ máy rồi tải mới từ mạng). Bảng tỷ giá nằm
-  // ngoài React nên phải đăng ký nghe: thiếu dòng này, số tiền quy đổi sẽ đứng im ở
-  // tỷ giá cũ cho tới lần render kế tiếp vì lý do khác.
   useSyncExternalStore(subscribeRates, getRatesVersion, getRatesVersion);
 
   useEffect(() => {
     ensureExchangeRates();
-    // Máy để yên qua đêm rồi mở lại: tỷ giá đã sang ngày mới. Kiểm lúc tab sáng lên
-    // thay vì hẹn giờ chạy nền — PWA bị treo timer khi ở nền.
     const onVisible = () => {
       if (document.visibilityState === 'visible') ensureExchangeRates();
     };
@@ -71,10 +64,6 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
-  // Supabase khôi phục phiên từ localStorage theo cơ chế bất đồng bộ: ngay sau khi
-  // tải lại trang, currentUser vẫn là null dù người dùng đã đăng nhập. Phải đợi
-  // sự kiện đầu tiên rồi mới quyết định cho vào dashboard hay đẩy ra trang đăng
-  // nhập, nếu không người đã đăng nhập sẽ bị đá ra ngoài mỗi lần F5.
   const [checkingSession, setCheckingSession] = useState(isSupabaseConfigured);
 
   useEffect(() => {
@@ -175,8 +164,6 @@ export default function App() {
       locale={antdLocale(state.settings.language)}
       theme={getAppTheme(isDark)}
     >
-      {/* AntdApp cấp context cho message/notification/modal; AntdStaticBridge lấy
-          instance đó ra cho các chỗ gọi message.* ngoài phạm vi hook. */}
       <AntdApp>
       <AntdStaticBridge />
       {requireAuth ? (
@@ -193,7 +180,6 @@ export default function App() {
           <Navigate to={TAB_PATHS.auth} replace />
         )
       ) : isAuthRoute ? (
-        // Đã đăng nhập thì không còn lý do ở lại trang đăng nhập.
         <Navigate to={TAB_PATHS.dashboard} replace />
       ) : (
         <Layout style={{ minHeight: '100vh', background: 'transparent' }}>
@@ -302,7 +288,6 @@ export default function App() {
             onClose={() => setAddModalOpen(false)}
             onSave={(txData) => {
               if (editingTx) {
-                // Giữ nguyên id để ghi đè bản ghi cũ thay vì thêm bản ghi mới.
                 updateTransaction({ ...txData, id: editingTx.id });
               } else {
                 addTransaction(txData);

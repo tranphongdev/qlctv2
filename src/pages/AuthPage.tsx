@@ -28,12 +28,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
         >
-          {/* Chuyển chế độ chỉ bằng liên kết ở chân thẻ. Không có thêm cặp tab ở
-              đầu thẻ: hai lối vào cùng một việc chỉ làm loãng nút hành động
-              chính, mà tiêu đề thẻ đã nói rõ đang ở màn nào.
-
-              mode="wait" cho form cũ mờ hẳn rồi form mới mới hiện: hai form
-              chồng nhau trong lúc chuyển sẽ làm thẻ giật chiều cao. */}
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={mode}

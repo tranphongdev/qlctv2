@@ -21,16 +21,12 @@ const MAX_AGE_MS = 6 * 60 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 8_000;
 
 interface Quote {
-  /** Số VND đổi được 1 USD. */
   usd: number;
-  /** Số VND đổi được 1 EUR. */
   eur: number;
-  /** Mốc nhà cung cấp công bố, không phải lúc ta tải về. */
   updatedAt: number;
 }
 
 interface CachedQuote extends Quote {
-  /** Lúc ghi vào máy, dùng để tính hạn dùng lại. */
   fetchedAt: number;
 }
 
@@ -102,7 +98,6 @@ function readCache(): CachedQuote | null {
       fetchedAt: parsed.fetchedAt,
     };
   } catch {
-    // Máy chặn localStorage hoặc bản ghi hỏng: coi như chưa có gì.
     return null;
   }
 }
