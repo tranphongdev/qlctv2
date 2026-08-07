@@ -36,5 +36,5 @@ export function resolveCategory(catId: string, categoriesMap: Record<string, Cat
   if (own) return own;
 
   const virtual = VIRTUAL_CATEGORIES[catId];
-  return virtual ? virtual() : { name: catId, icon: 'CircleDollarSign', color: '#4F46E5' };
+  return virtual ? virtual() : { name: catId, icon: 'CircleDollarSign', color: '#2563EB' };
 }

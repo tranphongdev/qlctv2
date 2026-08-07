@@ -192,7 +192,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
           <Button
             size="small"
             type="text"
-            icon={<Eye size={16} color="#4F46E5" />}
+            icon={<Eye size={16} color="#2563EB" />}
             onClick={() => setPreviewImage(url)}
           >
             {t('tx.view_image')}
@@ -354,13 +354,13 @@ export const Transactions: React.FC<TransactionsProps> = ({
                         width: 38,
                         height: 38,
                         borderRadius: 12,
-                        background: cat?.color ? `${cat.color}15` : '#4F46E515',
+                        background: cat?.color ? `${cat.color}15` : '#2563EB15',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <DynamicIcon name={cat?.icon || 'CircleDollarSign'} color={cat?.color || '#4F46E5'} size={20} />
+                      <DynamicIcon name={cat?.icon || 'CircleDollarSign'} color={cat?.color || '#2563EB'} size={20} />
                     </div>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: 14 }}>{tx.note || cat?.name || t('tx.fallback_name')}</div>
@@ -387,7 +387,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
 
                   <Space size="small">
                     {tx.receiptUrl && (
-                      <Button size="small" type="text" icon={<Eye size={16} color="#4F46E5" />} onClick={() => setPreviewImage(tx.receiptUrl || null)} />
+                      <Button size="small" type="text" icon={<Eye size={16} color="#2563EB" />} onClick={() => setPreviewImage(tx.receiptUrl || null)} />
                     )}
                     <Button size="small" type="text" icon={<Edit size={16} color="#3B82F6" />} onClick={() => onOpenAddModal(tx)} />
                     <Popconfirm title={t('tx.delete_title')} onConfirm={() => onDeleteTx(tx.id)}>

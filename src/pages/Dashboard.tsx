@@ -105,7 +105,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
   const pieData = Object.entries(categoryExpenses).map(([catId, amount]) => ({
     name: categoriesMap[catId]?.name || catId,
     value: amount,
-    color: categoriesMap[catId]?.color || '#4F46E5',
+    color: categoriesMap[catId]?.color || '#2563EB',
   }));
 
   const trendData: ChartData<'bar'> = {
@@ -209,8 +209,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* 4 Big Overview Stat Cards */}
+      {/* 4 Big Overview Stat Cards — .stagger cho bốn thẻ vào lệch nhau một nhịp
+          rất ngắn, đủ để mắt đọc chúng như một chuỗi thay vì một khối bật ra. */}
       <div
+        className="stagger"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
@@ -301,7 +303,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
               <span>{t('dash.savings_rate')}</span>
               <span style={{ fontWeight: 700, color: 'var(--color-savings)' }}>{savingsRate}%</span>
             </div>
-            <Progress percent={savingsRate} strokeColor={{ '0%': '#4F46E5', '100%': '#7C3AED' }} showInfo={false} />
+            <Progress percent={savingsRate} strokeColor={{ '0%': '#2563EB', '100%': '#7C3AED' }} showInfo={false} />
           </div>
         </div>
       </div>
@@ -400,13 +402,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                         height: 42,
                         borderRadius: 12,
                         flexShrink: 0,
-                        background: cat?.color ? `${cat.color}15` : '#4F46E515',
+                        background: cat?.color ? `${cat.color}15` : '#2563EB15',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <DynamicIcon name={cat?.icon || 'CircleDollarSign'} color={cat?.color || '#4F46E5'} size={22} />
+                      <DynamicIcon name={cat?.icon || 'CircleDollarSign'} color={cat?.color || '#2563EB'} size={22} />
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 600, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -456,7 +458,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                     <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-savings)' }}>{pct}%</span>
                   </div>
                   {/* Phần trăm đã hiện ở tiêu đề, tắt showInfo để khỏi lặp số. */}
-                  <Progress percent={pct} showInfo={false} strokeColor={{ '0%': '#4F46E5', '100%': '#7C3AED' }} />
+                  <Progress percent={pct} showInfo={false} strokeColor={{ '0%': '#2563EB', '100%': '#7C3AED' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4, fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
                     <span>{t('dash.goal_saved', { amount: formatMoney(goal.saved) })}</span>
                     <span>{t('dash.goal_target', { amount: formatMoney(goal.target) })}</span>

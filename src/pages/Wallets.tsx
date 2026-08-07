@@ -62,7 +62,7 @@ export const Wallets: React.FC<WalletsProps> = ({ state }) => {
   const openCreateModal = () => {
     setEditingWallet(null);
     form.resetFields();
-    form.setFieldsValue({ color: '#4F46E5' });
+    form.setFieldsValue({ color: '#2563EB' });
     setIsAddOpen(true);
   };
 
@@ -95,13 +95,11 @@ export const Wallets: React.FC<WalletsProps> = ({ state }) => {
       bankName: values.bankName,
       accountNumber: values.accountNumber,
       balance: values.balance || 0,
-      color: values.color || '#4F46E5',
+      color: values.color || '#2563EB',
       icon: iconOfType(values.type),
     };
 
     if (editingWallet) {
-      // Giữ lại id và isDefault: form không có hai trường này, trải bản ghi cũ ra
-      // trước thì chúng mới không bị mất khi lưu.
       updateWallet({ ...editingWallet, ...fields });
       message.success(t('wallets.updated', { name: fields.name }));
     } else {

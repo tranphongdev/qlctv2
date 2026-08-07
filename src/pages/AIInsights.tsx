@@ -239,7 +239,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
       {/* Header */}
       <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #7C3AED, #4F46E5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #7C3AED, #2563EB)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <BrainCircuit size={22} color="#ffffff" />
           </div>
           <div>
@@ -286,7 +286,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
                 borderRadius: 16,
                 // Bong bóng của AI đi theo biến bề mặt của app: đặt màu sáng cứng ở
                 // đây thì ở chế độ tối nó thành mảng trắng chói giữa nền xanh đậm.
-                background: message.sender === 'user' ? 'linear-gradient(135deg, #4F46E5, #7C3AED)' : 'var(--surface-subtle)',
+                background: message.sender === 'user' ? 'linear-gradient(135deg, #2563EB, #7C3AED)' : 'var(--surface-subtle)',
                 color: message.sender === 'user' ? '#ffffff' : 'var(--text-body)',
                 border: message.sender === 'user' ? 'none' : '1px solid var(--surface-border)',
                 fontSize: 14,

@@ -33,13 +33,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab, on
         right: 12,
         minHeight: 56,
         zIndex: 999,
-        background: 'var(--surface-elevated)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        background: 'var(--glass-bg-strong)',
+        backdropFilter: 'blur(var(--glass-blur-strong)) saturate(180%)',
+        WebkitBackdropFilter: 'blur(var(--glass-blur-strong)) saturate(180%)',
         borderRadius: 28,
         padding: '8px 12px',
-        border: '1px solid var(--surface-border)',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+        border: '1px solid var(--glass-border)',
+        boxShadow: 'var(--glass-shadow-hover), var(--glass-sheen)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-around',
@@ -59,20 +59,31 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab, on
                 flexShrink: 0,
               }}
             >
+              {/* FAB nổi lên khỏi mặt thanh nav: đường kính lớn hơn hàng icon và
+                  được đẩy lên bằng translateY, nên nó luôn là điểm chạm rõ nhất. */}
               <div
                 style={{
-                  width: 40,
-                  height: 40,
+                  width: 52,
+                  height: 52,
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                  background: 'var(--accent-gradient)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#ffffff',
-                  boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)',
+                  transform: 'translateY(-10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.35)',
+                  boxShadow: '0 10px 24px -6px rgba(37, 99, 235, 0.6), var(--glass-sheen)',
+                  transition: 'transform 0.2s var(--ease-spring)',
+                }}
+                onTouchStart={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-10px) scale(0.92)';
+                }}
+                onTouchEnd={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-10px)';
                 }}
               >
-                <Plus size={20} />
+                <Plus size={24} />
               </div>
             </div>
           );
@@ -91,7 +102,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab, on
               padding: '2px 8px',
               borderRadius: 12,
               cursor: 'pointer',
-              color: isActive ? '#4F46E5' : 'var(--text-muted)',
+              color: isActive ? '#2563EB' : 'var(--text-muted)',
               fontWeight: isActive ? 700 : 500,
               transition: 'all 0.2s ease',
               minWidth: 56,

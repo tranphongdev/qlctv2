@@ -53,7 +53,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       id: 'nav_dashboard',
       title: t('cmd.dashboard_title'),
       subtitle: t('cmd.dashboard_subtitle'),
-      icon: <LayoutDashboard size={18} color="#4F46E5" />,
+      icon: <LayoutDashboard size={18} color="#2563EB" />,
       action: () => {
         onClose();
         onSelectTab('dashboard');
@@ -183,7 +183,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     >
       <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(148, 163, 184, 0.15)' }}>
         <Input
-          prefix={<Search size={20} color="#4F46E5" style={{ marginRight: 8 }} />}
+          prefix={<Search size={20} color="#2563EB" style={{ marginRight: 8 }} />}
           placeholder={t('cmd.search_placeholder')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}

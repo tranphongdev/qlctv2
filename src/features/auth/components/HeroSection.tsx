@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, TrendingUp, PieChart, Wallet, ArrowUpRight, Lock, Sparkles } from 'lucide-react';
+import { TrendingUp, PieChart, Wallet, ArrowUpRight, Lock, Sparkles } from 'lucide-react';
+import { BrandMark } from '~/components/BrandMark';
 import { formatMoney } from '~/utils/format';
 import { t } from '~/i18n';
 
@@ -21,9 +22,9 @@ export const HeroSection: React.FC = () => {
         transition={{ duration: 0.45, ease: 'easeOut' }}
       >
         <div className="auth-hero__brand" style={{ marginBottom: 28 }}>
-          <div className="auth-hero__logo">
-            <ShieldCheck size={24} color="#ffffff" />
-          </div>
+          {/* Mark tự mang ô kính riêng nên không bọc thêm khung nào nữa — lồng
+              hai lớp nền vào nhau chỉ làm đục cả hai. */}
+          <BrandMark size={44} title="Financial" />
           <div>
             <div className="auth-hero__name">Financial</div>
             <div className="auth-hero__subtitle">{t('hero.brand_subtitle')}</div>

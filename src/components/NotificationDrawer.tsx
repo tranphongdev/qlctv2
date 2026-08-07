@@ -26,7 +26,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
       case 'goal':
         return <Target size={18} color="#7C3AED" />;
       default:
-        return <Sparkles size={18} color="#4F46E5" />;
+        return <Sparkles size={18} color="#2563EB" />;
     }
   };
 
@@ -36,7 +36,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
     <Drawer
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Bell size={18} color="#4F46E5" />
+          <Bell size={18} color="#2563EB" />
           <span style={{ fontWeight: 700, fontSize: 16 }}>{t('notif.title')}</span>
         </div>
       }
@@ -55,9 +55,9 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
           <Button
             type="text"
             size="small"
-            icon={<CheckCheck size={14} color="#4F46E5" />}
+            icon={<CheckCheck size={14} color="#2563EB" />}
             onClick={onMarkRead}
-            style={{ color: '#4F46E5', fontWeight: 600, fontSize: 12 }}
+            style={{ color: '#2563EB', fontWeight: 600, fontSize: 12 }}
           >
             {t('notif.mark_read')}
           </Button>
@@ -75,7 +75,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                 padding: '14px 16px',
                 borderRadius: 16,
                 marginBottom: 10,
-                background: item.read ? 'rgba(241, 245, 249, 0.5)' : 'rgba(79, 70, 229, 0.08)',
+                background: item.read ? 'rgba(241, 245, 249, 0.5)' : 'rgba(37, 99, 235, 0.08)',
                 border: 'none',
                 display: 'flex',
                 alignItems: 'flex-start',

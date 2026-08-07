@@ -93,7 +93,7 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
             <div key={b.id} className="glass-card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: cat?.color || '#4F46E5' }}>{catName}</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: cat?.color || '#2563EB' }}>{catName}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{t('budgets.month_label', { value: formatMonthKey(b.monthKey) })}</div>
                 </div>
 
@@ -126,7 +126,7 @@ export const Budgets: React.FC<BudgetsProps> = ({ state }) => {
                   type="circle"
                   percent={pct}
                   size={80}
-                  strokeColor={pct >= 100 ? '#EF4444' : pct >= 80 ? '#F59E0B' : '#4F46E5'}
+                  strokeColor={pct >= 100 ? '#EF4444' : pct >= 80 ? '#F59E0B' : '#2563EB'}
                 />
                 <div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('budgets.spent')}</div>

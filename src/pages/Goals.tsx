@@ -34,7 +34,7 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
       target: values.target,
       deadline: values.deadline ? values.deadline.format('YYYY-MM-DD') : null,
       imageUrl: values.imageUrl || 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=500&q=80',
-      color: '#4F46E5',
+      color: '#2563EB',
     });
     message.success(t('goals.created'));
     setIsAddOpen(false);
@@ -145,12 +145,12 @@ export const Goals: React.FC<GoalsProps> = ({ state }) => {
                 </div>
 
                 {/* Tag trên ảnh bìa đã hiện % rồi, tắt showInfo để khỏi lặp số. */}
-                <Progress percent={pct} showInfo={false} strokeColor={{ '0%': '#4F46E5', '100%': '#7C3AED' }} />
+                <Progress percent={pct} showInfo={false} strokeColor={{ '0%': '#2563EB', '100%': '#7C3AED' }} />
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, margin: '14px 0 16px' }}>
                   <div>
                     <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>{t('goals.saved_label')}</span>
-                    <div style={{ fontWeight: 700, color: '#4F46E5' }}>{formatMoney(g.saved)}</div>
+                    <div style={{ fontWeight: 700, color: '#2563EB' }}>{formatMoney(g.saved)}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>{t('goals.target_label')}</span>

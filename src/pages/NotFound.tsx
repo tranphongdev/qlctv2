@@ -39,8 +39,8 @@ export const NotFound: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
-          boxShadow: '0 12px 28px rgba(79, 70, 229, 0.35)',
+          background: 'linear-gradient(135deg, #2563EB, #7C3AED)',
+          boxShadow: '0 12px 28px rgba(37, 99, 235, 0.35)',
         }}
       >
         <Compass size={34} color="#ffffff" />

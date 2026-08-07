@@ -38,8 +38,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchRegiste
         onSuccess({
           id: data.user.id,
           username,
-          // Email nội bộ không phải email của người dùng: để rỗng cho tới khi họ
-          // tự khai địa chỉ thật trong trang Hồ sơ.
           email: (meta.contact_email as string) || '',
           name: (meta.full_name as string) || username,
           avatarUrl: (meta.avatar_url as string) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.id}`,

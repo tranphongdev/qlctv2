@@ -7,6 +7,7 @@ import type { UserSettings, NotificationItem } from '~/types';
 import type { AuthUser } from '~/lib/auth';
 import { getTimeAwareGreeting } from '~/utils/format';
 import { t } from '~/i18n';
+import { useScrolled } from '~/hooks/useScrolled';
 import { NotificationDrawer } from './NotificationDrawer';
 
 interface HeaderProps {
@@ -41,6 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectTab,
 }) => {
   const [notifOpen, setNotifOpen] = useState(false);
+  const scrolled = useScrolled();
   const unreadCount = notifications.filter((n) => !n.read).length;
   // settings là nguồn sự thật vì người dùng sửa được tên và ảnh trong trang Cài đặt;
   // currentUser chỉ là ảnh chụp lúc đăng nhập nên không phản ánh thay đổi sau đó.
@@ -85,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header
-      className="glass-card header-fixed-bar"
+      className="glass-card glass-static header-fixed-bar"
       style={{
         position: 'fixed',
         top: 0,
@@ -96,12 +98,21 @@ export const Header: React.FC<HeaderProps> = ({
         margin: 0,
         borderRadius: 0,
         zIndex: 1000,
-        borderBottom: '1px solid rgba(148, 163, 184, 0.15)',
         display: 'flex',
         alignItems: 'center',
-        transition: 'left 0.2s ease',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        // Ở đỉnh trang header hoà vào nền; khi nội dung bắt đầu trôi qua bên dưới
+        // thì đặc lại, tăng blur và hiện đường phân cách. Cả ba thứ cùng đổi một
+        // lúc mới ra cảm giác lớp kính "bắt" lấy nội dung, thay vì chỉ hiện bóng.
+        background: scrolled ? 'var(--glass-bg-strong)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(var(--glass-blur-strong)) saturate(180%)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'blur(var(--glass-blur-strong)) saturate(180%)' : 'none',
+        borderTop: 'none',
+        borderLeft: 'none',
+        borderRight: 'none',
+        borderBottom: scrolled ? '1px solid var(--glass-border)' : '1px solid transparent',
+        boxShadow: scrolled ? 'var(--glass-shadow)' : 'none',
+        transition:
+          'left 0.2s ease, background-color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out), border-color 0.3s var(--ease-out)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, width: '100%' }}>
@@ -111,19 +122,35 @@ export const Header: React.FC<HeaderProps> = ({
             <Button
               type="text"
               shape="circle"
-              icon={<MenuIcon size={20} color="#4F46E5" />}
+              icon={<MenuIcon size={20} color="#2563EB" />}
               onClick={onOpenMobileMenu}
               className="mobile-only"
               style={{ width: 36, height: 36, flexShrink: 0 }}
             />
           )}
 
+          {/* Avatar và lời chào nằm chung một vùng kính riêng, tách khỏi nền
+              header. Ở đỉnh trang header trong suốt nên nếu không có vùng này,
+              cụm chữ sẽ trôi lơ lửng ngay trên nội dung trang. */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              minWidth: 0,
+              padding: '4px 12px 4px 4px',
+              borderRadius: 999,
+              background: 'var(--surface-elevated)',
+              border: '1px solid var(--glass-border)',
+              boxShadow: 'var(--glass-sheen)',
+            }}
+          >
           {currentUser ? (
             <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomLeft">
               <Avatar
                 src={avatarUrl}
                 size={36}
-                style={{ border: '2px solid #4F46E5', cursor: 'pointer', flexShrink: 0 }}
+                style={{ border: '2px solid #2563EB', cursor: 'pointer', flexShrink: 0 }}
               >
                 {displayName.charAt(0).toUpperCase()}
               </Avatar>
@@ -143,6 +170,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>{displayName}</span>
             </div>
+          </div>
           </div>
         </div>
 
@@ -190,7 +218,7 @@ export const Header: React.FC<HeaderProps> = ({
               style={{
                 borderRadius: 12,
                 fontWeight: 700,
-                background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
                 border: 'none',
               }}
             >
@@ -212,7 +240,7 @@ export const Header: React.FC<HeaderProps> = ({
             <Button
               type="text"
               shape="circle"
-              icon={isDark ? <Sun size={18} color="#F59E0B" /> : <Moon size={18} color="#4F46E5" />}
+              icon={isDark ? <Sun size={18} color="#F59E0B" /> : <Moon size={18} color="#2563EB" />}
               onClick={onToggleTheme}
               style={{ width: 34, height: 34 }}
             />
@@ -223,14 +251,14 @@ export const Header: React.FC<HeaderProps> = ({
               <Button
                 type="text"
                 shape="circle"
-                icon={<Bell size={18} color={unreadCount > 0 ? '#4F46E5' : '#64748b'} />}
+                icon={<Bell size={18} color={unreadCount > 0 ? '#2563EB' : '#64748b'} />}
                 onClick={() => setNotifOpen(true)}
                 style={{ width: 34, height: 34 }}
               />
             </Badge>
           </HintTooltip>
 
-          <div className="desktop-only" style={{ alignItems: 'center', gap: 6, padding: '4px 12px', background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(124, 58, 237, 0.1))', borderRadius: 99, border: '1px solid rgba(79, 70, 229, 0.2)' }}>
+          <div className="desktop-only" style={{ alignItems: 'center', gap: 6, padding: '4px 12px', background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1))', borderRadius: 99, border: '1px solid rgba(37, 99, 235, 0.2)' }}>
             <Sparkles size={14} color="#7C3AED" />
             <span style={{ fontSize: 12, fontWeight: 600, color: '#7C3AED' }}>AI Active</span>
           </div>

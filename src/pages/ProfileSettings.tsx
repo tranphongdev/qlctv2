@@ -242,13 +242,13 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
         {/* Left: General Settings */}
         <div className="glass-card" style={{ padding: 20 }}>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <User size={20} color="#4F46E5" />
+            <User size={20} color="#2563EB" />
             <span>{t('settings.user_section')}</span>
           </div>
 
           {/* Ảnh đại diện */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
-            <Avatar src={settings.avatarUrl || undefined} size={64} style={{ border: '3px solid #4F46E5', flexShrink: 0 }}>
+            <Avatar src={settings.avatarUrl || undefined} size={64} style={{ border: '3px solid #2563EB', flexShrink: 0 }}>
               {settings.fullName?.charAt(0)?.toUpperCase()}
             </Avatar>
             <div style={{ minWidth: 0 }}>

@@ -1,47 +1,87 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 
+/* ===================================================================
+   LIQUID GLASS — tầng token
+   ===================================================================
+   Toàn app đọc bộ biến này, nên đổi ở đây là đổi mọi trang. Quy ước:
+   - `--glass-*`  : bề mặt kính (thẻ, header, nav, modal)
+   - `--surface-*`: bề mặt đặc, KHÔNG blur (ô chìm bên trong thẻ)
+   - `--text-*`   : bậc chữ, luôn kiểm tương phản trên nền kính
+
+   Về hiệu năng: backdrop-filter là thứ đắt nhất trong bộ này. Nó chỉ được
+   dùng ở lớp NỔI (thẻ, header, sidebar, modal, nav) — không bao giờ cho
+   phần tử lặp lại nhiều lần trong danh sách hay từng ô của bảng. */
+
 :root {
-  --primary-color: #4F46E5;
-  --primary-hover: #4338CA;
+  --primary-color: #2563EB;
+  --primary-hover: #1D4ED8;
   --secondary-color: #7C3AED;
   --success-color: #22C55E;
   --danger-color: #EF4444;
   --warning-color: #F59E0B;
-  
-  --bg-gradient-light: radial-gradient(circle at 50% 0%, #EEF2FF 0%, #F8FAFC 50%, #F1F5F9 100%);
-  --bg-gradient-dark: radial-gradient(circle at 50% 0%, #1E1B4B 0%, #0F172A 40%, #090D16 100%);
-  
-  --glass-bg-light: rgba(255, 255, 255, 0.85);
-  --glass-bg-dark: rgba(15, 23, 42, 0.85);
-  --glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  
-  --radius-sm: 4px;
-  --radius-md: 4px;
-  --radius-lg: 4px;
-  --radius-xl: 4px;
+
+  /* Dải nhấn chủ đạo: xanh → tím. Dùng chung cho nút chính, item đang chọn,
+     logo và FAB để cả app chỉ có một điểm nhấn duy nhất. */
+  --accent-gradient: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+
+  /* Nền phẳng làm lớp đáy. Các quầng màu ở góc do .app-backdrop vẽ thêm,
+     không nhét vào đây để đổi nền không phải đụng tới hiệu ứng ánh sáng. */
+  --bg-base: #F4F7FB;
+
+  /* ---- Bề mặt kính ----
+     Độ mờ 10-20% theo yêu cầu thiết kế. Nền sáng cần đậm hơn một nhịp so
+     với trực giác: kính quá trong trên nền trắng thì chữ tụt tương phản. */
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-bg-strong: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-blur: 24px;
+  --glass-blur-strong: 40px;
+
+  /* Bóng nhiều lớp: một lớp tiếp xúc rất gần + một lớp toả rộng. Một bóng
+     đơn luôn cho cảm giác dán phẳng, hai lớp mới ra chiều sâu. */
+  --glass-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 8px 24px -8px rgba(15, 23, 42, 0.10),
+    0 24px 48px -24px rgba(15, 23, 42, 0.12);
+  --glass-shadow-hover:
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    0 12px 32px -8px rgba(15, 23, 42, 0.14),
+    0 32px 64px -24px rgba(15, 23, 42, 0.18);
+  /* Vệt sáng mảnh ở cạnh trên, mô phỏng ánh sáng liếm qua mép kính. */
+  --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 28px;
 
   /* Màu chữ mặc định (giao diện sáng); body.dark-theme ghi đè bộ này. */
-  --text-heading: #1E293B;
-  --text-body: #334155;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
+  --text-heading: #0F172A;
+  --text-body: #1E293B;
+  --text-secondary: #334155;
+  --text-muted: #556377;
 
-  /* Bề mặt nổi đặt trên nền trang (thanh điều hướng dưới cùng trên mobile). */
-  --surface-elevated: rgba(255, 255, 255, 0.95);
-  /* Ô nhỏ chìm bên trong thẻ: chip icon, hàng danh sách, chân bảng lệnh. */
-  --surface-subtle: rgba(248, 250, 252, 0.7);
-  --surface-border: rgba(226, 232, 240, 0.8);
+  /* Bề mặt đặc, không blur. Dùng cho ô chìm bên trong thẻ kính — chồng
+     backdrop-filter lên nhau vừa tốn vừa đục. */
+  --surface-elevated: rgba(255, 255, 255, 0.72);
+  --surface-subtle: rgba(255, 255, 255, 0.55);
+  --surface-border: rgba(148, 163, 184, 0.22);
 
   /* Màu ngữ nghĩa cho số liệu. Bộ 600 này được chọn cho nền sáng; trên nền tối
      chúng tụt xuống quanh 3:1 nên body.dark-theme đổi sang bộ 400 sáng hơn. */
-  --color-income: #16A34A;
+  --color-income: #15803D;
   --color-expense: #DC2626;
   --color-savings: #7C3AED;
 
   /* Nền ô icon. Vệt màu 10% chỉ nổi trên nền trắng; nền tối cần đậm hơn hẳn. */
-  --tint-income: rgba(34, 197, 94, 0.1);
-  --tint-expense: rgba(239, 68, 68, 0.1);
-  --tint-savings: rgba(124, 58, 237, 0.1);
+  --tint-income: rgba(34, 197, 94, 0.12);
+  --tint-expense: rgba(239, 68, 68, 0.12);
+  --tint-savings: rgba(124, 58, 237, 0.12);
+
+  /* Nhịp chuyển động. Spring nhẹ cho thứ người dùng chạm vào, ease cho thứ
+     tự chạy — dùng chung để cả app có cùng một "tính cách" chuyển động. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * {
@@ -51,31 +91,87 @@
 }
 
 body {
-  font-family: 'Inter', 'Manrope', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Manrope', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
-  transition: background 0.3s ease, color 0.3s ease;
+  /* Kính cần thứ gì đó ở phía sau để khúc xạ. Nền cuộn cùng nội dung sẽ làm
+     hiệu ứng "chết" khi trang dài, nên các quầng sáng dưới đây được ghim cố
+     định — nội dung trôi qua phía trên lớp kính mới thấy được độ sâu. */
+  background: var(--bg-base);
+  color: var(--text-body);
+  transition: background 0.4s var(--ease-out), color 0.3s ease;
+  letter-spacing: -0.011em;
 }
 
-/* Light & Dark Backgrounds */
+/* ---- Nền nhiều lớp ----
+   Hai lớp giả cố định vẽ các khối màu mờ ở góc. Dùng pseudo-element thay vì
+   div để không phải đụng vào cây React, và `position: fixed` để chúng không
+   bị kéo theo khi cuộn.
+
+   Không dùng filter: blur() ở đây: làm mờ một khối lớn cỡ màn hình là phép
+   tính đắt và chạy lại mỗi khung hình. Radial-gradient cho ra đúng vệt sáng
+   khuếch tán đó mà GPU chỉ vẽ một lần. */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+body::before {
+  background:
+    radial-gradient(46rem 46rem at 8% -6%, rgba(37, 99, 235, 0.30), transparent 62%),
+    radial-gradient(38rem 38rem at 98% 4%, rgba(124, 58, 237, 0.26), transparent 60%),
+    radial-gradient(42rem 42rem at 88% 96%, rgba(6, 182, 212, 0.24), transparent 62%),
+    radial-gradient(34rem 34rem at 4% 92%, rgba(37, 99, 235, 0.18), transparent 60%);
+}
+
+/* Lớp phủ làm dịu độ bão hoà. Rất mỏng: bản đầu để 0.55 và nó nuốt sạch các
+   quầng màu bên dưới — cả trang ra một mảng trắng phẳng, thẻ kính không còn gì
+   ở sau để khúc xạ nên nhìn y hệt thẻ trắng đặc. Kính chỉ hiện hình khi nền
+   sau nó có thứ để bóp méo. */
+body::after {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.04) 45%, rgba(244, 247, 251, 0.22) 100%);
+}
+
 body.light-theme {
-  background: var(--bg-gradient-light);
-  color: #0F172A;
+  background: var(--bg-base);
 }
 
+/* ---- Chế độ tối ----
+   Không đảo màu: kính tối là một vật liệu khác hẳn. Nền kính chuyển sang
+   xám xanh nâng sáng (không phải đen trong suốt, thứ chỉ ra vệt bẩn), viền
+   dùng ánh trắng yếu làm highlight cạnh, và bóng đổ sâu hơn vì trên nền tối
+   bóng nhạt gần như tàng hình. */
 body.dark-theme {
-  background: var(--bg-gradient-dark);
-  color: #F8FAFC;
+  --bg-base: #0F172A;
 
-  --text-heading: #F1F5F9;
+  --glass-bg: rgba(30, 41, 59, 0.55);
+  --glass-bg-strong: rgba(30, 41, 59, 0.78);
+  --glass-border: rgba(148, 163, 184, 0.20);
+  --glass-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.30),
+    0 8px 24px -8px rgba(0, 0, 0, 0.45),
+    0 24px 48px -24px rgba(0, 0, 0, 0.60);
+  --glass-shadow-hover:
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 12px 32px -8px rgba(0, 0, 0, 0.55),
+    0 32px 64px -24px rgba(0, 0, 0, 0.70);
+  --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+
+  color: #F1F5F9;
+
+  --text-heading: #F8FAFC;
   --text-body: #E2E8F0;
   --text-secondary: #CBD5E1;
-  --text-muted: #94A3B8;
+  --text-muted: #9FB0C7;
 
-  --surface-elevated: rgba(15, 23, 42, 0.95);
+  --surface-elevated: rgba(51, 65, 85, 0.55);
   --surface-subtle: rgba(148, 163, 184, 0.12);
-  --surface-border: rgba(51, 65, 85, 0.7);
+  --surface-border: rgba(148, 163, 184, 0.18);
 
   --color-income: #4ADE80;
   --color-expense: #F87171;
@@ -84,6 +180,18 @@ body.dark-theme {
   --tint-income: rgba(74, 222, 128, 0.18);
   --tint-expense: rgba(248, 113, 113, 0.18);
   --tint-savings: rgba(167, 139, 250, 0.18);
+}
+
+body.dark-theme::before {
+  background:
+    radial-gradient(46rem 46rem at 8% -6%, rgba(37, 99, 235, 0.30), transparent 62%),
+    radial-gradient(38rem 38rem at 98% 4%, rgba(124, 58, 237, 0.28), transparent 60%),
+    radial-gradient(42rem 42rem at 88% 96%, rgba(6, 182, 212, 0.18), transparent 62%),
+    radial-gradient(34rem 34rem at 4% 92%, rgba(37, 99, 235, 0.20), transparent 60%);
+}
+
+body.dark-theme::after {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.30) 0%, rgba(15, 23, 42, 0.55) 55%, rgba(9, 13, 22, 0.75) 100%);
 }
 
 /* ===== Màn hình chờ & màn hình lỗi toàn trang =====
@@ -150,7 +258,7 @@ body.dark-theme {
 }
 
 .app-screen__button--primary {
-  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
   border-color: transparent;
   color: #ffffff;
 }
@@ -191,8 +299,16 @@ body.dark-theme {
   height: 40px;
   border-radius: 50%;
   border: 3px solid var(--surface-border);
-  border-top-color: #4F46E5;
+  border-top-color: #2563EB;
   animation: appSpin 0.8s linear infinite;
+}
+
+/* Bản nhỏ dùng khi đứng dưới logo: lúc đó logo mới là nhân vật chính, spinner
+   chỉ còn nhiệm vụ báo "vẫn đang chạy". */
+.app-spinner--sm {
+  width: 22px;
+  height: 22px;
+  border-width: 2px;
 }
 
 @keyframes appSpin {
@@ -227,33 +343,55 @@ body.dark-theme {
   background: rgba(148, 163, 184, 0.7);
 }
 
-/* Glassmorphism Cards */
+/* ===================================================================
+   Liquid Glass — bề mặt
+   =================================================================== */
+
+/* Thẻ kính. Đây là lớp được dùng lại nhiều nhất trong app (46 chỗ), nên mọi
+   thứ đắt tiền phải cân nhắc kỹ ở đây.
+
+   `isolation: isolate` tạo stacking context riêng: nếu không có, các thẻ kính
+   chồng lớp nhau sẽ lấy mẫu nền qua nhau và ra màu đục dần. */
 .glass-card {
-  background: var(--glass-bg-light);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: none !important;
-  box-shadow: var(--glass-shadow);
+  position: relative;
+  isolation: isolate;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  /* Viền trắng mờ 1px — cạnh sáng là thứ làm kính ra "kính" chứ không phải blur.
+     KHÔNG dùng !important ở đây: header và sidebar chạy sát mép màn hình nên
+     phải tắt bớt từng cạnh bằng inline style, mà !important trong stylesheet
+     lại thắng inline — viền sẽ hiện quanh cả bốn cạnh dù đã ghi 'none'. */
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-sheen);
   border-radius: var(--radius-lg);
+  transition:
+    transform 0.35s var(--ease-out),
+    box-shadow 0.35s var(--ease-out),
+    background-color 0.35s var(--ease-out);
 }
 
-body.dark-theme .glass-card {
-  background: var(--glass-bg-dark);
-  border: none !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+/* Chỉ nâng thẻ khi con trỏ thật sự rê được. Trên cảm ứng, :hover dính lại sau
+   cú chạm khiến thẻ kẹt ở trạng thái nổi. */
+@media (hover: hover) and (pointer: fine) {
+  .glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glass-shadow-hover), var(--glass-sheen);
+  }
 }
 
-.glass-card:hover {
-  /* No hover transform animation */
+/* Thẻ đứng yên: dùng cho header, sidebar và những chỗ nâng lên là sai. */
+.glass-static:hover {
   transform: none !important;
+  box-shadow: var(--glass-shadow), var(--glass-sheen);
 }
 
 /* Premium Gradient Header Cards */
 .gradient-card-primary {
-  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  background: var(--accent-gradient);
   color: #ffffff;
   border-radius: var(--radius-lg);
-  box-shadow: 0 6px 16px -4px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 8px 24px -8px rgba(37, 99, 235, 0.45), var(--glass-sheen);
   border: none !important;
 }
 
@@ -261,7 +399,7 @@ body.dark-theme .glass-card {
   background: linear-gradient(135deg, #059669 0%, #10B981 100%);
   color: #ffffff;
   border-radius: var(--radius-lg);
-  box-shadow: 0 6px 16px -4px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 8px 24px -8px rgba(16, 185, 129, 0.45), var(--glass-sheen);
   border: none !important;
 }
 
@@ -269,7 +407,7 @@ body.dark-theme .glass-card {
   background: linear-gradient(135deg, #DC2626 0%, #F43F5E 100%);
   color: #ffffff;
   border-radius: var(--radius-lg);
-  box-shadow: 0 6px 16px -4px rgba(244, 63, 94, 0.3);
+  box-shadow: 0 8px 24px -8px rgba(244, 63, 94, 0.45), var(--glass-sheen);
   border: none !important;
 }
 
@@ -277,72 +415,251 @@ body.dark-theme .glass-card {
   background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
   color: #ffffff;
   border-radius: var(--radius-lg);
-  box-shadow: 0 6px 16px -4px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 8px 24px -8px rgba(245, 158, 11, 0.45), var(--glass-sheen);
   border: none !important;
 }
 
-/* Antd Custom Overrides for Glass SaaS Look */
-.ant-layout {
+/* Vòng tròn kính nhỏ bọc icon. Cố tình KHÔNG blur: kích thước này quá nhỏ để
+   thấy được hiệu ứng, mà lại nhân số lớp backdrop-filter lên hàng chục. */
+.glass-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.12), var(--glass-sheen);
+}
+
+/* ===================================================================
+   Ant Design — kéo về cùng ngôn ngữ Liquid Glass
+   ===================================================================
+   theme.ts lo phần token (màu, bo góc, font). Phần dưới đây lo những thứ
+   token không với tới: vật liệu kính, viền bán trong suốt, trạng thái focus. */
+
+.ant-layout,
+.ant-layout-sider {
   background: transparent !important;
 }
 
-.ant-modal-content, .ant-drawer-content {
-  border-radius: var(--radius-lg) !important;
-  backdrop-filter: blur(20px) !important;
-  border: none !important;
+/* ---- Lớp nổi: modal, drawer, dropdown, popover, tooltip ---- */
+.ant-modal-content,
+.ant-drawer-content {
+  background: var(--glass-bg-strong) !important;
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow-hover), var(--glass-sheen) !important;
 }
 
-body.dark-theme .ant-modal-content, 
-body.dark-theme .ant-drawer-content {
-  background-color: rgba(15, 23, 42, 0.95) !important;
-  border: none !important;
+.ant-modal-content {
+  border-radius: var(--radius-xl) !important;
 }
 
+/* Lớp phủ sau modal cũng được làm mờ: đây là thứ tạo cảm giác lớp nổi thật sự
+   nằm TRÊN nội dung chứ không phải cạnh nó. */
+.ant-modal-mask,
+.ant-drawer-mask {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  background: rgba(15, 23, 42, 0.28) !important;
+}
+
+body.dark-theme .ant-modal-mask,
+body.dark-theme .ant-drawer-mask {
+  background: rgba(2, 6, 16, 0.55) !important;
+}
+
+.ant-dropdown-menu,
+.ant-popover-inner,
+.ant-select-dropdown,
+.ant-picker-dropdown .ant-picker-panel-container {
+  background: var(--glass-bg-strong) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow-hover), var(--glass-sheen) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.ant-dropdown-menu-item,
+.ant-select-item {
+  border-radius: 10px !important;
+}
+
+/* ---- Thẻ ---- */
 .ant-card {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border-radius: var(--radius-lg) !important;
-  border: none !important;
-  box-shadow: var(--glass-shadow) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow), var(--glass-sheen) !important;
 }
 
-body.dark-theme .ant-card {
-  background: rgba(15, 23, 42, 0.6) !important;
-  border: none !important;
-}
-
-.ant-table {
+/* ---- Bảng ----
+   Khung ngoài là kính, còn từng dòng thì tuyệt đối không: một bảng 50 dòng mà
+   mỗi dòng một backdrop-filter là cách chắc chắn nhất để tụt khung hình. */
+.ant-table,
+.ant-table-thead > tr > th,
+.ant-table-tbody > tr > td {
   background: transparent !important;
 }
 
-body.dark-theme .ant-table-thead > tr > th {
-  background: rgba(30, 41, 59, 0.7) !important;
-  color: #CBD5E1 !important;
+.ant-table-wrapper {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
 }
 
-body.dark-theme .ant-table-tbody > tr > td {
-  border-bottom-color: rgba(51, 65, 85, 0.4) !important;
+.ant-table-thead > tr > th {
+  border-bottom: 1px solid var(--surface-border) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
-body.dark-theme .ant-table-tbody > tr:hover > td {
-  background: rgba(30, 41, 59, 0.5) !important;
+/* antd vẽ một vạch phân cách dọc giữa các ô tiêu đề; trên nền kính nó thành
+   những nét đứt lởm chởm. */
+.ant-table-thead > tr > th::before {
+  display: none !important;
 }
 
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--surface-border) !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: var(--surface-subtle) !important;
+}
+
+/* ---- Ô nhập ---- */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-number,
+.ant-select-selector,
+.ant-picker {
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--surface-border) !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+}
+
+/* Ô nhập có icon hai bên gồm HAI phần tử lồng nhau: `.ant-input-affix-wrapper`
+   bọc ngoài và `.ant-input` thật bên trong. Tô nền cho cả hai sẽ ra một khung
+   trắng nằm trong khung trắng. Chỉ lớp ngoài mang vật liệu; lớp trong trong suốt. */
+.ant-input-affix-wrapper > .ant-input,
+.ant-input-affix-wrapper > .ant-input:focus,
+.ant-input-number .ant-input-number-input {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.ant-input::placeholder,
+.ant-input-number-input::placeholder,
+textarea.ant-input::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.75;
+}
+
+/* Focus phát sáng. Vòng 3px này cũng chính là chỉ báo focus cho người dùng bàn
+   phím, nên độ dày phải đủ thấy chứ không chỉ là trang trí. */
+.ant-input:focus,
+.ant-input-focused,
+.ant-input-affix-wrapper:focus,
+.ant-input-affix-wrapper-focused,
+.ant-input-number-focused,
+.ant-select-focused .ant-select-selector,
+.ant-picker-focused {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
+  background: var(--glass-bg-strong) !important;
+}
+
+/* Điều hướng bằng Tab phải luôn thấy được viền, kể cả trên phần tử không phải
+   ô nhập (nút, thẻ bấm được, item menu). */
+:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* ---- Nút ---- */
+.ant-btn {
+  font-weight: 600;
+  transition:
+    transform 0.18s var(--ease-spring),
+    box-shadow 0.24s var(--ease-out),
+    filter 0.2s ease !important;
+}
+
+.ant-btn-primary {
+  background: var(--accent-gradient) !important;
+  border: none !important;
+  box-shadow: 0 4px 14px -4px rgba(37, 99, 235, 0.5), var(--glass-sheen) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ant-btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+    box-shadow: 0 8px 22px -6px rgba(37, 99, 235, 0.55), var(--glass-sheen) !important;
+  }
+}
+
+/* Nhấn xuống: phản hồi tức thì bằng scale, thứ chạy hoàn toàn trên GPU. */
+.ant-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.ant-btn-default {
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+/* ---- Thông báo nổi ---- */
+.ant-message-notice-content,
+.ant-notification-notice {
+  background: var(--glass-bg-strong) !important;
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow-hover), var(--glass-sheen) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--text-body) !important;
+}
+
+/* ---- Bo góc đồng bộ ----
+   Vật chứa 24-28px, điều khiển 12-14px. Cho ô nhập cùng bo góc với thẻ sẽ ra
+   hình viên thuốc, mất luôn cảm giác đây là chỗ gõ chữ. */
 .ant-btn,
 .ant-input,
 .ant-input-affix-wrapper,
+.ant-input-number,
 .ant-select-selector,
-.ant-modal-content,
+.ant-picker {
+  border-radius: 14px !important;
+}
+
 .ant-drawer-content,
-.ant-card,
-.ant-picker,
-.ant-dropdown-menu,
-.ant-popover-inner {
-  border-radius: 4px !important;
+.ant-segmented,
+.ant-alert {
+  border-radius: var(--radius-lg) !important;
 }
 
 .ant-tag {
-  border-radius: 4px !important;
-  padding: 2px 10px !important;
-  font-weight: 500 !important;
+  border-radius: 999px !important;
+  padding: 2px 12px !important;
+  font-weight: 600 !important;
+  border-color: var(--glass-border) !important;
+}
+
+.ant-progress-inner,
+.ant-progress-bg {
+  border-radius: 999px !important;
 }
 
 /* Modal nổi giữa màn hình ở mọi kích thước, không dính mép trên hay mép dưới. */
@@ -384,9 +701,9 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
 
 /* Pulse Glow Animation */
 @keyframes pulseGlow {
-  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
 }
 
 .glow-active {
@@ -414,13 +731,24 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
      màu sáng ở màn này. Ghim lại bộ token sáng cho phần CSS thuần để
      hai bên không lệch tông khi người dùng đăng xuất lúc đang bật chế
      độ tối (body vẫn mang class dark-theme). */
-  --text-heading: #1E293B;
-  --text-body: #334155;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
-  --surface-elevated: rgba(255, 255, 255, 0.95);
-  --surface-subtle: rgba(248, 250, 252, 0.7);
-  --surface-border: rgba(226, 232, 240, 0.8);
+  --text-heading: #0F172A;
+  --text-body: #1E293B;
+  --text-secondary: #334155;
+  --text-muted: #556377;
+  --surface-elevated: rgba(255, 255, 255, 0.72);
+  --surface-subtle: rgba(255, 255, 255, 0.55);
+  --surface-border: rgba(148, 163, 184, 0.22);
+  /* Nền phải ghim cùng chỗ với các token còn lại. Thiếu đúng dòng này thì
+     `body.dark-theme` vẫn truyền --bg-base tối xuống, và cột form ra một
+     mảng đen trong khi antd vẫn vẽ chữ theo bảng sáng. */
+  --bg-base: #F4F7FB;
+  /* Ghim cả bộ kính: thiếu chúng thì thẻ form lấy `--glass-bg` tối của body
+     khi người dùng đăng xuất lúc đang bật chế độ tối, trong khi antd vẫn vẽ
+     chữ theo bảng sáng — chữ đen trên nền đen. */
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-bg-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
   /* Chốt đúng một màn hình và cho cột form tự cuộn bên trong. Nếu để chiều
      cao chạy theo nội dung, cột hero sẽ cao thấp khác nhau giữa Đăng nhập và
@@ -432,7 +760,11 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
   /* Cột hero rộng hơn một nhịp: nội dung tiếp thị cần chỗ thở, còn form
      chỉ cần đủ cho thẻ 460px. */
   grid-template-columns: 1.05fr 1fr;
-  background: var(--bg-gradient-light);
+  /* Cùng ngôn ngữ với nền app: một lớp phẳng cộng các quầng màu ở góc. */
+  background:
+    radial-gradient(40rem 40rem at 100% 0%, rgba(124, 58, 237, 0.14), transparent 62%),
+    radial-gradient(36rem 36rem at 85% 100%, rgba(6, 182, 212, 0.12), transparent 60%),
+    var(--bg-base);
   color: var(--text-body);
   /* Khi mở từ app đã cài, trang chạy sát mép trên nên phải né thanh trạng thái. */
   padding-top: env(safe-area-inset-top, 0px);
@@ -486,18 +818,6 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.auth-hero__logo {
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.28);
 }
 
 .auth-hero__name {
@@ -592,7 +912,7 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
   width: 26px;
   height: 26px;
   flex-shrink: 0;
-  border-radius: var(--radius-md);
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -612,10 +932,12 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
   width: 100%;
   max-width: 460px;
   padding: 36px 36px 32px;
-  background: var(--surface-elevated);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow-hover), var(--glass-sheen);
 }
 
 .auth-card__title {
@@ -651,7 +973,7 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
 .auth-shell .ant-input-affix-wrapper-focused,
 .auth-shell .ant-input:focus,
 .auth-shell .ant-select-focused .ant-select-selector {
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.16) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16) !important;
 }
 
 .auth-shell .ant-form-item-has-error .ant-input-affix-wrapper-focused,
@@ -666,14 +988,14 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
   font-weight: 700 !important;
   border: none !important;
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
-  box-shadow: 0 6px 16px -4px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 6px 16px -4px rgba(37, 99, 235, 0.35);
   transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
 }
 
 .auth-submit:hover:not(:disabled) {
   transform: translateY(-1px);
   filter: brightness(1.05);
-  box-shadow: 0 10px 22px -6px rgba(79, 70, 229, 0.45);
+  box-shadow: 0 10px 22px -6px rgba(37, 99, 235, 0.45);
 }
 
 .auth-submit:active:not(:disabled) {
@@ -814,12 +1136,17 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
    .ant-modal-content` tô nền tối trong khi antd vẫn vẽ chữ theo bảng sáng
    (AuthPage bị bọc trong getAppTheme(false)) — chữ đen trên nền đen. */
 .auth-modal-wrap .ant-modal-content {
-  background-color: #ffffff !important;
+  /* Kính sáng gần đặc chứ không phải trắng tuyệt đối: giữ được vật liệu chung
+     với phần còn lại của app, mà vẫn đủ đục để chữ đen đọc rõ trên nền tối. */
+  background: rgba(255, 255, 255, 0.92) !important;
 
-  --text-heading: #1E293B;
-  --text-body: #334155;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
+  --text-heading: #0F172A;
+  --text-body: #1E293B;
+  --text-secondary: #334155;
+  --text-muted: #556377;
+  --surface-elevated: rgba(255, 255, 255, 0.72);
+  --surface-border: rgba(148, 163, 184, 0.22);
+  --glass-border: rgba(255, 255, 255, 0.65);
   --tint-income: rgba(34, 197, 94, 0.1);
 }
 
@@ -916,28 +1243,61 @@ body.dark-theme .ant-table-tbody > tr:hover > td {
 
   /* Glass Card Mobile Tweaks */
   .glass-card {
-    border-radius: 16px;
+    border-radius: 20px;
   }
 
   .gradient-card-primary,
   .gradient-card-success,
   .gradient-card-danger,
   .gradient-card-warning {
-    border-radius: 16px;
+    border-radius: 20px;
   }
 
-  /* Touch Targets */
+  /* Vùng chạm tối thiểu 44px theo hướng dẫn của Apple — dưới mức đó ngón tay
+     bắt đầu bấm trượt. */
   .ant-btn {
-    min-height: 40px;
+    min-height: 44px;
   }
 
-  /* Antd Modal Mobile Bottom Sheet Style */
+  /* ---- Modal thành Bottom Sheet ----
+     Trên điện thoại, hộp thoại nổi giữa màn hình nằm ngoài tầm ngón cái. Dán
+     nó xuống đáy, bo hai góc trên, và chừa safe area cho vạch home. */
+  .ant-modal-wrap {
+    padding: 0;
+  }
+
   .ant-modal {
-    max-width: calc(100vw - 24px) !important;
+    max-width: 100vw !important;
+    width: 100vw !important;
+    margin: 0 !important;
+    top: auto !important;
+    /* margin:auto ở quy tắc chung sẽ canh giữa; ở đây phải đẩy hẳn xuống đáy. */
+    margin-top: auto !important;
+    padding-bottom: 0 !important;
   }
 
   .ant-modal-content {
-    padding: 20px 16px !important;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+    border-bottom: none !important;
+    max-height: 88dvh;
+  }
+
+  /* Thanh kéo nhỏ ở mép trên, tín hiệu quen thuộc rằng tấm này vuốt xuống được. */
+  .ant-modal-content::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--surface-border);
+  }
+
+  .ant-modal-header {
+    padding-top: 8px !important;
   }
 
   /* Alert có nút hành động: mặc định antd xếp icon / nội dung / nút trên cùng
@@ -995,7 +1355,7 @@ canvas {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background-color: var(--card-color, #4F46E5);
+  background-color: var(--card-color, #2563EB);
   background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0.35) 100%);
   box-shadow: 0 12px 28px -12px var(--card-shadow, rgba(0, 0, 0, 0.5));
   transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -1113,5 +1473,120 @@ canvas {
   /* Trần 400px của thẻ ngân hàng cũng cắt ngang trên máy màn lớn (~430px). */
   .bank-card {
     max-width: 100%;
+  }
+}
+
+/* ===================================================================
+   Chuyển động
+   ===================================================================
+   Chỉ animate `transform` và `opacity` — hai thuộc tính duy nhất trình duyệt
+   xử lý thẳng trên GPU mà không phải tính lại layout hay vẽ lại. Animate
+   `filter: blur()` hay `backdrop-filter` nhìn ấn tượng nhưng ép GPU vẽ lại
+   toàn vùng mỗi khung hình, và đó chính là chỗ khung hình rơi trên máy yếu. */
+
+@keyframes glassRise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* Chuyển trang. Gắn vào <main> và đổi key theo route để chạy lại mỗi lần đổi
+   trang. Cố ý ngắn (0.28s): chuyển cảnh dài làm app có cảm giác chậm chạp. */
+.page-enter {
+  animation: glassRise 0.28s var(--ease-out) both;
+}
+
+/* Xếp tầng cho các thẻ trong lưới thống kê — mỗi thẻ vào sau thẻ trước một
+   nhịp rất ngắn. Quá 4 thẻ thì dừng xếp tầng, nếu không thẻ cuối đợi quá lâu. */
+.stagger > * {
+  animation: glassRise 0.32s var(--ease-out) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.stagger > *:nth-child(2) { animation-delay: 0.06s; }
+.stagger > *:nth-child(3) { animation-delay: 0.10s; }
+.stagger > *:nth-child(4) { animation-delay: 0.14s; }
+
+/* ---- Logo mở app ----
+   Khoảng 620ms: đủ để mắt bắt được, chưa đủ để thành vật cản. Chỉ phóng nhẹ
+   0.9 → 1 chứ không bật nảy — logo của app tài chính cần điềm đạm. */
+.brand-intro {
+  animation: brandRise 0.62s var(--ease-out) both;
+}
+
+@keyframes brandRise {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Vệt sáng lướt qua mặt kính, vào sau khi logo đã đứng yên. Chạy đúng một lần:
+   vệt sáng lặp vô hạn biến logo thành biển quảng cáo. */
+.brand-sweep {
+  animation: brandSweep 0.72s var(--ease-out) 0.34s both;
+}
+
+@keyframes brandSweep {
+  from { transform: rotate(18deg) translateX(0); }
+  to   { transform: rotate(18deg) translateX(190px); }
+}
+
+/* ===== Tôn trọng cài đặt giảm chuyển động của hệ điều hành =====
+   Người bật cài đặt này có thể đang bị rối loạn tiền đình — chuyển động trượt
+   và phóng to gây chóng mặt thật sự. Giữ lại fade (đổi opacity không gây triệu
+   chứng đó) và bỏ toàn bộ phần dịch chuyển. */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes glassRise {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .glass-card,
+  .ant-btn {
+    transition: none !important;
+  }
+
+  .glass-card:hover,
+  .ant-btn-primary:hover:not(:disabled),
+  .ant-btn:active:not(:disabled) {
+    transform: none !important;
+  }
+
+  .stagger > * {
+    animation-delay: 0s !important;
+  }
+
+  /* Logo vẫn hiện dần bằng opacity, nhưng bỏ phóng to và bỏ hẳn vệt sáng —
+     chuyển động quét ngang là loại dễ gây khó chịu nhất với người nhạy cảm. */
+  .brand-intro {
+    animation: fadeInQuick 0.3s ease-out both;
+  }
+
+  .brand-sweep {
+    display: none;
+  }
+}
+
+/* ===== Máy không hỗ trợ backdrop-filter =====
+   Không có nó thì `--glass-bg` ở mức 62% chỉ còn là một mảng trắng đùng đục và
+   chữ tụt tương phản. Trả về bề mặt gần đặc để nội dung vẫn đọc được. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --glass-bg: rgba(255, 255, 255, 0.94);
+    --glass-bg-strong: rgba(255, 255, 255, 0.98);
+  }
+
+  body.dark-theme {
+    --glass-bg: rgba(30, 41, 59, 0.94);
+    --glass-bg-strong: rgba(30, 41, 59, 0.98);
   }
 }

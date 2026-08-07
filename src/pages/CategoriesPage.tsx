@@ -21,7 +21,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
     addCategory({
       name: values.name,
       type: values.type,
-      color: values.color || '#4F46E5',
+      color: values.color || '#2563EB',
       icon: values.type === TX_TYPE.EXPENSE ? 'ShoppingBag' : 'Coins',
       order: categories.length + 1,
     });
@@ -153,7 +153,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ state }) => {
           </Form.Item>
 
           <Form.Item name="color" label={t('cats.field_color')}>
-            <Input type="color" defaultValue="#4F46E5" style={{ width: 80, height: 40 }} />
+            <Input type="color" defaultValue="#2563EB" style={{ width: 80, height: 40 }} />
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>

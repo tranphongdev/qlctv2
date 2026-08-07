@@ -216,10 +216,6 @@ function isErrorCode(value: unknown): value is AIErrorCode {
   return typeof value === 'string' && (ERROR_CODES as string[]).includes(value);
 }
 
-/**
- * supabase-js gói phản hồi lỗi vào `error.context` (một Response chưa đọc). Mã lỗi
- * thật nằm trong body, còn status chỉ là phương án dự phòng khi body không đọc được.
- */
 async function failureOf(error: unknown): Promise<{ code: AIErrorCode; detail?: string }> {
   const response = (error as { context?: Response } | null)?.context;
   if (!response || typeof response.json !== 'function') return { code: 'network' };

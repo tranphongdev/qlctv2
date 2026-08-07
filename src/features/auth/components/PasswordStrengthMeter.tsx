@@ -18,7 +18,7 @@ interface PasswordStrengthMeterProps {
 const STRENGTH_COLORS = {
   weak: '#EF4444',
   medium: '#F59E0B',
-  strong: '#4F46E5',
+  strong: '#2563EB',
   very_strong: '#22C55E',
 } as const;
 

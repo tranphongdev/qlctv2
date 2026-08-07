@@ -158,7 +158,7 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   userEmail: '',
   avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=UserDemo',
   theme: 'light',
-  accentColor: '#4F46E5',
+  accentColor: '#2563EB',
   currency: 'VND',
   language: 'vi',
   timezone: 'Asia/Ho_Chi_Minh',

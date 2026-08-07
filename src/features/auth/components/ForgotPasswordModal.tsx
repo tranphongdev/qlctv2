@@ -54,7 +54,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
       wrapClassName="auth-modal-wrap"
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <KeyRound size={20} color="#4F46E5" />
+          <KeyRound size={20} color="#2563EB" />
           <span style={{ fontWeight: 700, fontSize: 16 }}>{t('forgot.title')}</span>
         </div>
       }

@@ -69,7 +69,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ state }) => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: cat?.color ? `${cat.color}20` : '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <DynamicIcon name={cat?.icon || 'CircleDollarSign'} color={cat?.color || '#4F46E5'} size={18} />
+                        <DynamicIcon name={cat?.icon || 'CircleDollarSign'} color={cat?.color || '#2563EB'} size={18} />
                       </div>
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>{tx.note || cat?.name}</div>

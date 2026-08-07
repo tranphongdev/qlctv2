@@ -236,7 +236,11 @@ export default function App() {
                 onSelectTab={setActiveTab}
               />
 
-              <main className="app-main" style={{ paddingTop: 84, paddingLeft: 24, paddingRight: 24, paddingBottom: 20, minHeight: '80vh', width: '100%', maxWidth: '100vw' }}>
+              <main
+                key={location.pathname}
+                className="app-main page-enter"
+                style={{ paddingTop: 84, paddingLeft: 24, paddingRight: 24, paddingBottom: 20, minHeight: '80vh', width: '100%', maxWidth: '100vw' }}
+              >
                 <Routes>
                   <Route
                     path={TAB_PATHS.dashboard}

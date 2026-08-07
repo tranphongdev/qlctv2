@@ -1,6 +1,7 @@
 import React from 'react';
 import { Layout, Button, Drawer } from 'antd';
 import { HintTooltip } from './HintTooltip';
+import { BrandMark } from './BrandMark';
 import { t } from '~/i18n';
 import {
   LayoutDashboard,
@@ -66,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       trigger={null}
       width={240}
       collapsedWidth={80}
-      className="glass-card desktop-only"
+      className="glass-card glass-static desktop-only"
       style={{
         margin: 0,
         borderRadius: 0,
@@ -77,7 +78,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         zIndex: 10,
         display: 'flex',
         flexDirection: 'column',
-        borderRight: '1px solid rgba(148, 163, 184, 0.15)',
+        // Chỉ giữ cạnh phải: sidebar chạy sát ba mép màn hình nên viền trên,
+        // dưới và trái sẽ thành ba nét thừa dính vào cạnh cửa sổ.
+        borderTop: 'none',
+        borderBottom: 'none',
+        borderLeft: 'none',
+        borderRight: '1px solid var(--glass-border)',
+        boxShadow: 'none',
       }}
     >
       {/* Brand Header */}
@@ -88,53 +95,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: collapsed ? 'center' : 'space-between',
-          borderBottom: '1px solid rgba(148, 163, 184, 0.15)',
+          borderBottom: '1px solid var(--surface-border)',
           flexShrink: 0,
         }}
       >
         {!collapsed ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 12,
-                background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontWeight: 800,
-                fontSize: 18,
-                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
-              }}
-            >
-              $
-            </div>
+            <BrandMark size={36} style={{ boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', borderRadius: 9, flexShrink: 0 }} />
             <div>
-              <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.3px', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.3px', background: 'linear-gradient(135deg, #2563EB, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 Financial
               </div>
               <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>{t('sidebar.tagline')}</div>
             </div>
           </div>
         ) : (
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 12,
-              background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontWeight: 800,
-              fontSize: 18,
-            }}
-          >
-            $
-          </div>
+          <BrandMark size={36} title="Financial" />
         )}
       </div>
 
@@ -152,15 +128,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     alignItems: 'center',
                     justifyContent: collapsed ? 'center' : 'space-between',
                     padding: collapsed ? '12px 0' : '10px 16px',
-                    borderRadius: 14,
+                    borderRadius: 16,
                     cursor: 'pointer',
-                    background: isActive
-                      ? 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)'
-                      : 'transparent',
-                    color: isActive ? '#ffffff' : 'var(--text-muted)',
+                    // Item đang chọn là một viên kính nổi hẳn lên khỏi mặt sidebar,
+                    // với dải nhấn và bóng riêng. Item thường để trong suốt hoàn
+                    // toàn — tô nền cho cả 11 mục sẽ biến sidebar thành một cột sọc.
+                    background: isActive ? 'var(--accent-gradient)' : 'transparent',
+                    color: isActive ? '#ffffff' : 'var(--text-secondary)',
                     fontWeight: isActive ? 600 : 500,
-                    transition: 'all 0.2s ease',
-                    boxShadow: isActive ? '0 6px 16px rgba(79, 70, 229, 0.35)' : 'none',
+                    border: isActive ? '1px solid rgba(255, 255, 255, 0.28)' : '1px solid transparent',
+                    boxShadow: isActive
+                      ? '0 8px 20px -6px rgba(37, 99, 235, 0.45), var(--glass-sheen)'
+                      : 'none',
+                    transition:
+                      'background-color 0.22s var(--ease-out), color 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) e.currentTarget.style.background = 'var(--surface-subtle)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) e.currentTarget.style.background = 'transparent';
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -176,7 +163,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         padding: '2px 6px',
                         borderRadius: 99,
                         background: isActive ? '#ffffff' : '#EF4444',
-                        color: isActive ? '#4F46E5' : '#ffffff',
+                        color: isActive ? '#2563EB' : '#ffffff',
                       }}
                     >
                       {item.badge}
@@ -193,7 +180,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div
         style={{
           padding: 12,
-          borderTop: '1px solid rgba(148, 163, 184, 0.15)',
+          borderTop: '1px solid var(--surface-border)',
           display: 'flex',
           justifyContent: 'center',
         }}
@@ -236,24 +223,9 @@ export const MobileSidebarDrawer: React.FC<MobileSidebarDrawerProps> = ({
       {/* Drawer Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, marginBottom: 12, borderBottom: '1px solid rgba(148, 163, 184, 0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 12,
-              background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontWeight: 800,
-              fontSize: 18,
-            }}
-          >
-            $
-          </div>
+          <BrandMark size={36} />
           <div>
-            <div style={{ fontWeight: 800, fontSize: 16, background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <div style={{ fontWeight: 800, fontSize: 16, background: 'linear-gradient(135deg, #2563EB, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Financial
             </div>
             <div style={{ fontSize: 11, color: '#94a3b8' }}>{t('sidebar.tagline')}</div>
@@ -282,7 +254,7 @@ export const MobileSidebarDrawer: React.FC<MobileSidebarDrawerProps> = ({
                 borderRadius: 14,
                 cursor: 'pointer',
                 background: isActive
-                  ? 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)'
+                  ? 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)'
                   : 'transparent',
                 color: isActive ? '#ffffff' : 'var(--text-muted)',
                 fontWeight: isActive ? 600 : 500,
@@ -301,7 +273,7 @@ export const MobileSidebarDrawer: React.FC<MobileSidebarDrawerProps> = ({
                     padding: '2px 6px',
                     borderRadius: 99,
                     background: isActive ? '#ffffff' : '#EF4444',
-                    color: isActive ? '#4F46E5' : '#ffffff',
+                    color: isActive ? '#2563EB' : '#ffffff',
                   }}
                 >
                   {item.badge}

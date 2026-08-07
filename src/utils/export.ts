@@ -71,7 +71,7 @@ export function printFinancialReport(title: string, summary: { income: number; e
       <title>${title}</title>
       <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 24px; color: #1e293b; }
-        h1 { font-size: 24px; color: #4f46e5; margin-bottom: 8px; }
+        h1 { font-size: 24px; color: #2563eb; margin-bottom: 8px; }
         .summary-box { display: flex; gap: 20px; margin: 20px 0; background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; }
         .stat { flex: 1; text-align: center; }
         .stat-label { font-size: 12px; color: #64748b; text-transform: uppercase; }
