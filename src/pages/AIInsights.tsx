@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Button, Empty, Input, Skeleton, Space, Spin, Tag, Tooltip } from 'antd';
-import { Sparkles, Send, BrainCircuit, TrendingUp, Lightbulb, Bot, RefreshCw, ShieldCheck, History } from 'lucide-react';
+import { Sparkles, Send, BrainCircuit, TrendingUp, Lightbulb, Bot, RefreshCw, ShieldCheck } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { AppState } from '~/types';
 import { t } from '~/i18n';
@@ -60,8 +60,10 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
   const [cards, setCards] = useState<InsightCard[] | null>(null);
   const [cardsLoading, setCardsLoading] = useState(false);
   const [cardsError, setCardsError] = useState<Failure | null>(null);
-  /** Thẻ đang hiện được sinh từ số liệu cũ hơn số liệu hiện tại. */
-  const [stale, setStale] = useState(false);
+  /* Thẻ đang hiện được sinh từ số liệu cũ hơn số liệu hiện tại.
+     Bỏ trống chỗ đọc vì thông báo "số liệu đã cũ" đã được gỡ khỏi giao diện; state
+     và hai lần setStale bên dưới giữ nguyên để bật lại chỉ cần lấy lại biến này. */
+  const [, setStale] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
 
   const [query, setQuery] = useState('');
@@ -199,23 +201,6 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
 
     return (
       <>
-        {/* Thẻ sinh từ số liệu cũ. Nói thẳng ra thay vì âm thầm hiện số đã lỗi
-            thời — người dùng đang nhìn một bản phân tích không khớp Dashboard. */}
-        {stale && !cardsError && (
-          <Alert
-            type="info"
-            icon={<History size={16} />}
-            showIcon
-            title={t('ai.stale_title')}
-            description={t('ai.stale_body')}
-            action={
-              <Button size="small" onClick={() => setReloadToken((n) => n + 1)}>
-                {t('ai.refresh')}
-              </Button>
-            }
-          />
-        )}
-
         {cardsError && (
           <Alert
             type={cardsError.code === 'not_configured' ? 'info' : 'warning'}
@@ -343,6 +328,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
             onClick={handleSend}
             loading={sending}
             disabled={!isAIAvailable || !query.trim()}
+            style={{ marginLeft: 8 }}
           >
             {t('ai.send')}
           </Button>

@@ -326,6 +326,14 @@
   "dash.view_detail": "Xem chi tiết",
   "dash.by_category": "Chi tiêu theo danh mục",
   "dash.view_all": "Xem tất cả",
+  "dash.today_title": "Hôm nay",
+  "dash.today_expense": "Đã chi",
+  "dash.today_income": "Đã thu",
+  "dash.today_count_label": "Số giao dịch",
+  "dash.today_empty": "Hôm nay chưa ghi giao dịch nào",
+  "dash.today_above_avg": "Cao hơn {pct}% so với mức chi trung bình mỗi ngày tháng này",
+  "dash.today_below_avg": "Thấp hơn {pct}% so với mức chi trung bình mỗi ngày tháng này",
+
   "dash.recent_tx": "Giao dịch gần đây",
   "dash.add_new": "Thêm mới",
   "dash.goals_title": "Mục tiêu tiết kiệm",
@@ -417,6 +425,9 @@
   "cal.subtitle": "Nhấp vào ngày bất kỳ trên lịch để xem danh sách giao dịch thu chi",
   "cal.modal_title": "Giao dịch ngày {date}",
   "cal.empty": "Không có giao dịch nào trong ngày này",
+  "cal.total_income": "Thu trong ngày",
+  "cal.total_expense": "Chi trong ngày",
+  "cal.total_net": "Chênh lệch",
 
   "ana.rank_excellent": "XUẤT SẮC (A+)",
   "ana.rank_very_good": "RẤT TỐT (A)",
@@ -633,6 +644,8 @@
 
   "format.billion": "tỷ",
   "format.million": "triệu",
+  "format.billion_short": "tỷ",
+  "format.million_short": "tr",
 
 
   "app.tx_deleted": "Đã xóa giao dịch.",

@@ -38,6 +38,36 @@ export function formatCompactNumber(amountVnd: number, currency: CurrencyCode = 
   return val.toFixed(abs >= 100 ? 0 : 2);
 }
 
+/** Bỏ phần thập phân khi số đã đủ lớn: "15tr" chứ không phải "15.0tr". */
+function trimDecimal(val: number): string {
+  return Math.abs(val) >= 10 ? Math.round(val).toString() : val.toFixed(1);
+}
+
+/**
+ * Bản cực ngắn của formatCompactNumber, cho những chỗ chỉ rộng vài chục pixel —
+ * cụ thể là ô ngày trên lịch tháng ở màn hình điện thoại (khoảng 44px).
+ *
+ * Khác biệt so với bản compact: đơn vị viết tắt và không có khoảng trắng, nên
+ * "15.0 triệu" (50px) rút còn "15tr" (24px). Đừng dùng cho nhãn trục biểu đồ —
+ * ở đó chữ đầy đủ dễ đọc hơn và có đủ chỗ.
+ */
+export function formatTinyNumber(amountVnd: number, currency: CurrencyCode = getActiveCurrency()): string {
+  const val = fromVnd(amountVnd, currency);
+  const abs = Math.abs(val);
+
+  if (currency === 'VND') {
+    if (abs >= 1_000_000_000) return trimDecimal(val / 1_000_000_000) + t('format.billion_short');
+    if (abs >= 1_000_000) return trimDecimal(val / 1_000_000) + t('format.million_short');
+    if (abs >= 1_000) return Math.round(val / 1_000) + 'k';
+    return Math.round(val).toString();
+  }
+
+  if (abs >= 1_000_000_000) return trimDecimal(val / 1_000_000_000) + 'B';
+  if (abs >= 1_000_000) return trimDecimal(val / 1_000_000) + 'M';
+  if (abs >= 1_000) return trimDecimal(val / 1_000) + 'K';
+  return Math.round(val).toString();
+}
+
 export function todayStr(): string {
   return dayjs().format('YYYY-MM-DD');
 }

@@ -326,7 +326,15 @@
   "dash.view_detail": "View details",
   "dash.by_category": "Expenses by category",
   "dash.view_all": "View all",
-  "dash.recent_tx": "Recent transactions",
+  "dash.today_title": "Today",
+  "dash.today_expense": "Spent",
+  "dash.today_income": "Received",
+  "dash.today_count_label": "Transactions",
+  "dash.today_empty": "No transactions recorded today",
+  "dash.today_above_avg": "{pct}% above your average daily spend this month",
+  "dash.today_below_avg": "{pct}% below your average daily spend this month",
+
+  "dash.recent_tx":"Recent transactions",
   "dash.add_new": "Add",
   "dash.goals_title": "Savings goals",
   "dash.empty_tx": "No transactions yet",
@@ -417,6 +425,9 @@
   "cal.subtitle": "Click any day on the calendar to see its income and expense transactions",
   "cal.modal_title": "Transactions on {date}",
   "cal.empty": "No transactions on this day",
+  "cal.total_income": "Income today",
+  "cal.total_expense": "Spent today",
+  "cal.total_net": "Net",
 
   "ana.rank_excellent": "EXCELLENT (A+)",
   "ana.rank_very_good": "VERY GOOD (A)",
@@ -633,6 +644,8 @@
 
   "format.billion": "B",
   "format.million": "M",
+  "format.billion_short": "B",
+  "format.million_short": "M",
 
 
   "app.tx_deleted": "Transaction deleted.",

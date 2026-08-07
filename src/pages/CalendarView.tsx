@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, Drawer, List } from 'antd';
 import type { Dayjs } from 'dayjs';
 import { TX_TYPE, type AppState, type Category, type Transaction, type Wallet } from '~/types';
-import { formatMoney } from '~/utils/format';
+import { formatMoney, formatTinyNumber } from '~/utils/format';
 import { resolveCategory } from '~/utils/categories';
 import { DynamicIcon } from '~/components/DynamicIcon';
 import { TransactionDetailModal } from '~/components/TransactionDetailModal';
@@ -21,23 +21,42 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ state, onOpenAddModa
   const categoriesMap = categories.reduce((acc, c) => ({ ...acc, [c.id]: c }), {} as Record<string, Category>);
   const walletsMap = wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>);
 
-  const dateCellRender = (value: Dayjs) => {
-    const dateStr = value.format('YYYY-MM-DD');
+  /** Tổng thu / chi của một ngày. */
+  const totalsOf = (dateStr: string) => {
     const dayTxs = transactions.filter((t) => t.date === dateStr);
-    if (dayTxs.length === 0) return null;
+    return {
+      count: dayTxs.length,
+      income: dayTxs.filter((t) => t.type === TX_TYPE.INCOME).reduce((a, b) => a + b.amount, 0),
+      expense: dayTxs.filter((t) => t.type === TX_TYPE.EXPENSE).reduce((a, b) => a + b.amount, 0),
+    };
+  };
 
-    const inc = dayTxs.filter((t) => t.type === TX_TYPE.INCOME).reduce((a, b) => a + b.amount, 0);
-    const exp = dayTxs.filter((t) => t.type === TX_TYPE.EXPENSE).reduce((a, b) => a + b.amount, 0);
+  const dateCellRender = (value: Dayjs) => {
+    const { count, income, expense } = totalsOf(value.format('YYYY-MM-DD'));
+    if (count === 0) return null;
 
     return (
-      <div style={{ fontSize: 10 }}>
-        {inc > 0 && <div style={{ color: '#16A34A', fontWeight: 700 }}>+{formatMoney(inc)}</div>}
-        {exp > 0 && <div style={{ color: '#DC2626', fontWeight: 700 }}>-{formatMoney(exp)}</div>}
+      /* Số rút gọn ("500k", "15.0 triệu") chứ không phải số đầy đủ: một ô lịch
+         trên điện thoại chỉ rộng chừng 48px, còn "+15.000.000 ₫" cần gấp ba lần
+         thế — phần đuôi bị cắt và người dùng đọc ra "+15.0" rồi không hiểu là bao
+         nhiêu. Con số chính xác nằm ở ngăn kéo bên dưới, chỗ có đủ chỗ để đọc. */
+      <div style={{ fontSize: 10, lineHeight: 1.35, overflow: 'hidden' }}>
+        {income > 0 && (
+          <div style={{ color: 'var(--color-income)', fontWeight: 700, whiteSpace: 'nowrap' }}>
+            +{formatTinyNumber(income)}
+          </div>
+        )}
+        {expense > 0 && (
+          <div style={{ color: 'var(--color-expense)', fontWeight: 700, whiteSpace: 'nowrap' }}>
+            -{formatTinyNumber(expense)}
+          </div>
+        )}
       </div>
     );
   };
 
   const selectedTxs = selectedDate ? transactions.filter((t) => t.date === selectedDate) : [];
+  const dayTotals = selectedDate ? totalsOf(selectedDate) : null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -61,6 +80,42 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ state, onOpenAddModa
         onClose={() => setSelectedDate(null)}
         open={!!selectedDate}
       >
+        {/* Tổng của ngày, đặt trên danh sách. Trước đây ngăn kéo chỉ liệt kê từng
+            bút toán, muốn biết hôm đó thu chi bao nhiêu thì phải tự cộng nhẩm. */}
+        {dayTotals && dayTotals.count > 0 && (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 8,
+              marginBottom: 16,
+              padding: 14,
+              borderRadius: 14,
+              background: 'var(--surface-subtle)',
+              border: '1px solid var(--surface-border)',
+            }}
+          >
+            {([
+              [t('cal.total_income'), dayTotals.income, 'var(--color-income)', '+'],
+              [t('cal.total_expense'), dayTotals.expense, 'var(--color-expense)', '-'],
+              [
+                t('cal.total_net'),
+                dayTotals.income - dayTotals.expense,
+                dayTotals.income >= dayTotals.expense ? 'var(--color-income)' : 'var(--color-expense)',
+                dayTotals.income >= dayTotals.expense ? '+' : '-',
+              ],
+            ] as const).map(([label, value, color, sign]) => (
+              <div key={label} style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>{label}</div>
+                {/* Số chênh lệch đã mang dấu sẵn, nên lấy trị tuyệt đối để không ra "--95.000". */}
+                <div style={{ fontSize: 13, fontWeight: 700, color, wordBreak: 'break-word' }}>
+                  {value === 0 ? formatMoney(0) : `${sign}${formatMoney(Math.abs(value))}`}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {selectedTxs.length === 0 ? (
           <div style={{ color: '#94a3b8', textAlign: 'center', marginTop: 40 }}>{t('cal.empty')}</div>
         ) : (

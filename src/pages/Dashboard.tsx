@@ -72,6 +72,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onD
   const balanceChangePct =
     currentMonthTxs.length > 0 && openingBalance > 0 ? (netCashFlow / openingBalance) * 100 : null;
 
+  /* ---- Hôm nay ----
+     Tách hẳn khỏi bộ số theo tháng ở trên: `activeTxs` rơi về TOÀN BỘ giao dịch
+     khi tháng này chưa có gì, dùng nó để tính trung bình ngày sẽ trộn số của
+     những tháng khác vào và cho ra một mốc so sánh vô nghĩa. */
+  const todayKey = dayjs().format('YYYY-MM-DD');
+  const todayTxs = transactions.filter((t) => t.date === todayKey);
+  const todayIncome = todayTxs.filter((t) => t.type === TX_TYPE.INCOME).reduce((a, b) => a + b.amount, 0);
+  const todayExpense = todayTxs.filter((t) => t.type === TX_TYPE.EXPENSE).reduce((a, b) => a + b.amount, 0);
+
+  const monthExpenseSoFar = currentMonthTxs
+    .filter((t) => t.type === TX_TYPE.EXPENSE)
+    .reduce((a, b) => a + b.amount, 0);
+  // Chia cho số ngày ĐÃ trôi qua chứ không phải số ngày của tháng: đầu tháng mà
+  // chia cho 31 thì trung bình luôn thấp giả tạo và hôm nào cũng bị chấm là "cao".
+  const daysElapsed = dayjs().date();
+  const avgDailyExpense = monthExpenseSoFar / daysElapsed;
+  /** Chỉ so sánh khi đã đủ vài ngày làm nền, còn lại không nói gì. */
+  const expenseVsAvgPct =
+    daysElapsed >= 3 && avgDailyExpense > 0
+      ? Math.round(((todayExpense - avgDailyExpense) / avgDailyExpense) * 100)
+      : null;
+
   const incomeSourceCount = new Set(
     activeTxs.filter((t) => t.type === TX_TYPE.INCOME).map((t) => t.category),
   ).size;
@@ -217,6 +239,69 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onD
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* ---- Dải "Hôm nay" ----
+          Đặt trên bốn thẻ tháng chứ không chen thành thẻ thứ năm: nó ở một thang
+          thời gian khác, và lưới bốn thẻ đang chia đều `auto-fit` nên thêm một
+          thẻ nữa sẽ vỡ thành 4+1 lệch hàng trên màn rộng. */}
+      <div
+        className="glass-card"
+        style={{
+          padding: '16px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 16,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            {t('dash.today_title')}
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
+            {weekdayOf(todayKey)}, {formatDate(todayKey)}
+          </div>
+        </div>
+
+        {todayTxs.length === 0 ? (
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('dash.today_empty')}</div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>{t('dash.today_expense')}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-expense)', letterSpacing: '-0.5px' }}>
+                -{formatMoney(todayExpense)}
+              </div>
+              {expenseVsAvgPct !== null && (
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                  {expenseVsAvgPct >= 0
+                    ? t('dash.today_above_avg', { pct: expenseVsAvgPct })
+                    : t('dash.today_below_avg', { pct: Math.abs(expenseVsAvgPct) })}
+                </div>
+              )}
+            </div>
+
+            {todayIncome > 0 && (
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>{t('dash.today_income')}</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-income)', letterSpacing: '-0.5px' }}>
+                  +{formatMoney(todayIncome)}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>{t('dash.today_count_label')}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px' }}>{todayTxs.length}</div>
+            </div>
+          </div>
+        )}
+
+        <Button size="small" icon={<CalendarIcon size={14} />} onClick={() => onSelectTab('calendar')}>
+          {t('dash.view_detail')}
+        </Button>
+      </div>
+
       {/* 4 Big Overview Stat Cards — .stagger cho bốn thẻ vào lệch nhau một nhịp
           rất ngắn, đủ để mắt đọc chúng như một chuỗi thay vì một khối bật ra. */}
       <div
