@@ -12,8 +12,15 @@
  */
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
-/** Đổi model không cần sửa code: `supabase secrets set GEMINI_MODEL=gemini-2.5-pro`. */
-const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
+/**
+ * Đổi model không cần sửa code: `npx supabase secrets set GEMINI_MODEL=...`.
+ *
+ * Google khoá model cũ với project mới SỚM HƠN ngày shutdown họ công bố — bản 2.5
+ * đã chết với project mới từ 09/07/2026 trong khi lịch ghi 16/10/2026. Khi thấy lỗi
+ * "no longer available to new users" thì chỉ cần đặt lại secret này, không phải
+ * deploy lại.
+ */
+const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.6-flash';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 // Supabase tự tiêm sẵn hai biến này, không cần `secrets set`. Cố tình KHÔNG đặt
@@ -253,10 +260,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const generationConfig: Record<string, unknown> = {
     temperature: 0.4,
-    maxOutputTokens: 1024,
-    // Số liệu đã được tổng hợp sẵn ở client, model chỉ diễn đạt lại — tắt thinking
-    // để giữ độ trễ thấp và chi phí gọn. Tăng lên nếu muốn phân tích sâu hơn.
-    thinkingConfig: { thinkingBudget: 0 },
+    // Gemini 3 bật thinking mặc định và token suy nghĩ TÍNH VÀO hạn mức này. Để
+    // 1024 như thời 2.5 thì thinking ăn hết sạch, trả về rỗng kèm finishReason
+    // MAX_TOKENS. Ba thẻ chỉ dài vài chục chữ, phần dư là chỗ cho thinking thở.
+    maxOutputTokens: 8192,
+    // Cố tình KHÔNG khai báo thinkingConfig. `thinkingBudget` là tham số thời 2.5;
+    // Gemini 3 dùng `thinking_level`, mà tài liệu mới chỉ xác nhận field đó cho
+    // Interactions API chứ chưa phải generateContent. Gửi field sai tên thì Gemini
+    // trả 400 "Unknown name" — hỏng cả tính năng chỉ để tiết kiệm ít token.
   };
 
   let contents: Array<{ role: string; parts: GeminiPart[] }>;

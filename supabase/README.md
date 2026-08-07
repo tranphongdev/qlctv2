@@ -36,14 +36,28 @@ npx supabase functions deploy ai-insights
 Đừng để dấu `<...>` trong lệnh: bash hiểu `<` là chuyển hướng file và sẽ báo
 `syntax error near unexpected token`.
 
-Đổi model không cần sửa code:
+## Khi Google khai tử model
+
+Đây là việc **sẽ** xảy ra lại, nên biết trước cho đỡ mất thời gian. Triệu chứng: giao
+diện hiện `This model models/... is no longer available to new users`.
+
+Google khoá model với project mới sớm hơn ngày shutdown họ công bố — bản `2.5-flash`
+đã chết với project mới từ 09/07/2026 trong khi lịch chính thức ghi 16/10/2026. Sửa
+bằng một lệnh, không cần deploy lại:
 
 ```bash
-npx supabase secrets set GEMINI_MODEL=gemini-2.5-pro
+npx supabase secrets set GEMINI_MODEL=tên_model_mới
 ```
 
-> `gemini-2.5-pro` không tắt được thinking. Function đang đặt `thinkingBudget: 0`,
-> nên nếu đổi sang Pro hãy bỏ dòng đó trong `generationConfig`.
+Danh sách model hiện hành: <https://ai.google.dev/gemini-api/docs/models>
+
+Mặc định đang là `gemini-3.6-flash`.
+
+> **Đổi sang đời model khác thì để ý `thinkingConfig`.** Bản 2.5 dùng
+> `thinkingBudget` (đặt 0 là tắt hẳn), Gemini 3 dùng `thinking_level`. Function cố
+> tình không khai báo field nào cả để chạy được trên mọi đời — đổi lại là chấp nhận
+> mức thinking mặc định. Muốn tối ưu chi phí thì thêm đúng field của đời model đang
+> dùng; sai tên là ăn 400 `Unknown name`.
 
 ## 4. Kiểm tra
 
