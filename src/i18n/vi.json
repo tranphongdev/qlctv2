@@ -424,7 +424,10 @@
 
   "ai.err_not_configured": "Trợ lý AI chưa được cấu hình. Cần deploy Edge Function `ai-insights` và đặt khoá GEMINI_API_KEY.",
   "ai.err_unauthorized": "Phiên đăng nhập đã hết hạn. Đăng nhập lại rồi thử tiếp nhé.",
-  "ai.err_rate_limited": "Bạn hỏi hơi nhanh rồi. Chờ khoảng một phút rồi thử lại.",
+  "ai.stale_title": "Số liệu đã thay đổi kể từ lần phân tích này",
+  "ai.stale_body": "Các thẻ dưới đây được sinh từ dữ liệu cũ hơn. App cố tình không tự phân tích lại để tiết kiệm hạn mức AI — bấm nút bên cạnh khi bạn thực sự cần bản mới.",
+
+  "ai.err_rate_limited": "Đã chạm hạn mức AI. Gói miễn phí của Gemini chỉ cho một số lượt mỗi ngày — chờ ít phút rồi thử lại, hoặc bật thanh toán trong Google AI Studio.",
   "ai.err_blocked": "Nội dung này bị bộ lọc an toàn từ chối. Thử diễn đạt cách khác xem sao.",
   "ai.err_upstream": "Trợ lý AI đang không phản hồi. Thử lại sau ít phút.",
   "ai.err_network": "Không kết nối được tới trợ lý AI. Kiểm tra lại mạng giúp tôi.",

@@ -373,7 +373,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Supabase Connection Card */}
           <div className="glass-card" style={{ padding: 24 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Server size={20} color="#10B981" />
                 <span>{t('settings.supabase_section')}</span>

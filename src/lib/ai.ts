@@ -274,7 +274,70 @@ function parseCards(raw: unknown): InsightCard[] {
   );
 }
 
-export async function fetchInsightCards(state: AppState): Promise<AIResult<InsightCard[]>> {
+/* -------------------------------------------------------------------------- */
+/* Ba thẻ tóm tắt: khoá, bộ nhớ đệm bền, gộp request trùng                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Hạn mức free tier của Gemini rất hẹp (hàng chục request), nên mỗi lượt gọi
+ * phải đáng giá. Ba lớp bảo vệ dưới đây, theo thứ tự rẻ dần:
+ *
+ * 1. `insightsKey()` — vân tay số liệu. Dữ liệu không đổi thì không gọi lại.
+ * 2. localStorage   — sống qua reload và qua HMR lúc phát triển. Bộ đệm chỉ nằm
+ *    trong RAM sẽ bay sạch mỗi lần sửa một dòng CSS, và đó là cách nhanh nhất
+ *    để đốt hết hạn mức trong một buổi chiều.
+ * 3. `inflight`     — gộp các lượt gọi trùng khoá. StrictMode ở chế độ dev cố ý
+ *    gắn rồi tháo rồi gắn lại component, tức effect chạy hai lần; không có lớp
+ *    này thì mỗi lần mở trang tốn đúng hai request thay vì một.
+ */
+
+const CACHE_KEY = 'financial.ai-insights.v1';
+const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+
+/** Vân tay của toàn bộ số liệu sẽ gửi đi, kèm ngôn ngữ vì câu chữ phụ thuộc nó. */
+export function insightsKey(state: AppState): string {
+  return JSON.stringify({ lang: getActiveLang(), context: buildFinancialContext(state) });
+}
+
+interface CacheEntry {
+  key: string;
+  cards: InsightCard[];
+  at: number;
+}
+
+function readCache(): CacheEntry | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+
+    const entry = JSON.parse(raw) as CacheEntry;
+    if (!entry?.key || !Array.isArray(entry.cards) || typeof entry.at !== 'number') return null;
+    if (Date.now() - entry.at > CACHE_TTL_MS) return null;
+
+    return entry;
+  } catch {
+    // JSON hỏng hoặc trình duyệt chặn localStorage (chế độ riêng tư). Coi như
+    // chưa có đệm — mất một lượt gọi, không phải mất tính năng.
+    return null;
+  }
+}
+
+/**
+ * Kết quả đã lưu, kèm cờ cho biết nó có còn khớp số liệu hiện tại không.
+ *
+ * Thẻ cũ vẫn được hiện ra khi số liệu đã đổi, thay vì tự động gọi lại: người
+ * dùng thêm một giao dịch không đáng để tiêu một lượt trong hạn mức. Giao diện
+ * gắn nhãn "đã cũ" và để họ tự quyết định bấm phân tích lại.
+ */
+export function cachedInsights(key: string): { cards: InsightCard[]; stale: boolean } | null {
+  const entry = readCache();
+  if (!entry) return null;
+  return { cards: entry.cards, stale: entry.key !== key };
+}
+
+const inflight = new Map<string, Promise<AIResult<InsightCard[]>>>();
+
+async function requestInsights(state: AppState, key: string): Promise<AIResult<InsightCard[]>> {
   const result = await invoke<{ cards?: unknown }>({ ...baseBody(state), mode: 'insights' });
   if (!result.ok) return result;
 
@@ -283,7 +346,27 @@ export async function fetchInsightCards(state: AppState): Promise<AIResult<Insig
     return { ok: false, code: 'upstream_error', detail: 'no usable card in response' };
   }
 
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ key, cards, at: Date.now() } satisfies CacheEntry));
+  } catch {
+    // Hết dung lượng hoặc bị chặn: kết quả vẫn dùng được cho lượt xem này.
+  }
+
   return { ok: true, data: cards };
+}
+
+export function fetchInsightCards(state: AppState): Promise<AIResult<InsightCard[]>> {
+  const key = insightsKey(state);
+
+  const existing = inflight.get(key);
+  if (existing) return existing;
+
+  const promise = requestInsights(state, key).finally(() => {
+    inflight.delete(key);
+  });
+  inflight.set(key, promise);
+
+  return promise;
 }
 
 export async function askAdvisor(

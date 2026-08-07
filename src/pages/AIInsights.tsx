@@ -1,15 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Button, Empty, Input, Skeleton, Space, Spin, Tag, Tooltip } from 'antd';
-import { Sparkles, Send, BrainCircuit, TrendingUp, Lightbulb, Bot, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Sparkles, Send, BrainCircuit, TrendingUp, Lightbulb, Bot, RefreshCw, ShieldCheck, History } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { AppState } from '~/types';
-import { t, getActiveLang } from '~/i18n';
+import { t } from '~/i18n';
 import type { TranslationKey } from '~/i18n';
 import {
   askAdvisor,
-  buildFinancialContext,
+  cachedInsights,
   fetchInsightCards,
   hasEnoughData,
+  insightsKey,
   isAIAvailable,
 } from '~/lib/ai';
 import type { AIErrorCode, ChatTurn, InsightCard } from '~/lib/ai';
@@ -43,24 +44,15 @@ const ERROR_KEYS: Record<AIErrorCode, TranslationKey> = {
   network: 'ai.err_network',
 };
 
-/**
- * Bộ nhớ đệm ở mức module, sống qua các lần rời trang. Vào lại tab AI khi số liệu
- * chưa đổi thì dùng lại kết quả cũ thay vì đốt thêm một lượt gọi Gemini.
- */
-let cardsCache: { key: string; cards: InsightCard[] } | null = null;
-
 export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
   const dataReady = hasEnoughData(state);
 
   /**
    * Vân tay của toàn bộ số liệu sẽ gửi đi. So sánh bằng chuỗi nên state đổi danh
    * tính mà nội dung không đổi (đồng bộ tỷ giá, đánh dấu đã đọc thông báo...) sẽ
-   * không kích hoạt phân tích lại.
+   * không bị coi là số liệu mới.
    */
-  const fingerprint = useMemo(
-    () => JSON.stringify({ lang: getActiveLang(), context: buildFinancialContext(state) }),
-    [state],
-  );
+  const fingerprint = useMemo(() => insightsKey(state), [state]);
 
   /** Mã lỗi để dịch ra câu tiếng người, kèm thông điệp gốc để còn lần ra nguyên nhân. */
   type Failure = { code: AIErrorCode; detail?: string };
@@ -68,6 +60,8 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
   const [cards, setCards] = useState<InsightCard[] | null>(null);
   const [cardsLoading, setCardsLoading] = useState(false);
   const [cardsError, setCardsError] = useState<Failure | null>(null);
+  /** Thẻ đang hiện được sinh từ số liệu cũ hơn số liệu hiện tại. */
+  const [stale, setStale] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
 
   const [query, setQuery] = useState('');
@@ -104,8 +98,15 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
     }
     if (!dataReady) return;
 
-    if (reloadToken === 0 && cardsCache?.key === fingerprint) {
-      setCards(cardsCache.cards);
+    const hit = cachedInsights(fingerprint);
+
+    if (hit && reloadToken === 0) {
+      // Có kết quả cũ thì hiện luôn, KỂ CẢ khi số liệu đã đổi. Tự động gọi lại
+      // mỗi lần người dùng thêm một giao dịch sẽ ngốn hết hạn mức free tier
+      // trong vài thao tác; thẻ cũ kèm nhãn "đã cũ" hữu ích hơn hẳn một lỗi
+      // hết hạn mức. Bấm "Phân tích lại" mới thực sự gọi.
+      setCards(hit.cards);
+      setStale(hit.stale);
       setCardsError(null);
       return;
     }
@@ -121,8 +122,8 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
       setCardsLoading(false);
 
       if (result.ok) {
-        cardsCache = { key: fingerprint, cards: result.data };
         setCards(result.data);
+        setStale(false);
       } else {
         setCardsError({ code: result.code, detail: result.detail });
       }
@@ -198,6 +199,23 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
 
     return (
       <>
+        {/* Thẻ sinh từ số liệu cũ. Nói thẳng ra thay vì âm thầm hiện số đã lỗi
+            thời — người dùng đang nhìn một bản phân tích không khớp Dashboard. */}
+        {stale && !cardsError && (
+          <Alert
+            type="info"
+            icon={<History size={16} />}
+            showIcon
+            title={t('ai.stale_title')}
+            description={t('ai.stale_body')}
+            action={
+              <Button size="small" onClick={() => setReloadToken((n) => n + 1)}>
+                {t('ai.refresh')}
+              </Button>
+            }
+          />
+        )}
+
         {cardsError && (
           <Alert
             type={cardsError.code === 'not_configured' ? 'info' : 'warning'}

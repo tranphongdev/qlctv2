@@ -424,7 +424,10 @@
 
   "ai.err_not_configured": "The AI assistant is not configured yet. Deploy the `ai-insights` Edge Function and set GEMINI_API_KEY.",
   "ai.err_unauthorized": "Your session has expired. Please sign in again and retry.",
-  "ai.err_rate_limited": "That's a lot of questions at once. Give it a minute and try again.",
+  "ai.stale_title": "Your figures changed after this analysis",
+  "ai.stale_body": "The cards below came from older data. The app deliberately does not re-analyse on its own so it doesn't burn through your AI quota — hit the button when you actually need a fresh read.",
+
+  "ai.err_rate_limited": "AI quota reached. Gemini's free tier allows only a limited number of calls per day — wait a few minutes and retry, or enable billing in Google AI Studio.",
   "ai.err_blocked": "The safety filter rejected this content. Try rephrasing it.",
   "ai.err_upstream": "The AI assistant isn't responding. Try again in a few minutes.",
   "ai.err_network": "Couldn't reach the AI assistant. Please check your connection.",
