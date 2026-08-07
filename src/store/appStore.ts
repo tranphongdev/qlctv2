@@ -467,6 +467,20 @@ export function addCategory(category: Omit<Category, 'id'>) {
   return newCat;
 }
 
+/**
+ * Sửa danh mục tại chỗ. `id` được giữ nguyên, và đó là điều bắt buộc: giao dịch,
+ * ngân sách và mục tiêu đều tham chiếu danh mục qua id, nên sinh id mới ở đây sẽ
+ * biến toàn bộ bút toán cũ thành mồ côi.
+ */
+export function updateCategory(category: Category) {
+  globalState = {
+    ...globalState,
+    categories: globalState.categories.map((c) => (c.id === category.id ? category : c)),
+  };
+  notifyListeners();
+  syncCategoryToSupabase(category);
+}
+
 export function deleteCategory(id: string) {
   globalState = { ...globalState, categories: globalState.categories.filter((c) => c.id !== id) };
   notifyListeners();
