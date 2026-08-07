@@ -284,10 +284,6 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
           </div>
 
           <Form form={form} layout="vertical" initialValues={settings} onFinish={handleSaveProfile}>
-            {/* Username không sửa được: nó là khoá đăng nhập và là gốc của email
-                nội bộ trong Supabase Auth. Đổi ở đây sẽ khiến người dùng không
-                đăng nhập lại được. Dùng Input disabled thay vì chữ tĩnh để giữ
-                đúng dáng với các trường còn lại của form. */}
             <Form.Item label={t('settings.username')} extra={t('settings.username_hint')}>
               <Input value={settings.username} disabled prefix={<AtSign size={14} color="#94a3b8" />} />
             </Form.Item>
@@ -296,8 +292,6 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
               <Input placeholder={t('settings.name_placeholder')} />
             </Form.Item>
 
-            {/* Email là tuỳ chọn: không có rule required, và ô trống là hợp lệ.
-                Định dạng được kiểm ở handleSaveProfile qua contactEmailSchema. */}
             <Form.Item name="userEmail" label={t('settings.email_optional')} extra={t('settings.email_hint')}>
               <Input placeholder={t('settings.email_placeholder')} allowClear />
             </Form.Item>
@@ -390,28 +384,6 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
                 <Tag color="orange" icon={<AlertCircle size={12} />}>LocalStorage</Tag>
               )}
             </div>
-
-            {isSupabaseConfigured ? (
-              <Alert
-                title={t('settings.supabase_ok_title')}
-                description={t('settings.supabase_ok_desc')}
-                type="success"
-                showIcon
-              />
-            ) : (
-              <Alert
-                title={t('settings.local_title')}
-                description={
-                  <div>
-                    {t('settings.local_desc_1')} <code>.env</code> {t('settings.local_desc_2')}{' '}
-                    <code>VITE_SUPABASE_URL</code> & <code>VITE_SUPABASE_ANON_KEY</code>{' '}
-                    {t('settings.local_desc_3')} <code>supabase_schema.sql</code> {t('settings.local_desc_4')}
-                  </div>
-                }
-                type="warning"
-                showIcon
-              />
-            )}
           </div>
 
           {/* Backup JSON Card */}

@@ -131,7 +131,6 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onPressEnter={handleSend}
-            size="large"
           />
           <Button type="primary" icon={<Send size={18} />} onClick={handleSend}>
             {t('ai.send')}

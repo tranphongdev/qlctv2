@@ -51,18 +51,9 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
       onCancel={handleCloseModal}
       footer={null}
       width={420}
-      // KHÔNG dùng prop `centered`: nó thêm pseudo-element ::before cao 100% vào
-      // .ant-modal-wrap, mà wrap đang là flex column (xem index.css) nên pseudo
-      // đó thành một flex item nuốt trọn chiều cao và đẩy modal xuống đáy màn
-      // hình. Quy tắc chung ở index.css đã canh giữa mọi modal rồi.
-      //
-      // Trang xác thực chạy ở bảng màu sáng; class dưới ghim modal theo cùng bộ
-      // token (xem .auth-modal-wrap trong index.css).
       wrapClassName="auth-modal-wrap"
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* Hex chứ không var(--primary-color): lucide đổ giá trị này vào thuộc
-              tính stroke của SVG, mà var() chỉ hoạt động trong thuộc tính CSS. */}
           <KeyRound size={20} color="#4F46E5" />
           <span style={{ fontWeight: 700, fontSize: 16 }}>{t('forgot.title')}</span>
         </div>
@@ -89,7 +80,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, 
           <Alert
             type="success"
             showIcon={false}
-            message={<div style={{ fontWeight: 700, fontSize: 15 }}>{t('forgot.sent_title')}</div>}
+            title={<div style={{ fontWeight: 700, fontSize: 15 }}>{t('forgot.sent_title')}</div>}
             description={
               <div style={{ fontSize: 13, marginTop: 4 }}>
                 {t('forgot.sent_desc_prefix')} <b>{sentEmail}</b>. {t('forgot.sent_desc_suffix')}
