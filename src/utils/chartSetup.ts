@@ -3,12 +3,18 @@ import {
   ArcElement,
   BarElement,
   CategoryScale,
+  Filler,
   Legend,
   LinearScale,
+  LineElement,
+  PointElement,
   Tooltip,
 } from 'chart.js';
 
-ChartJS.register(ArcElement, BarElement, CategoryScale, Legend, LinearScale, Tooltip);
+// LineElement/PointElement/Filler phục vụ biểu đồ vùng theo giờ ở màn Tổng quan.
+// Chart.js không tự nạp thành phần nào: thiếu đăng ký thì biểu đồ ra khung trống
+// và chỉ báo lỗi lúc chạy, không phải lúc biên dịch.
+ChartJS.register(ArcElement, BarElement, CategoryScale, Filler, Legend, LinearScale, LineElement, PointElement, Tooltip);
 
 ChartJS.defaults.font.family =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, sans-serif";

@@ -386,6 +386,1350 @@ body.dark-theme::after {
   box-shadow: var(--glass-shadow), var(--glass-sheen);
 }
 
+/* ===================================================================
+   Mục "Chi tiêu hôm nay" (components/TodaySpending.tsx)
+   ===================================================================
+   Ba bậc kính, đậm dần từ dưới lên: thẻ tổng > khung panel > dòng giao dịch.
+   Bậc rõ ràng quan trọng hơn độ trong: nếu mọi tầng cùng một mức mờ thì mắt
+   không biết đọc cái nào trước.
+
+   Chỉ .today-hero và .today-panel dùng backdrop-filter. Dòng giao dịch có thể
+   có vài chục cái trong một ngày; đặt blur lên từng dòng là bắt trình duyệt lấy
+   mẫu lại nền vài chục lần mỗi khung hình. */
+
+.today-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* Chốt chặn cuối cho tràn ngang: bên trong đã dùng minmax(0,1fr) và min-width:0
+     ở mọi chỗ cần, nhưng một tên danh mục dài bất thường vẫn không được phép đẩy
+     cả trang trượt ngang. */
+  min-width: 0;
+}
+
+/* ---- Đầu mục ---- */
+.today-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 2px;
+  min-width: 0;
+}
+
+.today-head__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  color: var(--primary-color);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-sheen);
+}
+
+.today-head__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.today-head__title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  line-height: 1.2;
+  color: var(--text-heading);
+}
+
+.today-head__date {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Nút viên thuốc bằng kính thay cho link chữ trơn: nó là lối ra duy nhất của cả
+   mục nên cần có hình khối để ngón tay nhắm được. */
+.today-viewall.ant-btn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  color: var(--primary-color);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  background: var(--glass-bg-strong) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow);
+}
+
+/* ---- Bậc 1: thẻ tổng ---- */
+.today-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-sheen);
+}
+
+/* Hai quầng sáng nền. Radial-gradient chứ không phải filter: blur() — làm mờ
+   một khối lớn là phép tính chạy lại mỗi khung hình, còn gradient GPU vẽ một lần. */
+.today-hero::before,
+.today-hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.today-hero::before {
+  inset: -45% 45% 45% -25%;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.20), transparent 68%);
+}
+
+.today-hero::after {
+  inset: 25% -30% -50% 45%;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.20), transparent 68%);
+}
+
+.today-hero--empty {
+  align-items: center;
+  gap: 8px;
+  padding: 28px 22px;
+  text-align: center;
+}
+
+.today-hero__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.today-hero__main {
+  min-width: 0;
+  flex: 1;
+}
+
+.today-hero__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+}
+
+.today-hero__info {
+  color: var(--text-muted);
+  opacity: 0.75;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.today-hero__amount {
+  /* clamp thay vì một cỡ cố định: "-1.250.000 ₫" ở 44px cần gần 300px bề ngang,
+     mà màn 320px trừ lề chỉ còn 280px. Cỡ chữ co theo bề ngang nên không bao giờ
+     tràn, và trên máy tính vẫn đủ lớn để làm điểm nhìn đầu tiên. */
+  font-size: clamp(28px, 7vw, 44px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1.4px;
+  color: var(--color-expense);
+  margin: 6px 0 10px;
+  /* Số tiền là thứ duy nhất được phép chiếm hết chiều ngang. */
+  word-break: break-word;
+  /* Chữ số cùng bề rộng: lúc đếm tăng dần, số nhảy tại chỗ chứ không co giãn
+     làm cả dòng rung. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Huy hiệu kính ở góc phải. Nền đỏ rất nhạt để ăn theo màu con số chính chứ
+   không thành một điểm nhấn thứ hai tranh chỗ. */
+.today-hero__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 17px;
+  color: var(--color-expense);
+  background: linear-gradient(150deg, rgba(248, 113, 113, 0.24), rgba(239, 68, 68, 0.10));
+  border: 1px solid rgba(248, 113, 113, 0.26);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* ---- Viên thông tin dưới số tiền ----
+   Chip có nền thay cho dòng chữ trơn: hai mẩu thông tin khác loại (so với hôm
+   qua / đã thu) đứng cạnh nhau cần ranh giới, không thì đọc thành một câu dài. */
+.today-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.today-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  background: var(--surface-subtle);
+}
+
+.today-chip svg {
+  flex-shrink: 0;
+}
+
+.today-chip strong {
+  flex-shrink: 0;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+/* min-width: 0 là điều kiện để ellipsis hoạt động bên trong flex — thiếu nó,
+   phần tử co tối thiểu bằng nội dung và chip tràn ra ngoài thẻ. */
+.today-chip__tail {
+  min-width: 0;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.today-chip--up {
+  color: var(--color-expense);
+  background: var(--tint-expense);
+  border-color: rgba(239, 68, 68, 0.18);
+}
+
+.today-chip--down,
+.today-chip--income {
+  color: var(--color-income);
+  background: var(--tint-income);
+  border-color: rgba(34, 197, 94, 0.18);
+}
+
+/* Mũi tên của chip "đã thu" trỏ xuống giống chip "giảm" — xoay 180° để nó trỏ
+   vào ví thay vì ra ngoài. */
+.today-chip--income svg {
+  transform: rotate(180deg);
+}
+
+.today-chip--muted {
+  color: var(--text-muted);
+}
+
+/* ---- Dải bảy ngày ----
+   Cột dựng bằng div chứ không phải canvas: bảy giá trị, không trục, không
+   tooltip riêng — thêm một biểu đồ Chart.js ở đây là trả giá khởi tạo để đổi
+   lấy đúng bảy hình chữ nhật. */
+.today-trend {
+  padding-top: 14px;
+  border-top: 1px solid var(--surface-border);
+}
+
+.today-trend__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.today-trend__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.today-trend__avg {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* `stretch` chứ không phải `flex-end`: trên máy tính thẻ tổng bị kéo cao bằng
+   khung biểu đồ bên cạnh, và dải cột là thứ nhận phần cao thừa đó (xem media
+   query 900px). Cột chỉ giãn được nếu nó cao bằng hàng chứa nó. */
+.today-trend__bars {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.today-trend__col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+}
+
+.today-trend__track {
+  position: relative;
+  width: 100%;
+  height: 42px;
+  border-radius: 7px;
+  background: var(--surface-subtle);
+  overflow: hidden;
+}
+
+/* Cột tô neo bằng position chứ không phải flex-end. Trên máy tính chiều cao của
+   rãnh do flex-grow quyết định, mà chiều cao đó không phải lúc nào cũng "xác
+   định" theo nghĩa CSS — `height: 45%` của một flex item khi ấy có thể bị bỏ
+   qua. Với phần tử absolute, phần trăm luôn đo theo khối chứa, nên cột tô cao
+   đúng tỉ lệ ở mọi chiều cao rãnh. */
+.today-trend__fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 7px;
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.45), rgba(37, 99, 235, 0.22));
+  transition: height 0.5s var(--ease-out);
+}
+
+/* Cột hôm nay đặc màu, sáu cột còn lại nhạt: dải này tồn tại để trả lời "hôm nay
+   nhiều hay ít so với tuần", nên mắt phải tìm được cột hôm nay ngay lập tức. */
+.today-trend__col.is-today .today-trend__fill {
+  background: var(--accent-gradient);
+}
+
+.today-trend__label {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.today-trend__col.is-today .today-trend__label {
+  color: var(--text-heading);
+  font-weight: 700;
+}
+
+/* ---- Ngân sách ngày ---- */
+.today-budget {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-top: 14px;
+  border-top: 1px solid var(--surface-border);
+}
+
+.today-budget__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.today-budget__label {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: help;
+}
+
+.today-budget__value {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-heading);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mẫu số nhạt hơn tử số: "đã tiêu" là con số đang đổi, "hạn mức" chỉ là mốc. */
+.today-budget__value span {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* antd chừa sẵn chỗ cho phần trăm bên phải kể cả khi showInfo={false}. */
+.today-budget__bar.ant-progress {
+  margin: 0;
+  line-height: 1;
+}
+
+.today-budget__bar .ant-progress-outer {
+  padding-inline-end: 0;
+  margin-inline-end: 0;
+}
+
+/* ---- Bậc 2: khung biểu đồ, dòng thời gian, phân bổ ---- */
+.today-panel {
+  min-width: 0;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.today-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  min-width: 0;
+}
+
+.today-panel__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+/* Ô icon đầu tiêu đề: neo thị giác cho mỗi khung, và là thứ duy nhất mang màu
+   trong hàng tiêu đề nên ba khung phân biệt được nhau khi lướt nhanh. */
+.today-panel__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+}
+
+.today-panel__icon--chart {
+  color: var(--secondary-color);
+  background: rgba(124, 58, 237, 0.14);
+}
+
+.today-panel__icon--time {
+  color: var(--primary-color);
+  background: rgba(37, 99, 235, 0.14);
+}
+
+.today-panel__icon--pie {
+  color: var(--warning-color);
+  background: rgba(245, 158, 11, 0.16);
+}
+
+.today-panel__info {
+  color: var(--text-muted);
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.today-panel__meta {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--surface-subtle);
+}
+
+/* Bộ chọn khoảng thời gian của biểu đồ: viên thuốc nhỏ, không phải ô nhập.
+   `variant="borderless"` bỏ khung mặc định của antd, phần còn lại dựng lại ở đây. */
+.today-range.ant-select {
+  flex-shrink: 0;
+}
+
+.today-range.ant-select .ant-select-selector {
+  height: 30px !important;
+  padding: 0 8px 0 12px !important;
+  border-radius: 999px !important;
+  background: var(--surface-subtle) !important;
+  border: 1px solid var(--surface-border) !important;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.today-chart {
+  height: 180px;
+}
+
+/* Nhãn đỉnh chi tiêu dưới biểu đồ. Chấm tròn trùng màu điểm nổi bật trên đường
+   biểu đồ để mắt nối được hai thứ với nhau. */
+.today-peak {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid var(--surface-border);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.today-peak__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 2.5px solid #7C3AED;
+}
+
+.today-peak__text {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.today-peak strong {
+  margin-left: auto;
+  color: var(--text-heading);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* ---- Ô thống kê nhanh ----
+   Ba tầng cố định trong mỗi ô: nhãn → con số → dòng phụ kèm hình tỉ lệ. Cùng
+   một khuôn cho cả bốn ô là thứ biến chúng thành một hàng chứ không phải bốn
+   thẻ rời rạc tình cờ xếp cạnh nhau. */
+.today-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.today-tile {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 13px 14px;
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition:
+    transform 0.2s var(--ease-out),
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.today-tile--action {
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .today-tile--action:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glass-shadow-hover);
+  }
+
+  .today-tile--action:hover .today-tile__go {
+    opacity: 0.85;
+    transform: translateX(2px);
+  }
+
+  .today-tile:hover .today-tile__icon {
+    transform: scale(1.08);
+  }
+}
+
+.today-tile__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.today-tile__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  transition: transform 0.22s var(--ease-spring);
+}
+
+/* Nhãn được phép xuống hai dòng: "Danh mục nhiều nhất" trên ô rộng 140px của
+   màn 320px không có cách nào nằm gọn một dòng, mà cắt bằng ellipsis thì mất
+   nghĩa. Lưới tự kéo các ô cùng hàng bằng nhau nên hai dòng không làm so le. */
+.today-tile__label {
+  flex: 1;
+  min-width: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.today-tile__go {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s var(--ease-out);
+}
+
+.today-tile__value {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tên danh mục do người dùng đặt, dài tuỳ ý — nhỏ hơn một nhịp so với con số. */
+.today-tile__value--text {
+  font-size: 16px;
+}
+
+.today-tile__foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.today-tile__sub {
+  min-width: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Cột tí hon trong ô thống kê. */
+.today-mini {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+  width: 38px;
+  height: 20px;
+}
+
+.today-mini__bar {
+  flex: 1;
+  min-width: 0;
+  border-radius: 2px;
+}
+
+.today-mini__bar.is-active {
+  border-radius: 2px 2px 1px 1px;
+}
+
+/* Vòng tỉ lệ: conic-gradient bị khoét ruột bằng mask. Rẻ hơn một canvas và tự
+   ăn theo màu danh mục truyền vào qua biến. */
+.today-ring {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: conic-gradient(var(--ring-color) var(--ring-pct), var(--surface-border) 0);
+  -webkit-mask: radial-gradient(circle, transparent 55%, #000 56%);
+  mask: radial-gradient(circle, transparent 55%, #000 56%);
+}
+
+/* ---- Dòng thời gian ---- */
+.today-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Thanh tiêu đề buổi là một nút gập. Tổng của buổi nằm ngay trên thanh nên gập
+   lại không giấu mất con số nào — chỉ giấu chi tiết. */
+.today-part__head {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 12px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  background: var(--surface-subtle);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .today-part__head:hover {
+    background: var(--surface-elevated);
+    border-color: var(--surface-border);
+  }
+}
+
+.today-part__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--accent-gradient);
+}
+
+.today-part__name {
+  min-width: 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.today-part__count {
+  flex-shrink: 0;
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--surface-elevated);
+}
+
+.today-part__sum {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--text-heading);
+  white-space: nowrap;
+}
+
+.today-part__chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.24s var(--ease-out);
+}
+
+.today-part__chevron.is-folded {
+  transform: rotate(180deg);
+}
+
+/* Đường ray dọc nối các mốc giờ. Vẽ bằng một pseudo-element của cả nhóm chứ
+   không phải viền trái của từng dòng: viền từng dòng sẽ đứt quãng ở khe hở
+   giữa các dòng, còn đây là một nét liền chạy suốt buổi. */
+.today-rail {
+  position: relative;
+  padding-left: 62px;
+}
+
+.today-rail::before {
+  content: '';
+  position: absolute;
+  left: 51px;
+  top: 8px;
+  bottom: 8px;
+  width: 1.5px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--surface-border), transparent);
+}
+
+.today-row {
+  position: relative;
+}
+
+.today-row + .today-row {
+  margin-top: 8px;
+}
+
+.today-row__time {
+  position: absolute;
+  left: -62px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  text-align: right;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.today-row__dot {
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--glass-bg-strong);
+}
+
+.today-item {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-subtle);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    transform 0.2s var(--ease-out),
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .today-item:hover {
+    transform: translateY(-1px);
+    background: var(--surface-elevated);
+    border-color: var(--glass-border);
+  }
+
+  .today-item:hover .today-item__icon {
+    transform: scale(1.08);
+  }
+
+  .today-item:hover .today-item__go {
+    opacity: 0.7;
+    transform: translateX(2px);
+  }
+}
+
+.today-item__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  transition: transform 0.22s var(--ease-spring);
+}
+
+.today-item__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.today-item__name {
+  max-width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.today-item__meta {
+  max-width: 100%;
+  min-width: 0;
+  display: flex;
+}
+
+/* Danh mục thành thẻ màu thay vì chữ xám: nó là thứ phân loại, và màu ở đây trùng
+   màu ô icon bên trái nên hai thứ đọc thành một cặp. */
+.today-item__tag {
+  max-width: 100%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Số tiền phải thắng tên danh mục về mặt thị giác — đây là thứ người dùng quét mắt tìm. */
+.today-item__amount {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mũi tên "mở chi tiết" chỉ hiện khi rê chuột. Trên cảm ứng nó bị ẩn hẳn ở
+   media query bên dưới: không có trạng thái hover để làm nó xuất hiện, mà cả
+   dòng vốn đã bấm được rồi. */
+.today-item__go {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s var(--ease-out);
+}
+
+/* Nút chân khung: mở rộng danh sách, mở báo cáo. */
+.today-more {
+  font: inherit;
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-color);
+  background: var(--surface-subtle);
+  border: 1px solid var(--surface-border);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.today-more:hover {
+  background: var(--surface-elevated);
+  border-color: var(--glass-border);
+}
+
+/* ---- Phân bổ theo danh mục ----
+   flex-wrap thay cho media query: khung này lúc rộng 8 cột lúc 4 cột tuỳ
+   breakpoint, nên điều kiện xuống dòng phải theo chỗ CÒN LẠI trong khung chứ
+   không theo bề rộng màn hình. */
+.today-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+}
+
+.today-donut {
+  position: relative;
+  flex: 0 0 auto;
+  width: 168px;
+  height: 168px;
+  margin-inline: auto;
+}
+
+/* Nhãn giữa vòng tròn. pointer-events: none để nó không nuốt mất chuột đang
+   rê trên biểu đồ — không có dòng này thì tooltip chết ở giữa hình. */
+.today-donut__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  text-align: center;
+}
+
+.today-donut__total {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-heading);
+}
+
+.today-donut__caption {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.today-legend {
+  flex: 1 1 250px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.today-legend__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 7px 4px;
+}
+
+.today-legend__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+}
+
+.today-legend__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.today-legend__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.today-legend__name {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.today-legend__amount {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-heading);
+  white-space: nowrap;
+}
+
+/* Thanh tỉ lệ đọc nhanh hơn cột phần trăm khi so nhiều dòng với nhau; con số
+   vẫn giữ ở cuối dòng cho ai cần chính xác. */
+.today-legend__meter {
+  display: block;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-border);
+  overflow: hidden;
+}
+
+.today-legend__meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.5s var(--ease-out);
+}
+
+/* Cột phần trăm rộng cố định + số dạng bảng: các dòng thẳng cột với nhau,
+   không nhảy lung tung theo độ rộng của từng chữ số. */
+.today-legend__pct {
+  flex-shrink: 0;
+  width: 46px;
+  text-align: right;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---- Cảm ứng ----
+   Không có hover thì mũi tên chỉ dẫn không bao giờ hiện ra; giữ chỗ cho nó là
+   ăn mất 20px bề ngang quý giá của mỗi dòng. */
+@media (hover: none), (max-width: 640px) {
+  .today-item__go,
+  .today-tile__go {
+    display: none;
+  }
+}
+
+/* ---- Màn hẹp ---- */
+@media (max-width: 480px) {
+  .today-hero {
+    padding: 16px;
+  }
+
+  .today-panel {
+    padding: 16px;
+  }
+
+  /* Nút "Xem tất cả" rút còn mũi tên: trên màn 360px, nhãn chữ ăn 110px và bóp
+     tiêu đề mục xuống còn hai dòng. aria-label giữ nguyên tên đầy đủ cho trình
+     đọc màn hình. */
+  .today-viewall__text {
+    display: none;
+  }
+
+  .today-viewall.ant-btn {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .today-head__badge {
+    display: none;
+  }
+
+  .today-head__title {
+    font-size: 19px;
+  }
+
+  .today-tile {
+    padding: 11px;
+  }
+
+  .today-tile__icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .today-tile__value {
+    font-size: 18px;
+  }
+
+  .today-tile__value--text {
+    font-size: 15px;
+  }
+
+  /* Cột giờ hẹp lại nhưng KHÔNG bỏ: nó là thứ biến danh sách thành dòng thời gian. */
+  .today-rail {
+    padding-left: 52px;
+  }
+
+  .today-rail::before {
+    left: 41px;
+  }
+
+  .today-row__time {
+    left: -52px;
+    width: 34px;
+  }
+
+  .today-part__head {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .today-part__count {
+    display: none;
+  }
+
+  /* Dải cột nhường chỗ cho dòng chữ phụ bên trái nó. */
+  .today-mini {
+    width: 30px;
+  }
+}
+
+/* Máy hẹp nhất (320–360px): số tiền xuống dòng riêng.
+   Đứng cùng hàng với tên giao dịch thì một khoản bảy chữ số ("-12.750.000 ₫")
+   chiếm gần hết chỗ, tên bị cắt còn "M…" — không đọc được gì. Cho số tiền một
+   dòng riêng vẫn giữ được con số chính xác, thứ không nên rút gọn ở đây. */
+@media (max-width: 360px) {
+  .today-item {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    gap: 10px;
+  }
+
+  .today-item__amount {
+    width: 100%;
+    text-align: right;
+  }
+
+  .today-trend__bars {
+    gap: 4px;
+  }
+
+  .today-legend__pct {
+    width: 40px;
+  }
+}
+
+/* ---- Máy tính bảng dọc trở lên ---- */
+@media (min-width: 640px) {
+  .today-tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ---- Máy tính ----
+   Lưới 12 cột chứ không phải hai cột cố định: hàng trên cần tỉ lệ 4/8 (thẻ tổng
+   hẹp, biểu đồ rộng) còn hàng dưới cần 8/4 (dòng thời gian rộng, phân bổ hẹp).
+   Một `grid-template-columns` hai cột không đổi tỉ lệ được theo từng hàng.
+
+   Vị trí phải chỉ định rõ từng ô. Để grid tự xếp thì thứ tự trong DOM đẩy biểu
+   đồ xuống hàng dưới và chừa lại một cột phải trống hoác. */
+@media (min-width: 900px) {
+  .today-section {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+
+  .today-head {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  /* Hai khối của hàng trên phải cùng cao. `align-items: start` ở lưới cha cho
+     mỗi ô tự co theo nội dung, nên chỉ đặt stretch cho khung biểu đồ là chưa đủ:
+     khung biểu đồ có sàn 200px cho vùng vẽ nên thường cao hơn, và thẻ tổng đứng
+     lại ở chiều cao nội dung của nó — mép dưới lệch nhau một quãng thấy rõ.
+     Cả hai cùng stretch thì cả hai cùng bằng chiều cao hàng. */
+  .today-hero {
+    grid-column: span 5;
+    grid-row: 2;
+    align-self: stretch;
+    padding: 22px;
+  }
+
+  /* Phần cao thừa dồn vào dải bảy ngày chứ không thành khoảng trắng ở đáy thẻ:
+     cột cao hơn thì so sánh giữa các ngày cũng dễ đọc hơn. Trần 108px để trên
+     màn rất cao nó không phình thành biểu đồ cột toàn thân. */
+  .today-hero .today-trend {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .today-hero .today-trend__bars {
+    flex: 1;
+  }
+
+  .today-hero .today-trend__track {
+    flex: 1;
+    height: auto;
+    min-height: 42px;
+    max-height: 108px;
+  }
+
+  .today-panel--chart {
+    grid-column: span 7;
+    grid-row: 2;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .today-panel--chart .today-chart {
+    flex: 1;
+    min-height: 200px;
+  }
+
+  .today-tiles {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  /* Dưới 1200px, dòng thời gian và phân bổ vẫn xếp dọc: nhét cả hai vào một
+     hàng thì tên giao dịch bị bóp thành ellipsis gần hết. */
+  .today-panel--timeline {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  .today-panel--breakdown {
+    grid-column: 1 / -1;
+    grid-row: 5;
+  }
+
+  /* Hôm nay chưa chi đồng nào thì không có biểu đồ để đặt vào cột phải — thẻ
+     tổng trải hết chiều ngang thay vì đứng lẻ một bên với nửa màn hình trống. */
+  .today-section:not(:has(.today-panel--chart)) .today-hero {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1200px) {
+  .today-hero {
+    grid-column: span 4;
+  }
+
+  .today-panel--chart {
+    grid-column: span 8;
+  }
+
+  .today-panel--timeline {
+    grid-column: span 8;
+    grid-row: 4;
+  }
+
+  .today-panel--breakdown {
+    grid-column: span 4;
+    grid-row: 4;
+    align-self: stretch;
+  }
+
+  .today-section:not(:has(.today-panel--breakdown)) .today-panel--timeline {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .today-item,
+  .today-item__icon,
+  .today-item__go,
+  .today-tile,
+  .today-tile__icon,
+  .today-tile__go,
+  .today-part__chevron,
+  .today-trend__fill,
+  .today-legend__meter-fill,
+  .today-more {
+    transition: none;
+  }
+
+  .today-item:hover,
+  .today-item:hover .today-item__icon,
+  .today-tile--action:hover,
+  .today-tile:hover .today-tile__icon {
+    transform: none;
+  }
+}
+
 /* Premium Gradient Header Cards */
 .gradient-card-primary {
   background: var(--accent-gradient);
