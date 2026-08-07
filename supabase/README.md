@@ -47,11 +47,13 @@ npx supabase secrets set GEMINI_MODEL=gemini-2.5-pro
 
 ## 4. Kiểm tra
 
-Đăng nhập vào app rồi mở tab **AI Insights**. Xem log nếu có lỗi:
+Đăng nhập vào app rồi mở tab **AI Insights**.
 
-```bash
-npx supabase functions logs ai-insights
-```
+Khi lỗi, giao diện hiện thẳng thông điệp gốc của Gemini ngay dưới câu thông báo —
+đó là chỗ tra cứu đầu tiên. Cần xem sâu hơn (mã HTTP, thời gian, số lần gọi) thì
+vào Dashboard; CLI **không** có lệnh `functions logs`:
+
+<https://supabase.com/dashboard/project/hvjaxlzkdewqgwkdlxmx/functions/ai-insights/logs>
 
 ## Vì sao phải qua Edge Function
 

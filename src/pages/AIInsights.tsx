@@ -25,6 +25,14 @@ const CARD_SLOTS: Array<{ id: InsightCard['id']; Icon: LucideIcon; color: string
   { id: 'forecast', Icon: Sparkles, color: '#22C55E', labelKey: 'ai.card_forecast' },
 ];
 
+/**
+ * Thông điệp gốc từ Gemini. Cố tình để nguyên tiếng Anh và kiểu chữ đơn cách: đây
+ * là chuỗi để tra cứu và dán vào ô tìm kiếm, không phải câu nói với người dùng.
+ */
+const DetailText: React.FC<{ detail: string }> = ({ detail }) => (
+  <code style={{ fontSize: 11, wordBreak: 'break-word', color: 'var(--text-muted)' }}>{detail}</code>
+);
+
 const ERROR_KEYS: Record<AIErrorCode, TranslationKey> = {
   not_configured: 'ai.err_not_configured',
   unauthorized: 'ai.err_unauthorized',
@@ -54,14 +62,17 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
     [state],
   );
 
+  /** Mã lỗi để dịch ra câu tiếng người, kèm thông điệp gốc để còn lần ra nguyên nhân. */
+  type Failure = { code: AIErrorCode; detail?: string };
+
   const [cards, setCards] = useState<InsightCard[] | null>(null);
   const [cardsLoading, setCardsLoading] = useState(false);
-  const [cardsError, setCardsError] = useState<AIErrorCode | null>(null);
+  const [cardsError, setCardsError] = useState<Failure | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
 
   const [query, setQuery] = useState('');
   const [sending, setSending] = useState(false);
-  const [chatError, setChatError] = useState<AIErrorCode | null>(null);
+  const [chatError, setChatError] = useState<Failure | null>(null);
   // Khởi tạo lười: lời chào chỉ dựng một lần lúc gắn component. Đây là tin nhắn
   // trong lịch sử hội thoại, không phải nhãn giao diện — dịch lại nó mỗi lần
   // render sẽ viết lại quá khứ của cuộc trò chuyện.
@@ -88,7 +99,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
 
   useEffect(() => {
     if (!isAIAvailable) {
-      setCardsError('not_configured');
+      setCardsError({ code: 'not_configured' });
       return;
     }
     if (!dataReady) return;
@@ -113,7 +124,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
         cardsCache = { key: fingerprint, cards: result.data };
         setCards(result.data);
       } else {
-        setCardsError(result.code);
+        setCardsError({ code: result.code, detail: result.detail });
       }
     });
 
@@ -155,7 +166,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
     if (result.ok) {
       setMessages((prev) => [...prev, { sender: 'ai', text: result.data }]);
     } else {
-      setChatError(result.code);
+      setChatError({ code: result.code, detail: result.detail });
     }
   };
 
@@ -189,9 +200,10 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
       <>
         {cardsError && (
           <Alert
-            type={cardsError === 'not_configured' ? 'info' : 'warning'}
+            type={cardsError.code === 'not_configured' ? 'info' : 'warning'}
             showIcon
-            title={t(ERROR_KEYS[cardsError])}
+            title={t(ERROR_KEYS[cardsError.code])}
+            description={cardsError.detail ? <DetailText detail={cardsError.detail} /> : undefined}
             action={
               isAIAvailable ? (
                 <Button size="small" onClick={() => setReloadToken((n) => n + 1)}>
@@ -288,7 +300,13 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
           ))}
           {sending && <Spin size="small" style={{ alignSelf: 'flex-start' }} />}
           {chatError && (
-            <Alert type="warning" showIcon style={{ alignSelf: 'stretch' }} title={t(ERROR_KEYS[chatError])} />
+            <Alert
+              type="warning"
+              showIcon
+              style={{ alignSelf: 'stretch' }}
+              title={t(ERROR_KEYS[chatError.code])}
+              description={chatError.detail ? <DetailText detail={chatError.detail} /> : undefined}
+            />
           )}
         </div>
 

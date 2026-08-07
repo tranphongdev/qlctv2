@@ -43,7 +43,11 @@ export type AIErrorCode =
  * được (chưa cấu hình, hết hạn mức, mất mạng) và giao diện phải hiện được từng loại
  * bằng một câu khác nhau, nên bắt buộc gọi phải xử lý.
  */
-export type AIResult<T> = { ok: true; data: T } | { ok: false; code: AIErrorCode };
+export type AIResult<T> =
+  | { ok: true; data: T }
+  /** `detail` là thông điệp gốc từ Gemini, để giao diện hiện ra thay vì bắt người
+   *  dùng đi lục log Dashboard. Không phải lúc nào cũng có. */
+  | { ok: false; code: AIErrorCode; detail?: string };
 
 /** Bật/tắt cả tính năng theo việc dự án đã nối Supabase hay chưa. */
 export const isAIAvailable = supabase !== null;
@@ -216,25 +220,27 @@ function isErrorCode(value: unknown): value is AIErrorCode {
  * supabase-js gói phản hồi lỗi vào `error.context` (một Response chưa đọc). Mã lỗi
  * thật nằm trong body, còn status chỉ là phương án dự phòng khi body không đọc được.
  */
-async function errorCodeOf(error: unknown): Promise<AIErrorCode> {
+async function failureOf(error: unknown): Promise<{ code: AIErrorCode; detail?: string }> {
   const response = (error as { context?: Response } | null)?.context;
-  if (!response || typeof response.json !== 'function') return 'network';
+  if (!response || typeof response.json !== 'function') return { code: 'network' };
 
   const payload = await response.json().catch(() => null);
-  if (isErrorCode(payload?.error)) return payload.error;
+  const detail = typeof payload?.detail === 'string' ? payload.detail : undefined;
 
-  if (response.status === 401) return 'unauthorized';
-  if (response.status === 429) return 'rate_limited';
-  if (response.status === 503) return 'not_configured';
-  return 'upstream_error';
+  if (isErrorCode(payload?.error)) return { code: payload.error, detail };
+
+  if (response.status === 401) return { code: 'unauthorized' };
+  if (response.status === 429) return { code: 'rate_limited' };
+  if (response.status === 503) return { code: 'not_configured' };
+  return { code: 'upstream_error', detail: `HTTP ${response.status}` };
 }
 
 async function invoke<T>(body: Record<string, unknown>): Promise<AIResult<T>> {
   if (!supabase) return { ok: false, code: 'not_configured' };
 
   const { data, error } = await supabase.functions.invoke('ai-insights', { body });
-  if (error) return { ok: false, code: await errorCodeOf(error) };
-  if (!data) return { ok: false, code: 'upstream_error' };
+  if (error) return { ok: false, ...(await failureOf(error)) };
+  if (!data) return { ok: false, code: 'upstream_error', detail: 'empty body' };
 
   return { ok: true, data: data as T };
 }
@@ -277,7 +283,9 @@ export async function fetchInsightCards(state: AppState): Promise<AIResult<Insig
   if (!result.ok) return result;
 
   const cards = parseCards(result.data.cards);
-  if (cards.length === 0) return { ok: false, code: 'upstream_error' };
+  if (cards.length === 0) {
+    return { ok: false, code: 'upstream_error', detail: 'no usable card in response' };
+  }
 
   return { ok: true, data: cards };
 }
@@ -296,7 +304,9 @@ export async function askAdvisor(
   if (!result.ok) return result;
 
   const reply = result.data.reply;
-  if (typeof reply !== 'string' || !reply.trim()) return { ok: false, code: 'upstream_error' };
+  if (typeof reply !== 'string' || !reply.trim()) {
+    return { ok: false, code: 'upstream_error', detail: 'empty reply' };
+  }
 
   return { ok: true, data: reply.trim() };
 }

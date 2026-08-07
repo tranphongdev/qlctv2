@@ -198,10 +198,12 @@ async function callGemini(payload: unknown): Promise<{ text: string } | { error:
   const data = (await res.json().catch(() => null)) as GeminiResponse | null;
 
   if (!res.ok) {
-    // Log ở phía server để còn debug, nhưng chỉ trả mã lỗi chung cho client:
-    // thông điệp gốc của Google có thể lộ tên project hoặc trạng thái hạn mức.
-    console.error('Gemini HTTP', res.status, data?.error?.message ?? '');
-    return { error: fail('upstream_error', 502) };
+    // Thông điệp gốc của Google đi kèm về client. Chỉ người đã đăng nhập mới tới
+    // được đây, và không có nó thì không cách nào biết vì sao Gemini từ chối —
+    // giấu đi chỉ đổi lấy một màn hình "lỗi không rõ" vô dụng.
+    const detail = data?.error?.message ?? `HTTP ${res.status}`;
+    console.error('Gemini HTTP', res.status, detail);
+    return { error: fail('upstream_error', 502, detail) };
   }
 
   if (data?.promptFeedback?.blockReason) {
@@ -214,8 +216,11 @@ async function callGemini(payload: unknown): Promise<{ text: string } | { error:
     .trim();
 
   if (!text) {
-    console.error('Gemini rỗng, finishReason =', data?.candidates?.[0]?.finishReason);
-    return { error: fail('upstream_error', 502) };
+    // finishReason nói rõ vì sao rỗng: MAX_TOKENS (cụt vì hết hạn mức đầu ra),
+    // SAFETY, RECITATION... Không có nó thì chỉ đoán mò.
+    const reason = data?.candidates?.[0]?.finishReason ?? 'empty response';
+    console.error('Gemini rỗng, finishReason =', reason);
+    return { error: fail('upstream_error', 502, `empty (${reason})`) };
   }
 
   return { text };
@@ -294,9 +299,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // báo lỗi upstream thay vì ném ra ngoài một exception không ai bắt.
   try {
     const parsed = JSON.parse(result.text) as { cards?: unknown };
-    if (!Array.isArray(parsed.cards)) return fail('upstream_error', 502);
+    if (!Array.isArray(parsed.cards)) return fail('upstream_error', 502, 'cards is not an array');
     return json({ cards: parsed.cards });
   } catch {
-    return fail('upstream_error', 502);
+    return fail('upstream_error', 502, `not JSON: ${result.text.slice(0, 200)}`);
   }
 });
