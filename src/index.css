@@ -510,6 +510,24 @@ body.dark-theme .ant-popover-container {
   border-radius: 10px !important;
 }
 
+/* antd bọc <Image> trong một thẻ ôm sát ảnh, nên `width: 100%` đặt trên chính ảnh
+   không có gì để ăn theo — ảnh co về đúng bề ngang gốc. Phải cho cả lớp bọc rộng
+   hết mới ra được ảnh thu nhỏ trải ngang.
+
+   Bắt buộc phải có `.ant-image` ở đầu: `rootClassName` của antd được gắn lên CẢ
+   lớp bọc ảnh thu nhỏ LẪN gốc của trình xem toàn màn hình, mà cái sau là một lớp
+   phủ position: fixed — ép display/width lên nó là chuyện không lường trước được. */
+.ant-image.tx-receipt-thumb {
+  display: block;
+  width: 100%;
+}
+
+/* Lớp phủ mặc định 45% quá nhạt khi nền phía sau đã tối sẵn: ảnh hóa đơn nổi lên
+   giữa một mớ chữ vẫn đọc được của modal chi tiết bên dưới. */
+.ant-image-preview-mask {
+  background: rgba(2, 6, 16, 0.82) !important;
+}
+
 /* ---- Thẻ ---- */
 .ant-card {
   background: var(--glass-bg) !important;

@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
 import { Calendar, Drawer, List } from 'antd';
 import type { Dayjs } from 'dayjs';
-import { TX_TYPE, type AppState, type Category } from '~/types';
+import { TX_TYPE, type AppState, type Category, type Transaction, type Wallet } from '~/types';
 import { formatMoney } from '~/utils/format';
 import { resolveCategory } from '~/utils/categories';
 import { DynamicIcon } from '~/components/DynamicIcon';
+import { TransactionDetailModal } from '~/components/TransactionDetailModal';
 import { t } from '~/i18n';
 
 interface CalendarViewProps {
   state: AppState;
+  onOpenAddModal: (initialData?: Transaction) => void;
+  onDeleteTx: (id: string) => void;
 }
 
-export const CalendarView: React.FC<CalendarViewProps> = ({ state }) => {
-  const { transactions, categories } = state;
+export const CalendarView: React.FC<CalendarViewProps> = ({ state, onOpenAddModal, onDeleteTx }) => {
+  const { transactions, categories, wallets } = state;
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [detailTx, setDetailTx] = useState<Transaction | null>(null);
   const categoriesMap = categories.reduce((acc, c) => ({ ...acc, [c.id]: c }), {} as Record<string, Category>);
+  const walletsMap = wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>);
 
   const dateCellRender = (value: Dayjs) => {
     const dateStr = value.format('YYYY-MM-DD');
@@ -66,7 +71,19 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ state }) => {
               const isThu = tx.type === TX_TYPE.INCOME;
               return (
                 <List.Item style={{ padding: '12px 0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    title={t('txd.open_hint')}
+                    onClick={() => setDetailTx(tx)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setDetailTx(tx);
+                      }
+                    }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', cursor: 'pointer' }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: cat?.color ? `${cat.color}20` : '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <DynamicIcon name={cat?.icon || 'CircleDollarSign'} color={cat?.color || '#2563EB'} size={18} />
@@ -86,6 +103,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ state }) => {
           />
         )}
       </Drawer>
+
+      {/* Đặt ngoài Drawer: modal nằm trong Drawer sẽ bị lớp phủ của Drawer chặn
+          thao tác, và đóng Drawer sẽ tháo luôn modal đang mở. */}
+      <TransactionDetailModal
+        tx={detailTx}
+        categoriesMap={categoriesMap}
+        walletsMap={walletsMap}
+        onClose={() => setDetailTx(null)}
+        onEdit={onOpenAddModal}
+        onDelete={onDeleteTx}
+      />
     </div>
   );
 };

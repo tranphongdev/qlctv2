@@ -233,7 +233,8 @@ export default function App() {
                     element={
                       <Dashboard
                         state={state}
-                        onOpenAddModal={() => handleOpenAddModal()}
+                        onOpenAddModal={handleOpenAddModal}
+                        onDeleteTx={handleDeleteTx}
                         onSelectTab={setActiveTab}
                       />
                     }
@@ -258,7 +259,16 @@ export default function App() {
                   <Route path={TAB_PATHS.goals} element={<Goals state={state} />} />
                   <Route path={TAB_PATHS.debts} element={<Debts state={state} />} />
                   <Route path={TAB_PATHS.analytics} element={<Analytics state={state} />} />
-                  <Route path={TAB_PATHS.calendar} element={<CalendarView state={state} />} />
+                  <Route
+                    path={TAB_PATHS.calendar}
+                    element={
+                      <CalendarView
+                        state={state}
+                        onOpenAddModal={handleOpenAddModal}
+                        onDeleteTx={handleDeleteTx}
+                      />
+                    }
+                  />
                   <Route path={TAB_PATHS.ai_insights} element={<AIInsights state={state} />} />
                   <Route path={TAB_PATHS.profile} element={<ProfileSettings settings={state.settings} currentUser={currentUser} />} />
                   <Route path="*" element={<NotFound />} />

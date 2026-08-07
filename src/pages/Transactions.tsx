@@ -17,6 +17,7 @@ import { compareTxNewestFirst } from '~/utils/transactionOrder';
 import { resolveCategory } from '~/utils/categories';
 import { DynamicIcon } from '~/components/DynamicIcon';
 import { exportTransactionsToExcel, exportTransactionsToCSV, printFinancialReport } from '~/utils/export';
+import { TransactionDetailModal } from '~/components/TransactionDetailModal';
 import { t } from '~/i18n';
 
 interface TransactionsProps {
@@ -41,6 +42,8 @@ export const Transactions: React.FC<TransactionsProps> = ({
   const [catFilter, setCatFilter] = useState<string>('all');
   const [walletFilter, setWalletFilter] = useState<string>('all');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  /** Giao dịch đang mở ở màn chi tiết. */
+  const [detailTx, setDetailTx] = useState<Transaction | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
 
@@ -321,6 +324,16 @@ export const Transactions: React.FC<TransactionsProps> = ({
           columns={columns}
           dataSource={filteredData}
           rowKey="id"
+          onRow={(record) => ({
+            onClick: (e) => {
+              /* Ô tick chọn hàng và cụm nút Sửa/Xóa/Xem ảnh nằm ngay trong hàng.
+                 `closest` chứ không phải so sánh e.target: người dùng thường bấm
+                 trúng icon svg bên trong nút chứ không trúng chính nút. */
+              if ((e.target as HTMLElement).closest('button, a, input, .ant-checkbox')) return;
+              setDetailTx(record);
+            },
+            style: { cursor: 'pointer' },
+          })}
           pagination={{
             current: page,
             pageSize,
@@ -347,7 +360,22 @@ export const Transactions: React.FC<TransactionsProps> = ({
             const isThu = tx.type === TX_TYPE.INCOME;
             return (
               <div key={tx.id} className="glass-card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                {/* Chỉ phần trên mở màn chi tiết, không phải cả thẻ: hàng dưới là
+                    cụm nút Sửa/Xóa, cho cả thẻ bấm được thì mọi cú chạm hụt vào
+                    khoảng trống cạnh nút Xóa lại mở nhầm thứ khác. */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  title={t('txd.open_hint')}
+                  onClick={() => setDetailTx(tx)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setDetailTx(tx);
+                    }
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div
                       style={{
@@ -405,6 +433,15 @@ export const Transactions: React.FC<TransactionsProps> = ({
       <Modal open={!!previewImage} footer={null} onCancel={() => setPreviewImage(null)} width={600}>
         {previewImage && <img src={previewImage} alt="Receipt Full" style={{ width: '100%', borderRadius: 14 }} />}
       </Modal>
+
+      <TransactionDetailModal
+        tx={detailTx}
+        categoriesMap={categoriesMap}
+        walletsMap={walletsMap}
+        onClose={() => setDetailTx(null)}
+        onEdit={onOpenAddModal}
+        onDelete={onDeleteTx}
+      />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button, Empty, Progress, Space } from 'antd';
 import {
   TrendingUp,
@@ -15,8 +15,10 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 import type { ChartData, ChartOptions } from 'chart.js';
 import { tooltipStyle, chartTheme } from '~/utils/chartSetup';
 import { useIsDarkTheme } from '~/hooks/useIsDarkTheme';
-import { TX_TYPE, type AppState } from '~/types';
+// `Wallet` là tên icon của lucide đã dùng ở trên, nên kiểu ví phải đổi tên khi nhập.
+import { TX_TYPE, type AppState, type Category, type Transaction, type Wallet as WalletModel } from '~/types';
 import { CounterAnimation } from '~/components/CounterAnimation';
+import { TransactionDetailModal } from '~/components/TransactionDetailModal';
 import { formatMoney, formatCompactNumber, formatDate } from '~/utils/format';
 import { resolveCategory } from '~/utils/categories';
 import { DynamicIcon } from '~/components/DynamicIcon';
@@ -34,13 +36,18 @@ function weekdayOf(date?: string): string {
 
 interface DashboardProps {
   state: AppState;
-  onOpenAddModal: () => void;
+  /* Nhận tham số để mở sẵn ở chế độ sửa. Chú ý: mọi chỗ dùng làm handler onClick
+     phải bọc lại thành `() => onOpenAddModal()`, không truyền thẳng — React sẽ
+     nhét MouseEvent vào chỗ initialData và form mở ra với dữ liệu rác. */
+  onOpenAddModal: (initialData?: Transaction) => void;
+  onDeleteTx: (id: string) => void;
   onSelectTab: (tab: string) => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onSelectTab }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onDeleteTx, onSelectTab }) => {
   const { transactions, wallets, categories, goals } = state;
   const chart = chartTheme(useIsDarkTheme());
+  const [detailTx, setDetailTx] = useState<Transaction | null>(null);
 
   const totalBalance = wallets.reduce((acc, w) => acc + w.balance, 0);
 
@@ -94,7 +101,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
     };
   });
 
-  const categoriesMap = categories.reduce((acc, c) => ({ ...acc, [c.id]: c }), {} as Record<string, any>);
+  const categoriesMap = categories.reduce((acc, c) => ({ ...acc, [c.id]: c }), {} as Record<string, Category>);
+  const walletsMap = wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, WalletModel>);
   const categoryExpenses: Record<string, number> = {};
   currentMonthTxs.forEach((t) => {
     if (t.type === TX_TYPE.EXPENSE) {
@@ -363,7 +371,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 12, flexWrap: 'wrap' }}>
             <div style={{ fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>{t('dash.recent_tx')}</div>
             <Space>
-              <Button icon={<Plus size={14} />} type="primary" onClick={onOpenAddModal}>
+              <Button icon={<Plus size={14} />} type="primary" onClick={() => onOpenAddModal()}>
                 {t('dash.add_new')}
               </Button>
             </Space>
@@ -383,6 +391,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
               return (
                 <div
                   key={tx.id}
+                  role="button"
+                  tabIndex={0}
+                  title={t('txd.open_hint')}
+                  onClick={() => setDetailTx(tx)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setDetailTx(tx);
+                    }
+                  }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -391,6 +409,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
                     borderRadius: 14,
                     background: 'var(--surface-subtle)',
                     border: '1px solid var(--surface-border)',
+                    cursor: 'pointer',
                   }}
                 >
                   {/* minWidth: 0 để hai dòng chữ được phép co lại và cắt bằng ellipsis,
@@ -469,6 +488,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onS
           </div>
         </div>
       </div>
+
+      <TransactionDetailModal
+        tx={detailTx}
+        categoriesMap={categoriesMap}
+        walletsMap={walletsMap}
+        onClose={() => setDetailTx(null)}
+        onEdit={onOpenAddModal}
+        onDelete={onDeleteTx}
+      />
     </div>
   );
 };
