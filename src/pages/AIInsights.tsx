@@ -1,20 +1,71 @@
-import React, { useState } from 'react';
-import { Button, Input, Tag, Space, Spin } from 'antd';
-import { Sparkles, Send, BrainCircuit, TrendingUp, Lightbulb, Bot } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Button, Empty, Input, Skeleton, Space, Spin, Tag, Tooltip } from 'antd';
+import { Sparkles, Send, BrainCircuit, TrendingUp, Lightbulb, Bot, RefreshCw, ShieldCheck } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { AppState } from '~/types';
-import { t } from '~/i18n';
+import { t, getActiveLang } from '~/i18n';
+import type { TranslationKey } from '~/i18n';
+import {
+  askAdvisor,
+  buildFinancialContext,
+  fetchInsightCards,
+  hasEnoughData,
+  isAIAvailable,
+} from '~/lib/ai';
+import type { AIErrorCode, ChatTurn, InsightCard } from '~/lib/ai';
 
 interface AIInsightsProps {
   state: AppState;
 }
 
+/** Biểu tượng và màu gắn cứng theo vai trò của thẻ; chỉ chữ là do AI viết. */
+const CARD_SLOTS: Array<{ id: InsightCard['id']; Icon: LucideIcon; color: string; labelKey: TranslationKey }> = [
+  { id: 'spending', Icon: TrendingUp, color: '#EF4444', labelKey: 'ai.card_spending' },
+  { id: 'saving', Icon: Lightbulb, color: '#F59E0B', labelKey: 'ai.card_saving' },
+  { id: 'forecast', Icon: Sparkles, color: '#22C55E', labelKey: 'ai.card_forecast' },
+];
+
+const ERROR_KEYS: Record<AIErrorCode, TranslationKey> = {
+  not_configured: 'ai.err_not_configured',
+  unauthorized: 'ai.err_unauthorized',
+  rate_limited: 'ai.err_rate_limited',
+  blocked: 'ai.err_blocked',
+  upstream_error: 'ai.err_upstream',
+  bad_request: 'ai.err_upstream',
+  network: 'ai.err_network',
+};
+
+/**
+ * Bộ nhớ đệm ở mức module, sống qua các lần rời trang. Vào lại tab AI khi số liệu
+ * chưa đổi thì dùng lại kết quả cũ thay vì đốt thêm một lượt gọi Gemini.
+ */
+let cardsCache: { key: string; cards: InsightCard[] } | null = null;
+
 export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
+  const dataReady = hasEnoughData(state);
+
+  /**
+   * Vân tay của toàn bộ số liệu sẽ gửi đi. So sánh bằng chuỗi nên state đổi danh
+   * tính mà nội dung không đổi (đồng bộ tỷ giá, đánh dấu đã đọc thông báo...) sẽ
+   * không kích hoạt phân tích lại.
+   */
+  const fingerprint = useMemo(
+    () => JSON.stringify({ lang: getActiveLang(), context: buildFinancialContext(state) }),
+    [state],
+  );
+
+  const [cards, setCards] = useState<InsightCard[] | null>(null);
+  const [cardsLoading, setCardsLoading] = useState(false);
+  const [cardsError, setCardsError] = useState<AIErrorCode | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+
   const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [chatError, setChatError] = useState<AIErrorCode | null>(null);
   // Khởi tạo lười: lời chào chỉ dựng một lần lúc gắn component. Đây là tin nhắn
   // trong lịch sử hội thoại, không phải nhãn giao diện — dịch lại nó mỗi lần
   // render sẽ viết lại quá khứ của cuộc trò chuyện.
-  const [messages, setMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string }>>(() => [
+  const [messages, setMessages] = useState<ChatTurn[]>(() => [
     {
       sender: 'ai',
       text: t('ai.greeting', {
@@ -23,26 +74,152 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
     },
   ]);
 
-  const handleSend = () => {
-    if (!query.trim()) return;
-    const userText = query;
-    setMessages((prev) => [...prev, { sender: 'user', text: userText }]);
-    setQuery('');
-    setLoading(true);
+  const aliveRef = useRef(true);
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+    };
+  }, []);
 
-    setTimeout(() => {
-      // Từ khoá nhận diện cũng nằm trong từ điển: người dùng giao diện tiếng Anh sẽ
-      // gõ "food"/"savings" chứ không phải "ăn"/"tiết kiệm".
-      const asked = userText.toLowerCase();
-      let reply = t('ai.reply_default');
-      if (asked.includes(t('ai.keyword_cafe')) || asked.includes(t('ai.keyword_food'))) {
-        reply = t('ai.reply_food');
-      } else if (asked.includes(t('ai.keyword_savings'))) {
-        reply = t('ai.reply_savings');
+  /* ---------------------------------------------------------------------- */
+  /* Ba thẻ tóm tắt                                                          */
+  /* ---------------------------------------------------------------------- */
+
+  useEffect(() => {
+    if (!isAIAvailable) {
+      setCardsError('not_configured');
+      return;
+    }
+    if (!dataReady) return;
+
+    if (reloadToken === 0 && cardsCache?.key === fingerprint) {
+      setCards(cardsCache.cards);
+      setCardsError(null);
+      return;
+    }
+
+    // Một lượt gọi chỉ được phép ghi kết quả nếu nó vẫn là lượt mới nhất: đổi số
+    // liệu giữa chừng mà phản hồi cũ về sau sẽ đè lên phản hồi mới.
+    let current = true;
+    setCardsLoading(true);
+    setCardsError(null);
+
+    fetchInsightCards(state).then((result) => {
+      if (!current || !aliveRef.current) return;
+      setCardsLoading(false);
+
+      if (result.ok) {
+        cardsCache = { key: fingerprint, cards: result.data };
+        setCards(result.data);
+      } else {
+        setCardsError(result.code);
       }
-      setMessages((prev) => [...prev, { sender: 'ai', text: reply }]);
-      setLoading(false);
-    }, 800);
+    });
+
+    return () => {
+      current = false;
+    };
+    // `state` bị cố tình bỏ khỏi danh sách: fingerprint đã đại diện cho phần nội
+    // dung của nó, thêm vào chỉ khiến effect chạy lại vì đổi danh tính đối tượng.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fingerprint, dataReady, reloadToken]);
+
+  /* ---------------------------------------------------------------------- */
+  /* Hội thoại                                                               */
+  /* ---------------------------------------------------------------------- */
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const box = scrollRef.current;
+    if (box) box.scrollTop = box.scrollHeight;
+  }, [messages, sending]);
+
+  const handleSend = async () => {
+    const question = query.trim();
+    if (!question || sending) return;
+
+    // Lời chào là văn bản tĩnh của app, không phải lượt nói của mô hình — gửi kèm
+    // chỉ tổ dạy nó bắt chước một câu chào bịa số liệu.
+    const history = messages.slice(1);
+
+    setMessages((prev) => [...prev, { sender: 'user', text: question }]);
+    setQuery('');
+    setSending(true);
+    setChatError(null);
+
+    const result = await askAdvisor(state, question, history);
+    if (!aliveRef.current) return;
+
+    setSending(false);
+    if (result.ok) {
+      setMessages((prev) => [...prev, { sender: 'ai', text: result.data }]);
+    } else {
+      setChatError(result.code);
+    }
+  };
+
+  /* ---------------------------------------------------------------------- */
+  /* Giao diện                                                               */
+  /* ---------------------------------------------------------------------- */
+
+  const renderCardBody = (slotIndex: number) => {
+    const slot = CARD_SLOTS[slotIndex];
+    const card = cards?.find((item) => item.id === slot.id);
+
+    if (cardsLoading || (!card && !cardsError)) {
+      return <Skeleton active paragraph={{ rows: 2 }} title={false} />;
+    }
+    if (!card) {
+      return <span style={{ color: 'var(--text-muted)' }}>—</span>;
+    }
+    return card.body;
+  };
+
+  const insightsSection = () => {
+    if (!dataReady) {
+      return (
+        <div className="glass-card" style={{ padding: 32 }}>
+          <Empty description={<><div style={{ fontWeight: 600 }}>{t('ai.empty_title')}</div><div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('ai.empty_body')}</div></>} />
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {cardsError && (
+          <Alert
+            type={cardsError === 'not_configured' ? 'info' : 'warning'}
+            showIcon
+            title={t(ERROR_KEYS[cardsError])}
+            action={
+              isAIAvailable ? (
+                <Button size="small" onClick={() => setReloadToken((n) => n + 1)}>
+                  {t('ai.retry')}
+                </Button>
+              ) : null
+            }
+          />
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+          {CARD_SLOTS.map((slot, index) => {
+            const card = cards?.find((item) => item.id === slot.id);
+            return (
+              <div key={slot.id} className="glass-card" style={{ padding: 22, borderLeft: `4px solid ${slot.color}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <slot.Icon size={20} color={slot.color} />
+                  <span style={{ fontWeight: 700, fontSize: 15 }}>{card?.title || t(slot.labelKey)}</span>
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                  {renderCardBody(index)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </>
+    );
   };
 
   return (
@@ -54,75 +231,65 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
             <BrainCircuit size={22} color="#ffffff" />
           </div>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800 }}>AI Financial Insights & Advisor</div>
+            <div style={{ fontSize: 18, fontWeight: 800 }}>AI Financial Insights &amp; Advisor</div>
             <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('ai.subtitle')}</div>
           </div>
         </div>
-        <Tag color="purple" style={{ padding: '2px 8px', fontSize: 11, fontWeight: 600 }}>Gemini Financial v3.6</Tag>
+
+        <Space size={8}>
+          <Tooltip title={t('ai.privacy_note')}>
+            <Tag icon={<ShieldCheck size={12} style={{ marginRight: 4, verticalAlign: -2 }} />} color="purple" style={{ padding: '2px 8px', fontSize: 11, fontWeight: 600 }}>
+              Gemini
+            </Tag>
+          </Tooltip>
+          <Button
+            size="small"
+            icon={<RefreshCw size={14} />}
+            loading={cardsLoading}
+            disabled={!isAIAvailable || !dataReady}
+            onClick={() => setReloadToken((n) => n + 1)}
+          >
+            {t('ai.refresh')}
+          </Button>
+        </Space>
       </div>
 
-      {/* AI Smart Insight Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-        {/* Card 1 */}
-        <div className="glass-card" style={{ padding: 22, borderLeft: '4px solid #EF4444' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <TrendingUp size={20} color="#EF4444" />
-            <span style={{ fontWeight: 700, fontSize: 15 }}>{t('ai.top_category_title')}</span>
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-            {t('ai.top_category_prefix')} <b>{t('ai.top_category_item_1')}</b> {t('ai.top_category_conjunction')} <b>{t('ai.top_category_item_2')}</b> {t('ai.top_category_suffix')}
-          </div>
-        </div>
+      {insightsSection()}
 
-        {/* Card 2 */}
-        <div className="glass-card" style={{ padding: 22, borderLeft: '4px solid #F59E0B' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <Lightbulb size={20} color="#F59E0B" />
-            <span style={{ fontWeight: 700, fontSize: 15 }}>{t('ai.savings_tip_title')}</span>
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-            {t('ai.savings_tip_body')}
-          </div>
-        </div>
-
-        {/* Card 3 */}
-        <div className="glass-card" style={{ padding: 22, borderLeft: '4px solid #22C55E' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <Sparkles size={20} color="#22C55E" />
-            <span style={{ fontWeight: 700, fontSize: 15 }}>{t('ai.forecast_title')}</span>
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-            {t('ai.forecast_prefix')} <b>{t('ai.forecast_amount')}</b> {t('ai.forecast_suffix')}
-          </div>
-        </div>
-      </div>
-
-      {/* Interactive AI Chatbot Section */}
+      {/* Hội thoại */}
       <div className="glass-card" style={{ padding: 24, display: 'flex', flexDirection: 'column', height: 440 }}>
         <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Bot size={20} color="#7C3AED" />
           <span>{t('ai.chat_title')}</span>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {messages.map((m, idx) => (
+        <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {messages.map((message, idx) => (
             <div
               key={idx}
               style={{
-                alignSelf: m.sender === 'user' ? 'flex-end' : 'flex-start',
+                alignSelf: message.sender === 'user' ? 'flex-end' : 'flex-start',
                 maxWidth: '80%',
                 padding: '12px 16px',
                 borderRadius: 16,
-                background: m.sender === 'user' ? 'linear-gradient(135deg, #4F46E5, #7C3AED)' : 'rgba(241, 245, 249, 0.9)',
-                color: m.sender === 'user' ? '#ffffff' : '#1e293b',
+                // Bong bóng của AI đi theo biến bề mặt của app: đặt màu sáng cứng ở
+                // đây thì ở chế độ tối nó thành mảng trắng chói giữa nền xanh đậm.
+                background: message.sender === 'user' ? 'linear-gradient(135deg, #4F46E5, #7C3AED)' : 'var(--surface-subtle)',
+                color: message.sender === 'user' ? '#ffffff' : 'var(--text-body)',
+                border: message.sender === 'user' ? 'none' : '1px solid var(--surface-border)',
                 fontSize: 14,
+                lineHeight: 1.55,
+                whiteSpace: 'pre-wrap',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
               }}
             >
-              {m.text}
+              {message.text}
             </div>
           ))}
-          {loading && <Spin size="small" style={{ alignSelf: 'flex-start' }} />}
+          {sending && <Spin size="small" style={{ alignSelf: 'flex-start' }} />}
+          {chatError && (
+            <Alert type="warning" showIcon style={{ alignSelf: 'stretch' }} title={t(ERROR_KEYS[chatError])} />
+          )}
         </div>
 
         <Space.Compact style={{ width: '100%' }}>
@@ -131,11 +298,23 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onPressEnter={handleSend}
+            disabled={sending || !isAIAvailable}
+            maxLength={500}
           />
-          <Button type="primary" icon={<Send size={18} />} onClick={handleSend}>
+          <Button
+            type="primary"
+            icon={<Send size={18} />}
+            onClick={handleSend}
+            loading={sending}
+            disabled={!isAIAvailable || !query.trim()}
+          >
             {t('ai.send')}
           </Button>
         </Space.Compact>
+
+        <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          {t('ai.disclaimer')}
+        </div>
       </div>
     </div>
   );

@@ -1,0 +1,11 @@
+# Trạng thái cục bộ do Supabase CLI sinh ra khi `link` / `branches`. Nó gắn với máy
+# và tài khoản đang đăng nhập, người khác clone về phải tự `link` lại.
+.branches
+.temp
+
+# Biến môi trường của Edge Function chạy local. Khoá thật nằm trong secret trên
+# cloud (`supabase secrets set`), tuyệt đối không commit bản local xuống repo.
+.env
+.env.keys
+.env.local
+.env.*.local

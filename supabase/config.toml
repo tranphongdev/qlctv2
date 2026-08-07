@@ -1,0 +1,11 @@
+# Cấu hình tối thiểu để `supabase functions deploy` biết dự án này có function nào.
+#
+# project_id chỉ là TÊN CỤC BỘ để phân biệt các dự án chạy trên cùng một máy — nó
+# không phải ref của dự án trên cloud. Ref (hvjaxlzkdewqgwkdlxmx) do `supabase link`
+# ghi nhớ riêng, đừng dán vào đây.
+project_id = "quan-ly-chi-tieu-pro"
+
+[functions.ai-insights]
+# Bắt buộc gửi kèm JWT hợp lệ. Đây là lớp chặn đầu tiên: người lạ không có phiên
+# đăng nhập sẽ bị Supabase trả 401 trước khi function chạy dòng nào.
+verify_jwt = true
