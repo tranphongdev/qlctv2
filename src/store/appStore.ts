@@ -21,9 +21,13 @@ import {
   reassignCategoryInSupabase,
   deleteBudgetsOfCategoryFromSupabase,
   syncProfileToSupabase,
+  syncNotificationToSupabase,
+  deleteNotificationFromSupabase,
+  markNotificationsReadInSupabase,
   setSyncUserId,
   getSyncUserId,
 } from '~/lib/supabaseSync';
+import { evaluateNotifications } from '~/lib/notificationEngine';
 import { t } from '~/i18n';
 import type { TranslationKey } from '~/i18n';
 
@@ -585,13 +589,79 @@ export function syncAuthProfile(profile: { username: string; fullName: string; u
   });
 }
 
+/**
+ * Số thông báo giữ lại. Toàn bộ AppState nằm trong MỘT khoá localStorage hạn mức
+ * khoảng 5MB (xem dropLegacyReceipts), nên ngăn thông báo phải có trần — bộ luật
+ * chạy mỗi lần dữ liệu đổi và không có gì tự dọn cái cũ.
+ */
+const MAX_NOTIFICATIONS = 100;
+
+/**
+ * Thêm các thông báo chưa từng xuất hiện.
+ *
+ * Lọc theo id chứ không theo nội dung: id do bộ luật sinh ra là tất định, nên một
+ * sự kiện đã báo rồi sẽ bị chặn ở đây dù người dùng mở app lại bao nhiêu lần. Bản
+ * ghi cũ được giữ nguyên chứ không ghi đè — `date` phải là lúc sự kiện xảy ra lần
+ * đầu, và cờ `read` người dùng đã bấm không được bật lại thành chưa đọc.
+ */
+export function addNotifications(items: NotificationItem[]) {
+  const known = new Set(globalState.notifications.map((n) => n.id));
+  const fresh = items.filter((n) => !known.has(n.id));
+  if (fresh.length === 0) return;
+
+  const merged = [...fresh, ...globalState.notifications]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, MAX_NOTIFICATIONS);
+
+  const kept = new Set(merged.map((n) => n.id));
+  const trimmed = globalState.notifications.filter((n) => !kept.has(n.id));
+
+  globalState = { ...globalState, notifications: merged };
+  notifyListeners();
+
+  fresh.filter((n) => kept.has(n.id)).forEach((n) => syncNotificationToSupabase(n));
+  // Cắt khỏi localStorage mà để lại trên Supabase thì lần đăng nhập sau chúng quay
+  // về, và vì id đã tồn tại nên vĩnh viễn không bị dọn nữa.
+  trimmed.forEach((n) => deleteNotificationFromSupabase(n.id));
+}
+
+/** Chạy bộ luật trên trạng thái hiện tại và nạp những thông báo mới sinh ra. */
+export function runNotificationRules() {
+  addNotifications(evaluateNotifications(globalState));
+}
+
 export function markAllNotificationsRead() {
+  if (!globalState.notifications.some((n) => !n.read)) return;
   globalState = {
     ...globalState,
-    notifications: globalState.notifications.map((n) => ({ ...n, read: true })),
+    notifications: globalState.notifications.map((n) => (n.read ? n : { ...n, read: true })),
   };
   notifyListeners();
+  markNotificationsReadInSupabase();
 }
+
+export function markNotificationRead(id: string) {
+  const target = globalState.notifications.find((n) => n.id === id);
+  if (!target || target.read) return;
+
+  const updated = { ...target, read: true };
+  globalState = {
+    ...globalState,
+    notifications: globalState.notifications.map((n) => (n.id === id ? updated : n)),
+  };
+  notifyListeners();
+  syncNotificationToSupabase(updated);
+}
+
+/*
+ * Cố ý KHÔNG có hàm xoá thông báo.
+ *
+ * Chống trùng ở đây dựa vào việc bản ghi còn nằm trong danh sách: xoá một thông
+ * báo là mở đường cho chính nó quay lại ở lần chạy luật kế tiếp, mà lần đó có thể
+ * chỉ cách vài giây (người dùng chuyển tab rồi quay lại). Muốn xoá thật thì phải
+ * thêm một danh sách id đã loại bỏ và đồng bộ nó giữa các máy — việc riêng, chưa
+ * làm. Trong lúc đó "đánh dấu đã đọc" đủ để dọn huy hiệu và làm mờ mục đã xem.
+ */
 
 export function exportBackupJSON(): string {
   return JSON.stringify(globalState, null, 2);

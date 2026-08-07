@@ -109,6 +109,10 @@ CREATE TABLE IF NOT EXISTS public.debts (
 );
 
 -- 9. BẢNG THÔNG BÁO HỆ THỐNG (NOTIFICATIONS)
+--
+-- `id` KHÔNG phải chuỗi ngẫu nhiên: bộ luật ở src/lib/notificationEngine.ts sinh
+-- id tất định dạng "budget:<budgetId>:2026-08:80" và dựa hẳn vào khoá chính để
+-- chống trùng. Đừng đổi sang uuid tự sinh.
 CREATE TABLE IF NOT EXISTS public.notifications (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL DEFAULT 'default_user',
@@ -116,8 +120,13 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   message TEXT NOT NULL,
   date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   read BOOLEAN DEFAULT false,
-  type TEXT DEFAULT 'system'
+  type TEXT DEFAULT 'system',
+  severity TEXT DEFAULT 'info' -- 'info' | 'warning' | 'critical'
 );
+
+-- Bảng đã tồn tại từ bản trước thì CREATE TABLE IF NOT EXISTS ở trên không thêm
+-- cột mới. Câu này lo phần đó; chạy lại nhiều lần không lỗi.
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS severity TEXT DEFAULT 'info';
 
 -- ====================================================================
 -- ROW LEVEL SECURITY: MỖI TÀI KHOẢN CHỈ THẤY DỮ LIỆU CỦA CHÍNH MÌNH

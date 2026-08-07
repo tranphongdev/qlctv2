@@ -328,7 +328,7 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ state }) => {
             onClick={handleSend}
             loading={sending}
             disabled={!isAIAvailable || !query.trim()}
-            style={{ marginLeft: 8 }}
+            style={{ marginLeft: 16 }}
           >
             {t('ai.send')}
           </Button>

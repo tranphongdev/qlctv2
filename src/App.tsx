@@ -8,7 +8,9 @@ import { message, AntdStaticBridge } from './lib/antdApp';
 import { antdLocale, setActiveLang, t } from './i18n';
 import { setActiveCurrency, subscribeRates, getRatesVersion } from './utils/currency';
 import { ensureExchangeRates } from './lib/exchangeRates';
-import { useAppState, deleteTransaction, bulkDeleteTransactions, restoreTransaction, addTransaction, updateTransaction, startRemoteSync, stopRemoteSync, useRemoteLoading } from './store/appStore';
+import { useAppState, deleteTransaction, bulkDeleteTransactions, restoreTransaction, addTransaction, updateTransaction, startRemoteSync, stopRemoteSync, useRemoteLoading, markAllNotificationsRead, markNotificationRead } from './store/appStore';
+import { useNotificationRules } from './hooks/useNotificationRules';
+import { NOTIFICATION_TAB } from './lib/notificationEngine';
 import { Header } from './components/Header';
 import { Sidebar, MobileSidebarDrawer } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
@@ -151,6 +153,10 @@ export default function App() {
   // Chỉ chặn khi có Supabase; thiếu cấu hình thì ứng dụng chạy ở chế độ demo khách.
   const requireAuth = isSupabaseConfigured && !currentUser;
 
+  // Phải nằm TRÊN mọi lệnh return sớm bên dưới, nếu không số lượng hook giữa các
+  // lần render sẽ lệch nhau và React ném lỗi.
+  useNotificationRules(state, !checkingSession && !loadingRemote && !requireAuth);
+
   if (checkingSession) {
     return <LoadingScreen message={t('auth.restoring_session')} />;
   }
@@ -210,7 +216,14 @@ export default function App() {
                 onToggleTheme={handleToggleTheme}
                 onOpenCommandPalette={() => setCmdOpen(true)}
                 notifications={state.notifications}
-                onMarkRead={() => message.success(t('app.all_notifications_read'))}
+                onMarkRead={() => {
+                  markAllNotificationsRead();
+                  message.success(t('app.all_notifications_read'));
+                }}
+                onOpenNotification={(notif) => {
+                  markNotificationRead(notif.id);
+                  setActiveTab(NOTIFICATION_TAB[notif.type]);
+                }}
                 onOpenMobileMenu={() => setMobileDrawerOpen(true)}
                 onOpenAuthModal={() => setActiveTab('auth')}
                 onLogout={async () => {

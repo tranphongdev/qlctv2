@@ -33,6 +33,7 @@ interface HeaderProps {
   onOpenCommandPalette: () => void;
   notifications: NotificationItem[];
   onMarkRead: () => void;
+  onOpenNotification: (notif: NotificationItem) => void;
   onOpenMobileMenu?: () => void;
   onOpenAuthModal: () => void;
   onLogout: () => void;
@@ -64,6 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCommandPalette,
   notifications,
   onMarkRead,
+  onOpenNotification,
   onOpenMobileMenu,
   onOpenAuthModal,
   onLogout,
@@ -202,6 +204,7 @@ export const Header: React.FC<HeaderProps> = ({
         onClose={() => setNotifOpen(false)}
         notifications={notifications}
         onMarkRead={onMarkRead}
+        onOpenNotification={onOpenNotification}
       />
     </header>
   );

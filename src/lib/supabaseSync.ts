@@ -160,6 +160,8 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
             date: n.date,
             read: n.read,
             type: n.type,
+            // Dòng tạo trước khi thêm cột severity trả về null, không phải undefined.
+            severity: n.severity ?? 'info',
           }))
         : [],
     };
@@ -416,5 +418,27 @@ export async function syncNotificationToSupabase(notif: NotificationItem) {
     date: notif.date,
     read: notif.read,
     type: notif.type,
+    severity: notif.severity ?? 'info',
   });
+}
+
+export async function deleteNotificationFromSupabase(id: string) {
+  await deleteRow('notifications', 'notifications', id);
+}
+
+/**
+ * Đánh dấu đã đọc cho toàn bộ thông báo chưa đọc.
+ *
+ * Một câu UPDATE chứ không phải upsert lại từng bản ghi: ngăn thông báo giữ tới
+ * hàng trăm dòng, mà mỗi upsert là một vòng mạng riêng. Cùng lý do với
+ * reassignCategoryInSupabase ở trên.
+ */
+export async function markNotificationsReadInSupabase() {
+  if (!canSync() || !supabase) return;
+  const { error } = await supabase
+    .from('notifications')
+    .update({ read: true })
+    .eq('user_id', currentUserId)
+    .eq('read', false);
+  reportError('đánh dấu đã đọc thông báo', error);
 }

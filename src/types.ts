@@ -63,10 +63,6 @@ export interface Budget {
   amount: number;
   period: 'month' | 'quarter' | 'year';
   monthKey: string; // YYYY-MM
-  alert50?: boolean;
-  alert80?: boolean;
-  alert100?: boolean;
-  alert120?: boolean;
 }
 
 export interface Goal {
@@ -107,13 +103,31 @@ export interface Debt {
   status: DebtStatus;
 }
 
+/**
+ * Mức độ khẩn của một thông báo, quyết định màu sắc trong ngăn thông báo.
+ *
+ * Tách khỏi `type`: `type` nói thông báo *về chuyện gì* (ngân sách, nợ...), còn
+ * mức độ khẩn thay đổi theo tình huống — cùng là ngân sách nhưng chạm 50% chỉ là
+ * thông tin, còn vượt 120% là chuyện phải xử lý ngay.
+ */
+export type NotificationSeverity = 'info' | 'warning' | 'critical';
+
 export interface NotificationItem {
+  /**
+   * Id tất định, sinh từ luật + đối tượng + mốc, ví dụ "budget:b_1:2026-08:80".
+   *
+   * Đây là cơ chế chống trùng duy nhất: bộ luật chạy lại mỗi lần dữ liệu đổi và
+   * luôn sinh ra cùng một id cho cùng một sự kiện, nên lần chạy thứ hai trở đi bị
+   * lọc bỏ. Đừng bao giờ gắn thời gian hay số ngẫu nhiên vào id.
+   */
   id: string;
   title: string;
   message: string;
+  /** Thời điểm sinh ra, dạng ISO 8601. */
   date: string;
   read: boolean;
   type: 'budget' | 'debt' | 'goal' | 'income' | 'system';
+  severity?: NotificationSeverity;
 }
 
 export interface UserSettings {
