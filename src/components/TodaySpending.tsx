@@ -29,6 +29,7 @@ import { tooltipStyle, chartTheme } from '~/utils/chartSetup';
 import { useIsDarkTheme } from '~/hooks/useIsDarkTheme';
 import { DynamicIcon } from './DynamicIcon';
 import { CounterAnimation } from './CounterAnimation';
+import { SectionHead } from './SectionHead';
 import { getActiveLang, t } from '~/i18n';
 
 interface TodaySpendingProps {
@@ -433,25 +434,13 @@ export const TodaySpending: React.FC<TodaySpendingProps> = ({
     : { initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 } };
 
   const header = (
-    <div className="today-head">
-      <span className="today-head__badge" aria-hidden="true">
-        <CalendarDays size={19} />
-      </span>
-
-      <div className="today-head__text">
-        <div className="today-head__title">{t('today.title')}</div>
-        <div className="today-head__date">
-          {capitalise(dayjs(data.todayKey).format(t('today.date_format')))}
-        </div>
-      </div>
-
-      {/* Nhãn chữ biến mất ở màn hẹp (xem .today-viewall__text), nên tên đầy đủ
-          phải nằm ở aria-label — không thì nút còn trơ một mũi tên vô danh. */}
-      <Button className="today-viewall" aria-label={t('today.view_all')} onClick={onViewAll}>
-        <span className="today-viewall__text">{t('today.view_all')}</span>
-        <ChevronRight size={15} />
-      </Button>
-    </div>
+    <SectionHead
+      icon={<CalendarDays size={19} />}
+      title={t('today.title')}
+      subtitle={capitalise(dayjs(data.todayKey).format(t('today.date_format')))}
+      actionLabel={t('today.view_all')}
+      onAction={onViewAll}
+    />
   );
 
   if (loading) {
@@ -941,30 +930,30 @@ export const TodaySpending: React.FC<TodaySpendingProps> = ({
               </div>
             </div>
 
-            <div className="today-legend">
+            <div className="cat-rank">
               {data.breakdown.map((item) => (
-                <div key={item.id} className="today-legend__row">
-                  <span className="today-legend__icon" style={{ background: `${item.color}22` }}>
+                <div key={item.id} className="cat-rank__row">
+                  <span className="cat-rank__icon" style={{ background: `${item.color}22` }}>
                     <DynamicIcon name={item.icon} size={13} color={item.color} />
                   </span>
 
-                  <span className="today-legend__body">
-                    <span className="today-legend__top">
-                      <span className="today-legend__name">{item.name}</span>
-                      <span className="today-legend__amount">{formatMoney(item.amount)}</span>
+                  <span className="cat-rank__body">
+                    <span className="cat-rank__top">
+                      <span className="cat-rank__name">{item.name}</span>
+                      <span className="cat-rank__amount">{formatMoney(item.amount)}</span>
                     </span>
 
                     {/* Thanh tỉ lệ đọc nhanh hơn con số phần trăm khi so nhiều dòng
                         với nhau; con số vẫn giữ ở cuối cho ai cần chính xác. */}
-                    <span className="today-legend__meter">
+                    <span className="cat-rank__meter">
                       <span
-                        className="today-legend__meter-fill"
+                        className="cat-rank__meter-fill"
                         style={{ width: `${Math.max(2, item.pct)}%`, background: item.color }}
                       />
                     </span>
                   </span>
 
-                  <span className="today-legend__pct">
+                  <span className="cat-rank__pct">
                     {localeNumber(Math.round(item.pct * 10) / 10)}%
                   </span>
                 </div>

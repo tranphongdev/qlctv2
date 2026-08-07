@@ -1,40 +1,38 @@
 import React, { useState } from 'react';
-import { Button, Empty, Progress, Space } from 'antd';
+import { Button, Empty, Progress } from 'antd';
 import {
   TrendingUp,
   TrendingDown,
-  Wallet,
   PiggyBank,
   ArrowUpRight,
   ArrowDownRight,
-  Plus,
+  CalendarRange,
   Calendar as CalendarIcon,
 } from 'lucide-react';
 import dayjs from 'dayjs';
-import { Bar, Doughnut } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import type { ChartData, ChartOptions } from 'chart.js';
 import { tooltipStyle, chartTheme } from '~/utils/chartSetup';
 import { useIsDarkTheme } from '~/hooks/useIsDarkTheme';
-// `Wallet` là tên icon của lucide đã dùng ở trên, nên kiểu ví phải đổi tên khi nhập.
 import { TX_TYPE, type AppState, type Category, type Transaction, type Wallet as WalletModel } from '~/types';
 import { CounterAnimation } from '~/components/CounterAnimation';
 import { TransactionDetailModal } from '~/components/TransactionDetailModal';
 import { TodaySpending } from '~/components/TodaySpending';
+import { BalanceStrip } from '~/components/BalanceStrip';
+import { SectionHead } from '~/components/SectionHead';
 import { useRemoteLoading } from '~/store/appStore';
-import { formatMoney, formatCompactNumber, formatDate } from '~/utils/format';
-import { resolveCategory } from '~/utils/categories';
+import { formatMoney, formatCompactNumber } from '~/utils/format';
 import { DynamicIcon } from '~/components/DynamicIcon';
 import { t } from '~/i18n';
 
 /** Số tháng hiển thị trên chart xu hướng. Ít cột -> cột dày và dễ đọc hơn. */
 const TREND_MONTHS = 6;
 
-/** "2026-08-05" -> "Thứ tư". Trả về chuỗi rỗng nếu giao dịch không có ngày. */
-function weekdayOf(date?: string): string {
-  if (!date) return '';
-  const label = dayjs(date).format('dddd');
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
+/** Số danh mục hiện trong bảng xếp hạng trước khi gộp phần còn lại thành một dòng. */
+const CATEGORY_RANK_LIMIT = 6;
+
+/** Số mục tiêu hiện trên trang Tổng quan. Ba cái vừa đủ một hàng trên máy tính. */
+const GOALS_PREVIEW = 3;
 
 interface DashboardProps {
   state: AppState;
@@ -113,18 +111,43 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onD
     }
   });
 
-  const pieData = Object.entries(categoryExpenses).map(([catId, amount]) => ({
-    name: categoriesMap[catId]?.name || catId,
-    value: amount,
-    color: categoriesMap[catId]?.color || '#2563EB',
-  }));
+  /* Xếp hạng danh mục thay cho biểu đồ tròn của tháng. Hai lý do: donut tháng
+     trùng hình hệt donut "Phân bổ chi tiêu" trong mục hôm nay nên mắt đọc thành
+     một thứ lặp lại, và một vòng tròn 8+ múi thì bản thân nó cũng không so được
+     múi nào hơn múi nào. Thanh ngang xếp hạng giải quyết cả hai. */
+  const rankedCategories = Object.entries(categoryExpenses)
+    .map(([catId, amount]) => ({
+      id: catId,
+      name: categoriesMap[catId]?.name || catId,
+      value: amount,
+      color: categoriesMap[catId]?.color || '#2563EB',
+      icon: categoriesMap[catId]?.icon || 'CircleDollarSign',
+    }))
+    .sort((a, b) => b.value - a.value);
+
+  /* Mẫu số lấy từ chính danh sách này, không mượn `monthlyExpense`: khi tháng
+     hiện tại chưa có giao dịch, `activeTxs` rơi về TOÀN BỘ lịch sử trong khi
+     `categoryExpenses` vẫn chỉ tính tháng này — hai gốc khác nhau thì phần trăm
+     cộng lại không ra 100%. */
+  const rankedTotal = rankedCategories.reduce((sum, item) => sum + item.value, 0);
+  const rankedTop = rankedCategories.slice(0, CATEGORY_RANK_LIMIT);
+  const rankedRest = rankedCategories.slice(CATEGORY_RANK_LIMIT);
+  const rankedRestAmount = rankedRest.reduce((sum, item) => sum + item.value, 0);
 
   const trendData: ChartData<'bar'> = {
     labels: monthlyTrend.map((m) => m.month),
     datasets: [
-      // grouped: false -> hai dataset không xếp cạnh nhau mà cùng lấy vạch tháng làm
-      // tâm, nên cột luôn căn giữa nhãn kể cả khi series kia bằng 0. Đổi lại phải
-      // tách bằng bề rộng: cột Thu nhập rộng nằm dưới, cột Chi tiêu hẹp vẽ đè lên.
+      /* grouped: false -> hai dataset không xếp cạnh nhau mà cùng lấy vạch tháng
+         làm tâm, nên cột luôn căn giữa nhãn kể cả khi series kia bằng 0. Đổi lại
+         phải tách bằng bề rộng: cột Thu nhập rộng nằm dưới, cột Chi tiêu hẹp vẽ
+         đè lên.
+
+         `order` là thứ bắt buộc phải có, không phải tuỳ chọn. Chart.js duyệt
+         danh sách dataset NGƯỢC khi vẽ (`for i = metasets.length - 1; i >= 0`),
+         nên dataset đứng đầu mảng lại là dataset được vẽ SAU CÙNG, tức nằm trên.
+         Cứ để mặc định thì cột Thu nhập rộng 44px phủ kín cột Chi tiêu 22px và
+         tháng nào thu >= chi là cột đỏ biến mất hoàn toàn. Sắp xếp theo `order`
+         tăng dần rồi vẽ ngược lại => order lớn hơn được vẽ trước, nằm dưới. */
       {
         label: t('dash.income_label'),
         data: monthlyTrend.map((m) => m.thu),
@@ -132,6 +155,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onD
         borderRadius: 6,
         borderSkipped: false,
         grouped: false,
+        order: 1,
         categoryPercentage: 0.55,
         barPercentage: 1,
         maxBarThickness: 44,
@@ -143,6 +167,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onD
         borderRadius: 6,
         borderSkipped: false,
         grouped: false,
+        order: 0,
         categoryPercentage: 0.55,
         barPercentage: 0.5,
         maxBarThickness: 22,
@@ -188,40 +213,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onD
     },
   };
 
-  const hasPieData = pieData.length > 0;
-  const donutData: ChartData<'doughnut'> = {
-    labels: hasPieData ? pieData.map((d) => d.name) : [t('dash.no_expense_chart')],
-    datasets: [
-      {
-        data: hasPieData ? pieData.map((d) => d.value) : [1],
-        backgroundColor: hasPieData ? pieData.map((d) => d.color) : [chart.emptyArc],
-        borderColor: chart.arcBorder,
-        borderWidth: 3,
-        hoverOffset: 6,
-      },
-    ],
-  };
-
-  const donutOptions: ChartOptions<'doughnut'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '70%',
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        ...tooltipStyle,
-        enabled: hasPieData,
-        callbacks: {
-          label: (ctx) => ` ${ctx.label}: ${formatMoney(Number(ctx.parsed))}`,
-        },
-      },
-    },
-  };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Đặt trên bốn thẻ tháng: đây là câu hỏi người dùng mở app để hỏi đầu tiên
-          ("hôm nay tiêu bao nhiêu rồi"), còn số theo tháng là bối cảnh. */}
+    <div className="dash-page">
+      {/* ---- Tầng 0: số dư ----
+          "Còn bao nhiêu tiền" phải là thứ đọc được đầu tiên. Trước đây nó là thẻ
+          1/4 nằm dưới cả mục hôm nay, tức là cách vài màn cuộn trên điện thoại. */}
+      <BalanceStrip
+        total={totalBalance}
+        changePct={balanceChangePct}
+        onOpenWallets={() => onSelectTab('wallets')}
+        onAdd={() => onOpenAddModal()}
+      />
+
+      {/* ---- Tầng 1: hôm nay ---- */}
       <TodaySpending
         state={state}
         loading={remoteLoading}
@@ -231,268 +235,230 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onD
         onSelectTx={setDetailTx}
       />
 
-      {/* 4 Big Overview Stat Cards — .stagger cho bốn thẻ vào lệch nhau một nhịp
-          rất ngắn, đủ để mắt đọc chúng như một chuỗi thay vì một khối bật ra. */}
-      <div
-        className="stagger"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: 20,
-        }}
-      >
-        {/* Card 1: Total Balance */}
-        <div className="gradient-card-primary" style={{ padding: 24, cursor: 'pointer' }} onClick={() => onSelectTab('wallets')}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.9 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              {t('dash.total_balance')}
-            </span>
-            <Wallet size={22} />
+      {/* ---- Tầng 2: tháng này ----
+          Dùng chung SectionHead với mục hôm nay là chủ ý, không phải tiện tay:
+          hai đầu mục cùng cấu trúc thì mắt đọc trang thành HAI CHƯƠNG ngang hàng.
+          Khi khối này chỉ là mấy cái thẻ trôi nổi sau một mục có tiêu đề lớn, nó
+          đọc thành phần thừa của mục trên chứ không thành một chương riêng. */}
+      <section className="month-section">
+        <SectionHead
+          icon={<CalendarRange size={19} />}
+          title={t('dash.month_title')}
+          subtitle={dayjs().format(t('dash.month_format'))}
+          actionLabel={t('dash.month_action')}
+          onAction={() => onSelectTab('analytics')}
+        />
+
+        {/* .stagger cho các thẻ vào lệch nhau một nhịp rất ngắn, đủ để mắt đọc
+            chúng như một chuỗi thay vì một khối bật ra. */}
+        <div className="month-cards stagger">
+          {/* Thu nhập tháng */}
+          <div className="glass-card month-card">
+            <div className="month-card__head">
+              <span className="month-card__label">{t('dash.income_this_month')}</span>
+              {/* Màu đặt trên thẻ bọc; lucide mặc định stroke="currentColor" nên icon
+                  tự ăn theo. Truyền var() vào prop color sẽ hỏng vì nó rơi vào thuộc
+                  tính stroke của SVG, nơi biến CSS không được phân giải. */}
+              <span
+                className="month-card__icon"
+                style={{ background: 'var(--tint-income)', color: 'var(--color-income)' }}
+              >
+                <TrendingUp size={18} />
+              </span>
+            </div>
+
+            <div className="month-card__value" style={{ color: 'var(--color-income)' }}>
+              +<CounterAnimation value={monthlyIncome} />
+            </div>
+
+            <div className="month-card__foot">
+              <ArrowUpRight size={15} style={{ color: 'var(--color-income)', flexShrink: 0 }} />
+              <span>
+                {incomeSourceCount > 0
+                  ? t('dash.income_sources', { count: incomeSourceCount })
+                  : t('dash.no_income_yet')}
+              </span>
+            </div>
           </div>
-          <div style={{ fontSize: 30, fontWeight: 800, margin: '14px 0 6px', letterSpacing: '-0.5px' }}>
-            <CounterAnimation value={totalBalance} />
+
+          {/* Chi tiêu tháng */}
+          <div className="glass-card month-card">
+            <div className="month-card__head">
+              <span className="month-card__label">{t('dash.expense_this_month')}</span>
+              <span
+                className="month-card__icon"
+                style={{ background: 'var(--tint-expense)', color: 'var(--color-expense)' }}
+              >
+                <TrendingDown size={18} />
+              </span>
+            </div>
+
+            <div className="month-card__value" style={{ color: 'var(--color-expense)' }}>
+              -<CounterAnimation value={monthlyExpense} />
+            </div>
+
+            <div className="month-card__foot">
+              <ArrowDownRight size={15} style={{ color: 'var(--color-expense)', flexShrink: 0 }} />
+              <span>
+                {expenseCategoryCount > 0
+                  ? t('dash.expense_categories', { count: expenseCategoryCount })
+                  : t('dash.no_expense_yet')}
+              </span>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, opacity: 0.95 }}>
-            {balanceChangePct === null ? (
-              <span>{t('dash.not_enough_data')}</span>
+
+          {/* Tiết kiệm ròng */}
+          <div className="glass-card month-card">
+            <div className="month-card__head">
+              <span className="month-card__label">{t('dash.net_savings')}</span>
+              <span
+                className="month-card__icon"
+                style={{ background: 'var(--tint-savings)', color: 'var(--color-savings)' }}
+              >
+                <PiggyBank size={18} />
+              </span>
+            </div>
+
+            <div className="month-card__value" style={{ color: 'var(--color-savings)' }}>
+              +<CounterAnimation value={monthlySavings} />
+            </div>
+
+            <div className="month-card__meter">
+              <div className="month-card__meter-row">
+                <span>{t('dash.savings_rate')}</span>
+                <span style={{ fontWeight: 700, color: 'var(--color-savings)' }}>{savingsRate}%</span>
+              </div>
+              <Progress
+                percent={savingsRate}
+                strokeColor={{ '0%': '#2563EB', '100%': '#7C3AED' }}
+                railColor="var(--surface-border)"
+                size={['100%', 6]}
+                showInfo={false}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="month-charts">
+          {/* Xu hướng thu chi theo tháng */}
+          <div className="glass-card month-panel">
+            <div className="month-panel__head">
+              <div style={{ minWidth: 0 }}>
+                <div className="month-panel__title">{t('dash.trend_title')}</div>
+                <div className="month-panel__sub">{t('dash.trend_subtitle', { months: TREND_MONTHS })}</div>
+              </div>
+              <Button size="small" icon={<CalendarIcon size={14} />} onClick={() => onSelectTab('calendar')}>
+                {t('dash.view_detail')}
+              </Button>
+            </div>
+
+            {/* 250 chứ không phải 280: thẻ này quyết định chiều cao cả hàng, hạ
+                xuống một nhịp thì phần trống ở đáy bảng xếp hạng bên cạnh cũng
+                ngắn lại theo. */}
+            <div style={{ width: '100%', height: 250 }}>
+              <Bar data={trendData} options={trendOptions} />
+            </div>
+          </div>
+
+          {/* Xếp hạng danh mục — thay cho biểu đồ tròn cũ */}
+          <div className="glass-card month-panel">
+            <div className="month-panel__head">
+              <div className="month-panel__title">{t('dash.by_category')}</div>
+              <Button type="link" size="small" onClick={() => onSelectTab('categories')}>
+                {t('dash.view_all')}
+              </Button>
+            </div>
+
+            {rankedTop.length === 0 ? (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={t('dash.no_expense_yet')}
+                style={{ margin: '32px 0' }}
+              />
             ) : (
               <>
-                <span style={{ padding: '2px 8px', borderRadius: 99, background: 'rgba(255,255,255,0.2)', fontWeight: 700 }}>
-                  {balanceChangePct >= 0 ? '+' : ''}{balanceChangePct.toFixed(1)}%
-                </span>
-                <span>{balanceChangePct >= 0 ? t('dash.increase') : t('dash.decrease')} {t('dash.vs_last_month')}</span>
+                <div className="cat-rank">
+                  {rankedTop.map((item) => {
+                    const pct = rankedTotal > 0 ? (item.value / rankedTotal) * 100 : 0;
+                    return (
+                      <div key={item.id} className="cat-rank__row">
+                        <span className="cat-rank__icon" style={{ background: `${item.color}22` }}>
+                          <DynamicIcon name={item.icon} size={13} color={item.color} />
+                        </span>
+
+                        <span className="cat-rank__body">
+                          <span className="cat-rank__top">
+                            <span className="cat-rank__name">{item.name}</span>
+                            <span className="cat-rank__amount">{formatMoney(item.value)}</span>
+                          </span>
+
+                          <span className="cat-rank__meter">
+                            <span
+                              className="cat-rank__meter-fill"
+                              style={{ width: `${Math.max(2, pct)}%`, background: item.color }}
+                            />
+                          </span>
+                        </span>
+
+                        <span className="cat-rank__pct">{Math.round(pct)}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Phần đuôi gộp lại thay vì cắt im lặng: cắt mà không nói thì tổng
+                    các dòng hiện ra không bao giờ khớp với "Chi tiêu tháng này". */}
+                {rankedRest.length > 0 && (
+                  <div className="cat-rank__more">
+                    <span>{t('dash.cat_others', { count: rankedRest.length })}</span>
+                    <strong>{formatMoney(rankedRestAmount)}</strong>
+                  </div>
+                )}
               </>
             )}
           </div>
         </div>
+      </section>
 
-        {/* Card 2: Monthly Income */}
-        <div className="glass-card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-              {t('dash.income_this_month')}
-            </span>
-            {/* Màu đặt trên thẻ bọc; lucide mặc định stroke="currentColor" nên icon
-                tự ăn theo. Truyền var() vào prop color sẽ hỏng vì nó rơi vào thuộc
-                tính stroke của SVG, nơi biến CSS không được phân giải. */}
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--tint-income)', color: 'var(--color-income)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <TrendingUp size={20} />
-            </div>
-          </div>
-          <div style={{ fontSize: 26, fontWeight: 800, margin: '14px 0 6px', color: 'var(--color-income)', letterSpacing: '-0.5px' }}>
-            +<CounterAnimation value={monthlyIncome} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
-            <ArrowUpRight size={16} style={{ color: 'var(--color-income)' }} />
-            <span>{incomeSourceCount > 0 ? t('dash.income_sources', { count: incomeSourceCount }) : t('dash.no_income_yet')}</span>
-          </div>
+      {/* ---- Tầng 3: mục tiêu tiết kiệm ----
+          Cố tình KHÔNG dùng SectionHead: nâng nó lên ngang hàng hai chương trên
+          sẽ làm trang có ba tiêu đề cùng cỡ và bậc lại phẳng ra như cũ. Tiêu đề
+          bên trong thẻ giữ nó đúng ở tầng dưới. */}
+      <div className="glass-card month-panel">
+        <div className="month-panel__head">
+          <div className="month-panel__title">{t('dash.goals_title')}</div>
+          <Button type="link" size="small" onClick={() => onSelectTab('goals')}>
+            {t('dash.view_more')}
+          </Button>
         </div>
 
-        {/* Card 3: Monthly Expense */}
-        <div className="glass-card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-              {t('dash.expense_this_month')}
-            </span>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--tint-expense)', color: 'var(--color-expense)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <TrendingDown size={20} />
-            </div>
-          </div>
-          <div style={{ fontSize: 26, fontWeight: 800, margin: '14px 0 6px', color: 'var(--color-expense)', letterSpacing: '-0.5px' }}>
-            -<CounterAnimation value={monthlyExpense} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
-            <ArrowDownRight size={16} style={{ color: 'var(--color-expense)' }} />
-            <span>{expenseCategoryCount > 0 ? t('dash.expense_categories', { count: expenseCategoryCount }) : t('dash.no_expense_yet')}</span>
-          </div>
-        </div>
-
-        {/* Card 4: Savings */}
-        <div className="glass-card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-              {t('dash.net_savings')}
-            </span>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--tint-savings)', color: 'var(--color-savings)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <PiggyBank size={20} />
-            </div>
-          </div>
-          <div style={{ fontSize: 26, fontWeight: 800, margin: '14px 0 6px', color: 'var(--color-savings)', letterSpacing: '-0.5px' }}>
-            +<CounterAnimation value={monthlySavings} />
-          </div>
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>
-              <span>{t('dash.savings_rate')}</span>
-              <span style={{ fontWeight: 700, color: 'var(--color-savings)' }}>{savingsRate}%</span>
-            </div>
-            <Progress percent={savingsRate} strokeColor={{ '0%': '#2563EB', '100%': '#7C3AED' }} showInfo={false} />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Charts Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-        {/* Daily Spending & Income Trend Area Chart */}
-        <div className="glass-card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 700 }}>{t('dash.trend_title')}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('dash.trend_subtitle', { months: TREND_MONTHS })}</div>
-            </div>
-            <Button size="small" icon={<CalendarIcon size={14} />} onClick={() => onSelectTab('calendar')}>
-              {t('dash.view_detail')}
-            </Button>
-          </div>
-
-          <div style={{ width: '100%', height: 280 }}>
-            <Bar data={trendData} options={trendOptions} />
-          </div>
-        </div>
-
-        {/* Category Expense Donut Chart */}
-        <div className="glass-card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontSize: 16, fontWeight: 700 }}>{t('dash.by_category')}</div>
-            <Button type="link" size="small" onClick={() => onSelectTab('categories')}>
-              {t('dash.view_all')}
-            </Button>
-          </div>
-
-          <div style={{ width: '100%', height: 220 }}>
-            <Doughnut data={donutData} options={donutOptions} />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-            {pieData.slice(0, 3).map((item) => (
-              <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: 99, background: item.color }} />
-                  <span style={{ fontWeight: 500 }}>{item.name}</span>
-                </div>
-                <span style={{ fontWeight: 700 }}>{formatMoney(item.value)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Grid: Recent Transactions & Savings Goals */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-        {/* Recent Transactions List */}
-        <div className="glass-card" style={{ padding: 24 }}>
-          {/* flexWrap + nowrap ở tiêu đề: màn hẹp thì cả cụm nút xuống dòng dưới,
-              thay vì bóp tiêu đề vỡ thành hai dòng cạnh nút. */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>{t('dash.recent_tx')}</div>
-            <Space>
-              <Button icon={<Plus size={14} />} type="primary" onClick={() => onOpenAddModal()}>
-                {t('dash.add_new')}
-              </Button>
-            </Space>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {transactions.length === 0 && (
-              <Empty
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={t('dash.empty_tx')}
-                style={{ margin: '24px 0' }}
-              />
-            )}
-            {transactions.slice(0, 5).map((tx) => {
-              const cat = resolveCategory(tx.category, categoriesMap);
-              const isThu = tx.type === TX_TYPE.INCOME;
-              return (
-                <div
-                  key={tx.id}
-                  role="button"
-                  tabIndex={0}
-                  title={t('txd.open_hint')}
-                  onClick={() => setDetailTx(tx)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setDetailTx(tx);
-                    }
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 16px',
-                    borderRadius: 14,
-                    background: 'var(--surface-subtle)',
-                    border: '1px solid var(--surface-border)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {/* minWidth: 0 để hai dòng chữ được phép co lại và cắt bằng ellipsis,
-                      nếu không chúng sẽ đẩy cột số tiền ra khỏi thẻ trên màn hẹp. */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
-                    <div
-                      style={{
-                        width: 42,
-                        height: 42,
-                        borderRadius: 12,
-                        flexShrink: 0,
-                        background: cat?.color ? `${cat.color}15` : '#2563EB15',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <DynamicIcon name={cat?.icon || 'CircleDollarSign'} color={cat?.color || '#2563EB'} size={22} />
-                    </div>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {tx.note || cat?.name || t('tx.fallback_name')}
-                      </div>
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {formatDate(tx.date)} • {cat?.name}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap', color: isThu ? 'var(--color-income)' : 'var(--color-expense)' }}>
-                      {isThu ? '+' : '-'}{formatMoney(tx.amount)}
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{weekdayOf(tx.date)}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Savings Goals Widget */}
-        <div className="glass-card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 8 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>{t('dash.goals_title')}</div>
-            <Button type="link" size="small" onClick={() => onSelectTab('goals')}>
-              {t('dash.view_more')}
-            </Button>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {goals.length === 0 && (
-              <Empty
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={t('dash.empty_goals')}
-                style={{ margin: '24px 0' }}
-              />
-            )}
-            {goals.slice(0, 2).map((goal) => {
+        {goals.length === 0 ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={t('dash.empty_goals')}
+            style={{ margin: '24px 0' }}
+          />
+        ) : (
+          <div className="goals-grid">
+            {goals.slice(0, GOALS_PREVIEW).map((goal) => {
               const pct = Math.round((goal.saved / goal.target) * 100);
               return (
-                <div key={goal.id} style={{ padding: 14, borderRadius: 14, background: 'var(--surface-subtle)', border: '1px solid var(--surface-border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontWeight: 600, fontSize: 14 }}>{goal.name}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-savings)' }}>{pct}%</span>
+                <div key={goal.id} className="goal-item">
+                  <div className="goal-item__head">
+                    <span className="goal-item__name">{goal.name}</span>
+                    <span className="goal-item__pct">{pct}%</span>
                   </div>
+
                   {/* Phần trăm đã hiện ở tiêu đề, tắt showInfo để khỏi lặp số. */}
-                  <Progress percent={pct} showInfo={false} strokeColor={{ '0%': '#2563EB', '100%': '#7C3AED' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4, fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
+                  <Progress
+                    percent={pct}
+                    showInfo={false}
+                    railColor="var(--surface-border)"
+                    size={['100%', 6]}
+                    strokeColor={{ '0%': '#2563EB', '100%': '#7C3AED' }}
+                  />
+
+                  <div className="goal-item__foot">
                     <span>{t('dash.goal_saved', { amount: formatMoney(goal.saved) })}</span>
                     <span>{t('dash.goal_target', { amount: formatMoney(goal.target) })}</span>
                   </div>
@@ -500,7 +466,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onD
               );
             })}
           </div>
-        </div>
+        )}
       </div>
 
       <TransactionDetailModal

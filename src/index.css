@@ -408,7 +408,7 @@ body.dark-theme::after {
 }
 
 /* ---- Đầu mục ---- */
-.today-head {
+.section-head {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -416,7 +416,7 @@ body.dark-theme::after {
   min-width: 0;
 }
 
-.today-head__badge {
+.section-head__badge {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -430,12 +430,12 @@ body.dark-theme::after {
   box-shadow: var(--glass-shadow), var(--glass-sheen);
 }
 
-.today-head__text {
+.section-head__text {
   flex: 1;
   min-width: 0;
 }
 
-.today-head__title {
+.section-head__title {
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.6px;
@@ -443,7 +443,7 @@ body.dark-theme::after {
   color: var(--text-heading);
 }
 
-.today-head__date {
+.section-head__sub {
   font-size: 13px;
   color: var(--text-muted);
   margin-top: 2px;
@@ -454,7 +454,7 @@ body.dark-theme::after {
 
 /* Nút viên thuốc bằng kính thay cho link chữ trơn: nó là lối ra duy nhất của cả
    mục nên cần có hình khối để ngón tay nhắm được. */
-.today-viewall.ant-btn {
+.section-head__action.ant-btn {
   height: 38px;
   padding: 0 16px;
   border-radius: 999px;
@@ -1385,7 +1385,7 @@ body.dark-theme::after {
   margin-top: 1px;
 }
 
-.today-legend {
+.cat-rank {
   flex: 1 1 250px;
   min-width: 0;
   display: flex;
@@ -1393,7 +1393,7 @@ body.dark-theme::after {
   gap: 2px;
 }
 
-.today-legend__row {
+.cat-rank__row {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1401,7 +1401,7 @@ body.dark-theme::after {
   padding: 7px 4px;
 }
 
-.today-legend__icon {
+.cat-rank__icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1411,7 +1411,7 @@ body.dark-theme::after {
   border-radius: 8px;
 }
 
-.today-legend__body {
+.cat-rank__body {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -1419,7 +1419,7 @@ body.dark-theme::after {
   gap: 5px;
 }
 
-.today-legend__top {
+.cat-rank__top {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -1427,7 +1427,7 @@ body.dark-theme::after {
   min-width: 0;
 }
 
-.today-legend__name {
+.cat-rank__name {
   min-width: 0;
   font-size: 13px;
   font-weight: 500;
@@ -1436,7 +1436,7 @@ body.dark-theme::after {
   text-overflow: ellipsis;
 }
 
-.today-legend__amount {
+.cat-rank__amount {
   flex-shrink: 0;
   font-size: 13px;
   font-weight: 700;
@@ -1446,7 +1446,7 @@ body.dark-theme::after {
 
 /* Thanh tỉ lệ đọc nhanh hơn cột phần trăm khi so nhiều dòng với nhau; con số
    vẫn giữ ở cuối dòng cho ai cần chính xác. */
-.today-legend__meter {
+.cat-rank__meter {
   display: block;
   height: 4px;
   border-radius: 999px;
@@ -1454,7 +1454,7 @@ body.dark-theme::after {
   overflow: hidden;
 }
 
-.today-legend__meter-fill {
+.cat-rank__meter-fill {
   display: block;
   height: 100%;
   border-radius: 999px;
@@ -1463,7 +1463,7 @@ body.dark-theme::after {
 
 /* Cột phần trăm rộng cố định + số dạng bảng: các dòng thẳng cột với nhau,
    không nhảy lung tung theo độ rộng của từng chữ số. */
-.today-legend__pct {
+.cat-rank__pct {
   flex-shrink: 0;
   width: 46px;
   text-align: right;
@@ -1496,11 +1496,11 @@ body.dark-theme::after {
   /* Nút "Xem tất cả" rút còn mũi tên: trên màn 360px, nhãn chữ ăn 110px và bóp
      tiêu đề mục xuống còn hai dòng. aria-label giữ nguyên tên đầy đủ cho trình
      đọc màn hình. */
-  .today-viewall__text {
+  .section-head__action-text {
     display: none;
   }
 
-  .today-viewall.ant-btn {
+  .section-head__action.ant-btn {
     width: 38px;
     padding: 0;
     justify-content: center;
@@ -1508,11 +1508,11 @@ body.dark-theme::after {
 }
 
 @media (max-width: 400px) {
-  .today-head__badge {
+  .section-head__badge {
     display: none;
   }
 
-  .today-head__title {
+  .section-head__title {
     font-size: 19px;
   }
 
@@ -1582,7 +1582,7 @@ body.dark-theme::after {
     gap: 4px;
   }
 
-  .today-legend__pct {
+  .cat-rank__pct {
     width: 40px;
   }
 }
@@ -1609,7 +1609,10 @@ body.dark-theme::after {
     align-items: start;
   }
 
-  .today-head {
+  /* Bám vào con trực tiếp của .today-section: .section-head còn được mục "Tháng
+     này" dùng, mà mục đó không phải lưới — để selector trần thì hai thuộc tính
+     grid-* rơi sang chỗ không có lưới nào để bám. */
+  .today-section > .section-head {
     grid-column: 1 / -1;
     grid-row: 1;
   }
@@ -1717,7 +1720,7 @@ body.dark-theme::after {
   .today-tile__go,
   .today-part__chevron,
   .today-trend__fill,
-  .today-legend__meter-fill,
+  .cat-rank__meter-fill,
   .today-more {
     transition: none;
   }
@@ -1728,6 +1731,441 @@ body.dark-theme::after {
   .today-tile:hover .today-tile__icon {
     transform: none;
   }
+}
+
+/* ===================================================================
+   Trang Tổng quan — ba tầng (pages/Dashboard.tsx)
+   ===================================================================
+   Tầng 0: dải số dư — dải nhấn duy nhất của trang.
+   Tầng 1: mục "Chi tiêu hôm nay".
+   Tầng 2: mục "Tháng này".
+   Tầng 3: mục tiêu tiết kiệm.
+
+   Bậc nằm ở ĐẦU MỤC và khoảng cách, không ở chỗ thẻ nào nhiều gradient hơn.
+   Tầng 1 và 2 dùng chung .section-head nên chúng đọc như hai chương ngang
+   hàng; tầng 3 chỉ có tiêu đề trong thẻ nên tự lùi xuống dưới. */
+
+.dash-page {
+  display: flex;
+  flex-direction: column;
+  /* Rộng hơn khoảng cách bên trong một mục (14–16px) để mắt tách được ranh giới
+     giữa hai chương với ranh giới giữa hai thẻ cùng chương. */
+  gap: 26px;
+  min-width: 0;
+}
+
+/* ---- Tầng 0: dải số dư ---- */
+.balance-strip {
+  position: relative;
+  /* Cắt phần hoạ tiết ::after tràn ra ngoài góc bo. */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px 20px;
+  border-radius: var(--radius-lg);
+  color: #ffffff;
+  background: var(--accent-gradient);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 30px -12px rgba(37, 99, 235, 0.55), var(--glass-sheen);
+}
+
+/* Lớp sóng SVG (xem chú thích ở BalanceStrip.tsx).
+   `pointer-events: none` để nó không chặn nút "Thêm mới" nằm dưới. */
+.balance-strip__waves {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* Sóng bắt đầu từ khoảng giữa dải rồi mờ dần về trái: chạy hết sang trái thì
+     nó cắt ngang con số dư — thứ duy nhất trong dải này thực sự cần đọc được.
+     Nửa phải gần như trống nên hoạ tiết ở đó không tranh chỗ với gì cả. */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.55) 34%, #000 62%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.55) 34%, #000 62%);
+}
+
+/* Quầng sáng nhỏ ở góc dưới trái, sau ô biểu tượng — cân lại mảng sáng bên
+   phải, nếu không toàn bộ trọng lượng thị giác dồn về một bên. */
+.balance-strip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(60% 130% at 6% 118%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 60%);
+}
+
+.balance-strip__main {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  /* Nổi lên trên lớp hoạ tiết ::after. */
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.balance-strip__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  transition: transform 0.22s var(--ease-spring);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .balance-strip__main:hover .balance-strip__icon {
+    transform: scale(1.06);
+  }
+}
+
+.balance-strip__text {
+  display: flex;
+  flex-direction: column;
+  /* `start` chứ không phải `stretch`: chip là con trong cột này, để mặc định thì
+     nó kéo dài hết chiều ngang thay vì bó theo chữ bên trong. */
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.balance-strip__label {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  opacity: 0.85;
+  /* Một dòng: "TỔNG SỐ DƯ TÀI SẢN" xuống dòng thì nhãn cao bằng chính con số
+     bên dưới và dải mất trật tự đọc nhãn-rồi-số. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* `nowrap` chứ không phải `break-word`: một con số bị ngắt dòng giữa chừng
+   ("8.571.60 / 4 đ") không còn đọc được như một số tiền. Thà cắt đuôi bằng dấu
+   ba chấm — có `title` giữ lại bản đầy đủ — còn hơn ngắt dòng. */
+.balance-strip__value {
+  font-size: clamp(24px, 5.5vw, 32px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.8px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chip trên nền gradient: nền trắng mờ chứ không phải màu ngữ nghĩa. Đỏ/xanh đặt
+   lên nền xanh tím sẽ vừa chói vừa tụt tương phản. */
+.balance-strip__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 100%;
+  margin-top: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.balance-strip__chip svg,
+.balance-strip__chip strong {
+  flex-shrink: 0;
+}
+
+.balance-strip__chip strong {
+  font-weight: 800;
+}
+
+.balance-strip__chip-tail {
+  min-width: 0;
+  opacity: 0.88;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Nút thường, không phải .ant-btn — xem chú thích ở BalanceStrip.tsx. Nền trắng
+   đặc là cách duy nhất để một nút nổi lên khỏi dải gradient xanh–tím. */
+.balance-strip__add {
+  font: inherit;
+  flex-shrink: 0;
+  /* Nổi lên trên lớp hoạ tiết ::after. */
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--primary-color);
+  background: #ffffff;
+  border: 1px solid #ffffff;
+  cursor: pointer;
+  box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.3);
+  transition: transform 0.2s var(--ease-out), background-color 0.2s ease;
+}
+
+/* `.desktop-only` đặt display: flex nên phải thắng lại inline-flex ở trên; đây
+   là lý do quy tắc dưới đây tồn tại thay vì gộp vào khối trên. */
+.balance-strip__add.desktop-only {
+  display: inline-flex;
+}
+
+@media (max-width: 768px) {
+  .balance-strip__add.desktop-only {
+    display: none;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .balance-strip__add:hover {
+    transform: translateY(-1px);
+    background: #F1F5F9;
+  }
+}
+
+@media (max-width: 480px) {
+  .balance-strip {
+    padding: 14px 16px;
+  }
+
+  .balance-strip__icon {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* ---- Tầng 2: mục "Tháng này" ----
+   Cùng nhịp gap với .today-section để hai chương có cùng mật độ. */
+.month-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.month-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+/* `stretch` chứ không phải `start`: biểu đồ xu hướng có vùng vẽ cao cố định nên
+   luôn cao hơn bảng xếp hạng bên cạnh, để `start` thì hai thẻ so le mép dưới. */
+.month-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+.month-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 18px;
+}
+
+.month-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.month-card__label {
+  min-width: 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.month-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+}
+
+/* Một bậc nhỏ hơn số tiền của mục hôm nay (clamp tối đa 44px): đây là bối cảnh
+   theo tháng, không phải con số người dùng mở app để hỏi. */
+.month-card__value {
+  font-size: clamp(20px, 4.2vw, 26px);
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+}
+
+.month-card__foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.month-card__foot span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.month-card__meter-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.month-panel {
+  min-width: 0;
+  padding: 20px;
+  /* Cột dọc để phần thân nhận được chiều cao thừa khi thẻ bị kéo cao bằng thẻ
+     bên cạnh — nếu không, khoảng thừa dồn hết xuống đáy thành một mảng trống. */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dòng gộp phần đuôi bám đáy thẻ. Cố tình KHÔNG dàn đều các dòng xếp hạng vào
+   phần cao thừa: khoảng hở khi đó do `justify-content` sinh ra nên không có
+   cách nào chặn trần, và một thẻ cao với hai danh mục sẽ thành hai dòng cách
+   nhau cả trăm pixel. Danh sách bám mép trên, chỗ thừa nằm dưới — đó là cách
+   một bảng xếp hạng vốn được đọc. */
+.month-panel .cat-rank__more {
+  margin-top: auto;
+}
+
+.month-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+  margin-bottom: 14px;
+}
+
+.month-panel__title {
+  min-width: 0;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.month-panel__sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Dòng gộp phần đuôi của bảng xếp hạng danh mục. */
+.cat-rank__more {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--surface-border);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.cat-rank__more strong {
+  color: var(--text-secondary);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---- Tầng 3: mục tiêu ---- */
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.goal-item {
+  min-width: 0;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface-subtle);
+  border: 1px solid var(--surface-border);
+}
+
+.goal-item__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+.goal-item__name {
+  min-width: 0;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.goal-item__pct {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-savings);
+}
+
+.goal-item__foot {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 7px;
+  font-size: 11.5px;
+  color: var(--text-muted);
 }
 
 /* Premium Gradient Header Cards */
