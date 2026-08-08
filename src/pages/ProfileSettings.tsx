@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useSyncExternalStore } from 'react';
-import { Form, Input, Button, Select, Avatar, Upload, Modal, Popconfirm, Spin } from 'antd';
+import { Form, Input, Button, Select, Avatar, Upload, Modal, Spin } from 'antd';
 import { message } from '~/lib/antdApp';
 import { User, Shield, ShieldOff, Database, Download, Upload as UploadIcon, CheckCircle2, AlertCircle, Camera, Trash2, KeyRound, AtSign, Check, Pencil } from 'lucide-react';
 import { PageHead } from '~/components/PageHead';
@@ -39,6 +39,11 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
   const [mfaLoading, setMfaLoading] = useState(true);
   const [enrollment, setEnrollment] = useState<TotpEnrollment | null>(null);
   const [verifying, setVerifying] = useState(false);
+  /* Tắt 2FA cũng phải nhập mã, nên nó cần modal riêng chứ không còn là một
+     Popconfirm. Xem chú thích ở disableTotp(). */
+  const [disableForm] = Form.useForm();
+  const [disableOpen, setDisableOpen] = useState(false);
+  const [disabling, setDisabling] = useState(false);
 
   const canUseMfa = isSupabaseConfigured && !!currentUser;
 
@@ -154,14 +159,19 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
     }
   };
 
-  const handleDisableMfa = async () => {
+  const handleDisableMfa = async (values: any) => {
     if (!totpFactorId) return;
+    setDisabling(true);
     try {
-      await disableTotp(totpFactorId);
+      await disableTotp(totpFactorId, values.code);
       setTotpFactorId(null);
+      setDisableOpen(false);
+      disableForm.resetFields();
       message.success(t('mfa.disabled'));
     } catch (err: any) {
       message.error(err?.message || t('mfa.invalid_code'));
+    } finally {
+      setDisabling(false);
     }
   };
 
@@ -192,10 +202,10 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
   };
 
   /**
-   * Dòng thứ hai của thẻ Bảo mật đổi vai theo trạng thái: chưa bật thì là lối
-   * bật, đã bật thì là lối tắt. Gói vào một biến vì mỗi nhánh cần một vỏ bọc
-   * khác nhau (Popconfirm cho nhánh tắt) — nhét cả vào JSX chính thì ba tầng
-   * ternary lồng nhau che mất cấu trúc của thẻ.
+   * Dòng thứ hai của thẻ Bảo mật đổi vai theo trạng thái: chưa cấu hình được thì
+   * là một dòng chú thích, chưa bật thì là lối bật, đã bật thì là lối tắt. Gói
+   * vào một biến vì nhét cả bốn nhánh vào JSX chính thì ba tầng ternary lồng
+   * nhau che mất cấu trúc của thẻ.
    */
   let mfaAction: React.ReactNode = null;
   if (!isSupabaseConfigured) {
@@ -210,18 +220,15 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
     );
   } else if (totpFactorId) {
     mfaAction = (
-      <Popconfirm
-        title={t('mfa.disable_confirm')}
-        description={t('mfa.disable_confirm_desc')}
-        onConfirm={handleDisableMfa}
-        okText={t('common.delete')}
-        cancelText={t('common.cancel')}
-        okButtonProps={{ danger: true }}
-      >
-        <div className="settings-row-wrap">
-          <SettingsRow title={t('mfa.disable')} icon={<ShieldOff size={18} />} danger onClick={() => {}} />
-        </div>
-      </Popconfirm>
+      <SettingsRow
+        title={t('mfa.disable')}
+        icon={<ShieldOff size={18} />}
+        danger
+        onClick={() => {
+          disableForm.resetFields();
+          setDisableOpen(true);
+        }}
+      />
     );
   } else {
     mfaAction = (
@@ -439,6 +446,41 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ settings, curr
               </Button>
               <Button type="primary" htmlType="submit" loading={verifying}>
                 {t('mfa.verify')}
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
+      </Modal>
+
+      {/* Modal tắt 2FA. Cũng đòi mã 6 số vì Supabase chỉ cho gỡ factor đã xác
+          minh khi phiên ở mức AAL2 — xem chú thích ở disableTotp(). */}
+      <Modal
+        open={disableOpen}
+        onCancel={() => setDisableOpen(false)}
+        title={t('mfa.disable_confirm')}
+        footer={null}
+        destroyOnHidden
+      >
+        <div style={{ marginTop: 16 }}>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
+            {t('mfa.disable_confirm_desc')}
+          </div>
+
+          <Form form={disableForm} layout="vertical" onFinish={handleDisableMfa}>
+            <Form.Item
+              name="code"
+              label={t('mfa.enter_code')}
+              rules={[{ required: true, pattern: /^\d{6}$/, message: t('mfa.code_required') }]}
+            >
+              <Input placeholder="000000" maxLength={6} inputMode="numeric" autoFocus />
+            </Form.Item>
+
+            <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
+              <Button onClick={() => setDisableOpen(false)} style={{ marginRight: 8 }}>
+                {t('common.cancel')}
+              </Button>
+              <Button danger type="primary" htmlType="submit" loading={disabling}>
+                {t('mfa.disable')}
               </Button>
             </Form.Item>
           </Form>

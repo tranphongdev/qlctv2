@@ -57,8 +57,11 @@ export async function startTotpEnrollment(): Promise<TotpEnrollment> {
   };
 }
 
-/** Xác nhận mã 6 số để kích hoạt factor vừa đăng ký. */
-export async function verifyTotpEnrollment(factorId: string, code: string): Promise<void> {
+/**
+ * Đối mã 6 số với một factor. Thành công thì phiên đăng nhập được nâng lên AAL2
+ * — đây là tác dụng phụ mà disableTotp() dựa vào.
+ */
+async function verifyCode(factorId: string, code: string): Promise<void> {
   const client = requireClient();
 
   const { data: challenge, error: challengeError } = await client.auth.mfa.challenge({ factorId });
@@ -72,9 +75,27 @@ export async function verifyTotpEnrollment(factorId: string, code: string): Prom
   if (verifyError) throw verifyError;
 }
 
-/** Gỡ factor TOTP, tài khoản quay lại chỉ dùng mật khẩu. */
-export async function disableTotp(factorId: string): Promise<void> {
+/** Xác nhận mã 6 số để kích hoạt factor vừa đăng ký. */
+export async function verifyTotpEnrollment(factorId: string, code: string): Promise<void> {
+  await verifyCode(factorId, code);
+}
+
+/**
+ * Gỡ factor TOTP, tài khoản quay lại chỉ dùng mật khẩu.
+ *
+ * Bắt buộc phải có mã 6 số. Supabase chỉ cho gỡ một factor ĐÃ xác minh khi phiên
+ * đang ở mức AAL2 ("AAL2 required to unenroll verified factor"), mà phiên chỉ
+ * lên AAL2 sau một lần verify thành công. Gọi thẳng unenroll như bản trước thì
+ * người đã bật 2FA không bao giờ tắt được nữa.
+ *
+ * Đây cũng là hàng rào đúng: nếu chỉ cần đăng nhập là gỡ được 2FA thì kẻ có mật
+ * khẩu tự tháo được lớp bảo vệ thứ hai, và lớp đó thành vô nghĩa.
+ */
+export async function disableTotp(factorId: string, code: string): Promise<void> {
   const client = requireClient();
+
+  await verifyCode(factorId, code);
+
   const { error } = await client.auth.mfa.unenroll({ factorId });
   if (error) throw error;
 }
