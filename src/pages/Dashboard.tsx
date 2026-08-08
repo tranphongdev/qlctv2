@@ -8,6 +8,11 @@ import {
   ArrowDownRight,
   CalendarRange,
   Calendar as CalendarIcon,
+  Target,
+  CalendarClock,
+  CheckCircle2,
+  ChevronRight,
+  Plus,
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import { Bar } from 'react-chartjs-2';
@@ -133,6 +138,57 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onD
   const rankedTop = rankedCategories.slice(0, CATEGORY_RANK_LIMIT);
   const rankedRest = rankedCategories.slice(CATEGORY_RANK_LIMIT);
   const rankedRestAmount = rankedRest.reduce((sum, item) => sum + item.value, 0);
+
+  /* ---- Mục tiêu tiết kiệm ----
+     `target > 0` được kiểm ở mọi phép chia: mục tiêu 0đ là dữ liệu hỏng chứ
+     không phải mục tiêu đã xong, mà chia cho nó thì ô phần trăm hiện "NaN%". */
+  const goalCards = goals.map((goal) => {
+    const pct = goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
+    return {
+      goal,
+      pct,
+      isDone: goal.target > 0 && goal.saved >= goal.target,
+      /* So theo ĐẦU NGÀY cả hai vế. Lấy chênh lệch từ thời điểm hiện tại thì hạn
+         hôm nay ra -0.6 ngày và bị làm tròn xuống thành quá hạn. */
+      daysLeft: goal.deadline
+        ? dayjs(goal.deadline).startOf('day').diff(dayjs().startOf('day'), 'day')
+        : null,
+      missing: Math.max(0, goal.target - goal.saved),
+    };
+  });
+
+  const goalsDone = goalCards.filter((item) => item.isDone).length;
+  const goalsTarget = goalCards.reduce((sum, item) => sum + item.goal.target, 0);
+  /* Kẹp từng khoản về đúng mục tiêu của nó trước khi cộng: nộp dư vào một mục
+     tiêu không được kéo tiến độ CHUNG vượt lên, vì phần dư đó không tự chạy sang
+     mục tiêu còn thiếu. */
+  const goalsSaved = goalCards.reduce((sum, item) => sum + Math.min(item.goal.saved, item.goal.target), 0);
+  const goalsMissing = Math.max(0, goalsTarget - goalsSaved);
+  const goalsPct = goalsTarget > 0 ? Math.min(100, Math.round((goalsSaved / goalsTarget) * 100)) : 0;
+
+  /* Chưa xong lên trước, trong đó gần đích lên trên. Ba ô hiện ra vì thế luôn là
+     ba mục tiêu người dùng còn phải làm gì đó, không phải ba cái đã đóng lại. */
+  const goalsPreview = goalCards
+    .slice()
+    .sort((a, b) => Number(a.isDone) - Number(b.isDone) || b.pct - a.pct)
+    .slice(0, GOALS_PREVIEW);
+
+  /** Nhãn hạn chót kèm tông màu. Trả về cả hai để thẻ không phải tính lại lần nữa. */
+  const dueOf = (item: (typeof goalCards)[number]) => {
+    if (item.isDone) return { tone: 'is-done', icon: <CheckCircle2 size={12} />, text: t('dash.goal_done') };
+    if (item.daysLeft === null) return { tone: '', icon: <CalendarClock size={12} />, text: t('dash.goal_no_deadline') };
+    if (item.daysLeft < 0) {
+      return { tone: 'is-late', icon: <CalendarClock size={12} />, text: t('dash.goal_overdue', { count: -item.daysLeft }) };
+    }
+    if (item.daysLeft === 0) return { tone: 'is-soon', icon: <CalendarClock size={12} />, text: t('dash.goal_due_today') };
+    return {
+      // Hai tuần là ngưỡng còn kịp xoay: dưới mức đó mới tô cảnh báo, còn tô từ
+      // sớm thì mục tiêu nào cũng vàng và màu vàng thôi mang nghĩa gì.
+      tone: item.daysLeft <= 14 ? 'is-soon' : '',
+      icon: <CalendarClock size={12} />,
+      text: t('dash.goal_days_left', { count: item.daysLeft }),
+    };
+  };
 
   const trendData: ChartData<'bar'> = {
     labels: monthlyTrend.map((m) => m.month),
@@ -424,50 +480,162 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onD
           Cố tình KHÔNG dùng SectionHead: nâng nó lên ngang hàng hai chương trên
           sẽ làm trang có ba tiêu đề cùng cỡ và bậc lại phẳng ra như cũ. Tiêu đề
           bên trong thẻ giữ nó đúng ở tầng dưới. */}
-      <div className="glass-card month-panel">
-        <div className="month-panel__head">
-          <div className="month-panel__title">{t('dash.goals_title')}</div>
-          <Button type="link" size="small" onClick={() => onSelectTab('goals')}>
-            {t('dash.view_more')}
-          </Button>
+      <section className="glass-card goals-panel">
+        <div className="goals-panel__head">
+          <span className="goals-panel__icon" aria-hidden="true">
+            <Target size={18} />
+          </span>
+
+          <div className="goals-panel__titles">
+            <div className="goals-panel__title">{t('dash.goals_title')}</div>
+            <div className="goals-panel__sub">
+              {goalsDone > 0
+                ? t('dash.goals_sub_done', { count: goals.length, done: goalsDone })
+                : t('dash.goals_sub_running', { count: goals.length })}
+            </div>
+          </div>
+
+          {goals.length > 0 && (
+            <Button type="link" size="small" onClick={() => onSelectTab('goals')}>
+              {t('dash.view_more')}
+            </Button>
+          )}
         </div>
 
         {goals.length === 0 ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={t('dash.empty_goals')}
-            style={{ margin: '24px 0' }}
-          />
-        ) : (
-          <div className="goals-grid">
-            {goals.slice(0, GOALS_PREVIEW).map((goal) => {
-              const pct = Math.round((goal.saved / goal.target) * 100);
-              return (
-                <div key={goal.id} className="goal-item">
-                  <div className="goal-item__head">
-                    <span className="goal-item__name">{goal.name}</span>
-                    <span className="goal-item__pct">{pct}%</span>
-                  </div>
-
-                  {/* Phần trăm đã hiện ở tiêu đề, tắt showInfo để khỏi lặp số. */}
-                  <Progress
-                    percent={pct}
-                    showInfo={false}
-                    railColor="var(--surface-border)"
-                    size={['100%', 6]}
-                    strokeColor={{ '0%': '#2563EB', '100%': '#7C3AED' }}
-                  />
-
-                  <div className="goal-item__foot">
-                    <span>{t('dash.goal_saved', { amount: formatMoney(goal.saved) })}</span>
-                    <span>{t('dash.goal_target', { amount: formatMoney(goal.target) })}</span>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="goals-empty">
+            <span className="goals-empty__icon" aria-hidden="true">
+              <PiggyBank size={26} />
+            </span>
+            <div className="goals-empty__title">{t('dash.goals_empty_title')}</div>
+            <div className="goals-empty__body">{t('dash.goals_empty_body')}</div>
+            <Button
+              type="primary"
+              icon={<Plus size={16} />}
+              className="goals-empty__action"
+              onClick={() => onSelectTab('goals')}
+            >
+              {t('dash.goals_empty_action')}
+            </Button>
           </div>
+        ) : (
+          <>
+            {/* Khối tổng: cộng sẵn cả danh sách lại thành một con số và một vòng
+                tiến độ, thứ mà ba thẻ rời bên dưới không tự nói được. */}
+            <div className="goals-hero">
+              <div
+                className="goals-hero__ring"
+                style={{ '--ring-pct': `${goalsPct}%` } as React.CSSProperties}
+                role="img"
+                aria-label={`${t('dash.goals_total_saved')} ${goalsPct}%`}
+              >
+                <span className="goals-hero__pct" aria-hidden="true">
+                  {goalsPct}
+                  <i>%</i>
+                </span>
+              </div>
+
+              <div className="goals-hero__stats">
+                <div className="goals-hero__label">{t('dash.goals_total_saved')}</div>
+                <div className="goals-hero__value">
+                  <CounterAnimation value={goalsSaved} />
+                </div>
+
+                <div className="goals-hero__chips">
+                  <span className="goals-hero__chip">
+                    {t('dash.goals_of_target', { amount: formatMoney(goalsTarget) })}
+                  </span>
+
+                  <span className="goals-hero__chip">
+                    {goalsMissing > 0 ? (
+                      <>
+                        <PiggyBank size={12} />
+                        <strong>{t('dash.goals_missing', { amount: formatMoney(goalsMissing) })}</strong>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 size={12} style={{ color: 'var(--color-income)' }} />
+                        <strong>{t('dash.goals_all_done')}</strong>
+                      </>
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="goals-grid stagger">
+              {goalsPreview.map((item) => {
+                const due = dueOf(item);
+                return (
+                  <article
+                    key={item.goal.id}
+                    className={`goal-card${item.isDone ? ' is-done' : ''}`}
+                    style={{ '--goal-pct': `${item.pct}%` } as React.CSSProperties}
+                  >
+                    <div className="goal-card__head">
+                      <span
+                        className="goal-card__thumb"
+                        aria-hidden="true"
+                        /* Ảnh bìa ghi đè dải nhấn mặc định trong CSS; không có ảnh
+                           thì dải nhấn ở lại và icon bên dưới hiện lên trên nó. */
+                        style={item.goal.imageUrl ? { backgroundImage: `url(${item.goal.imageUrl})` } : undefined}
+                      >
+                        {!item.goal.imageUrl && <Target size={18} />}
+                        {item.isDone && (
+                          <span className="goal-card__check">
+                            <CheckCircle2 size={17} />
+                          </span>
+                        )}
+                      </span>
+
+                      <div className="goal-card__id">
+                        <div className="goal-card__name">{item.goal.name}</div>
+                        <div className={`goal-card__due ${due.tone}`}>
+                          {due.icon}
+                          <span>{due.text}</span>
+                        </div>
+                      </div>
+
+                      <span className="goal-card__pct">{item.pct}%</span>
+                    </div>
+
+                    {/* Thanh dựng tay thay cho <Progress>: cần một lớp con để quét
+                        vệt sáng, mà phần tử của antd không cho chèn vào trong. */}
+                    <div className="goal-card__track">
+                      <span className="goal-card__fill" />
+                    </div>
+
+                    <div className="goal-card__foot">
+                      <span className="goal-card__cell">
+                        <span className="goal-card__cap">{t('dash.goal_cap_saved')}</span>
+                        <span className="goal-card__num goal-card__num--saved">
+                          {formatMoney(item.goal.saved)}
+                        </span>
+                      </span>
+
+                      <span className="goal-card__cell goal-card__cell--right">
+                        <span className="goal-card__cap">
+                          {item.isDone ? t('dash.goal_done') : t('dash.goal_cap_missing')}
+                        </span>
+                        <span className="goal-card__num">
+                          {item.isDone ? formatMoney(item.goal.target) : formatMoney(item.missing)}
+                        </span>
+                      </span>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            {goals.length > GOALS_PREVIEW && (
+              <button type="button" className="goals-more" onClick={() => onSelectTab('goals')}>
+                {t('dash.goals_more', { count: goals.length - GOALS_PREVIEW })}
+                <ChevronRight size={15} />
+              </button>
+            )}
+          </>
         )}
-      </div>
+      </section>
 
       <TransactionDetailModal
         tx={detailTx}
