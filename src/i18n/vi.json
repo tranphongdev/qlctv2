@@ -684,6 +684,8 @@
 
   "avatar.canvas_unavailable": "Canvas 2D context không khả dụng",
   "sidebar.tagline": "Quản lý chi tiêu",
+  "sidebar.collapse": "Thu gọn thanh bên",
+  "sidebar.expand": "Mở rộng thanh bên",
 
 
 

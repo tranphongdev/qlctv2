@@ -1,4 +1,4 @@
-import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ConfigProvider, Layout, Button, App as AntdApp } from 'antd';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -60,6 +60,26 @@ export default function App() {
   }, []);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  /* Suốt 200ms sidebar co giãn, cả trang bố cục lại mỗi khung hình và MỌI mặt
+     kính phải tính lại backdrop-filter theo phần nền vừa dịch dưới nó. Đo được
+     trên trang Tổng quan: 12/16 khung dài hơn 32ms khi bật kính mờ, 0,5/36 khi
+     tắt — chi phí nằm ở đó chứ không phải ở Chart.js.
+
+     Nền sau phần lớn thẻ là dải màu trơn nên tắt mờ trong đúng quãng đó gần như
+     không nhìn ra. Timeout 240ms = 200ms của antd Sider cộng một chút dư. */
+  const resizeTimer = useRef<number | undefined>(undefined);
+  const toggleSidebar = () => {
+    setSidebarCollapsed((v) => !v);
+    document.body.classList.add('is-sidebar-resizing');
+    window.clearTimeout(resizeTimer.current);
+    resizeTimer.current = window.setTimeout(
+      () => document.body.classList.remove('is-sidebar-resizing'),
+      240,
+    );
+  };
+  useEffect(() => () => window.clearTimeout(resizeTimer.current), []);
+
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -195,7 +215,7 @@ export default function App() {
               activeTab={activeTab}
               onSelectTab={setActiveTab}
               collapsed={sidebarCollapsed}
-              onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+              onToggleCollapse={toggleSidebar}
             />
 
             {/* Mobile Sidebar Drawer */}

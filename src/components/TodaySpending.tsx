@@ -357,6 +357,7 @@ export const TodaySpending: React.FC<TodaySpendingProps> = ({
   const lineOptions: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
+    resizeDelay: 260,
     interaction: { mode: 'index', intersect: false },
     // Vùng vẽ đã tự chừa chỗ cho nhãn trục; thêm 6px trên để chấm đỉnh không bị
     // cắt mất một nửa khi giờ cao nhất chạm trần biểu đồ.
@@ -417,6 +418,7 @@ export const TodaySpending: React.FC<TodaySpendingProps> = ({
   const donutOptions: ChartOptions<'doughnut'> = {
     responsive: true,
     maintainAspectRatio: false,
+    resizeDelay: 260,
     cutout: '74%',
     plugins: {
       legend: { display: false },

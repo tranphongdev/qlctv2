@@ -61,13 +61,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleCollapse,
 }) => {
   return (
+    <>
     <Sider
       collapsible
       collapsed={collapsed}
       trigger={null}
       width={240}
       collapsedWidth={80}
-      className="glass-card glass-static desktop-only"
+      className={`glass-card glass-static desktop-only app-sidebar${collapsed ? ' is-collapsed' : ''}`}
       style={{
         margin: 0,
         borderRadius: 0,
@@ -87,114 +88,49 @@ export const Sidebar: React.FC<SidebarProps> = ({
         boxShadow: 'none',
       }}
     >
-      {/* Khối thương hiệu — cao đúng bằng thanh trên cùng để đường kẻ dưới của
-          hai bên nối thành một nét chạy hết bề ngang. Xem --app-header-h. */}
-      <div
-        style={{
-          height: 'var(--app-header-h)',
-          padding: collapsed ? '0 12px' : '0 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: collapsed ? 'center' : 'space-between',
-          borderBottom: '1px solid var(--surface-border)',
-          flexShrink: 0,
-        }}
-      >
-        {!collapsed ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <BrandMark size={36} style={{ boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', borderRadius: 9, flexShrink: 0 }} />
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.3px', background: 'linear-gradient(135deg, #2563EB, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                Financial
-              </div>
-              <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>{t('sidebar.tagline')}</div>
-            </div>
-          </div>
-        ) : (
-          <BrandMark size={36} title="Financial" />
-        )}
+      <div className="sidebar-brand">
+        <BrandMark
+          size={36}
+          title="Financial"
+          style={{ boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', borderRadius: 9, flexShrink: 0 }}
+        />
+        <div className="sidebar-brand__text">
+          <div className="sidebar-brand__name">Financial</div>
+          <div className="sidebar-brand__tagline">{t('sidebar.tagline')}</div>
+        </div>
       </div>
 
       {/* Navigation List */}
-      <div style={{ flex: 1, padding: '12px 8px', overflowY: 'auto' }}>
+      <div className="sidebar-nav">
         {getMenuItems().map((item) => {
           const isActive = activeTab === item.key;
           return (
-            <div key={item.key} style={{ marginBottom: 4 }}>
-              <HintTooltip title={collapsed ? item.label : ''} placement="right">
-                <div
-                  onClick={() => onSelectTab(item.key)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: collapsed ? 'center' : 'space-between',
-                    padding: collapsed ? '12px 0' : '10px 16px',
-                    borderRadius: 16,
-                    cursor: 'pointer',
-                    // Item đang chọn là một viên kính nổi hẳn lên khỏi mặt sidebar,
-                    // với dải nhấn và bóng riêng. Item thường để trong suốt hoàn
-                    // toàn — tô nền cho cả 11 mục sẽ biến sidebar thành một cột sọc.
-                    background: isActive ? 'var(--accent-gradient)' : 'transparent',
-                    color: isActive ? '#ffffff' : 'var(--text-secondary)',
-                    fontWeight: isActive ? 600 : 500,
-                    border: isActive ? '1px solid rgba(255, 255, 255, 0.28)' : '1px solid transparent',
-                    boxShadow: isActive
-                      ? '0 8px 20px -6px rgba(37, 99, 235, 0.45), var(--glass-sheen)'
-                      : 'none',
-                    transition:
-                      'background-color 0.22s var(--ease-out), color 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out)',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) e.currentTarget.style.background = 'var(--surface-subtle)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) e.currentTarget.style.background = 'transparent';
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ display: 'flex', alignItems: 'center' }}>{item.icon}</span>
-                    {!collapsed && <span style={{ fontSize: 14 }}>{item.label}</span>}
-                  </div>
-
-                  {!collapsed && item.badge && (
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        padding: '2px 6px',
-                        borderRadius: 99,
-                        background: isActive ? '#ffffff' : '#EF4444',
-                        color: isActive ? '#2563EB' : '#ffffff',
-                      }}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
-              </HintTooltip>
-            </div>
+            <HintTooltip key={item.key} title={collapsed ? item.label : ''} placement="right">
+              <div
+                className={`sidebar-nav__item${isActive ? ' is-active' : ''}`}
+                onClick={() => onSelectTab(item.key)}
+              >
+                <span className="sidebar-nav__icon">{item.icon}</span>
+                <span className="sidebar-nav__label">{item.label}</span>
+                {item.badge && <span className="sidebar-nav__badge">{item.badge}</span>}
+              </div>
+            </HintTooltip>
           );
         })}
       </div>
 
-      {/* Collapse Toggle Footer */}
-      <div
-        style={{
-          padding: 12,
-          borderTop: '1px solid var(--surface-border)',
-          display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
-        <Button
-          type="text"
-          shape="circle"
-          onClick={onToggleCollapse}
-          icon={collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          style={{ width: 36, height: 36, color: 'var(--text-muted)' }}
-        />
-      </div>
     </Sider>
+      <button
+        type="button"
+        className="sidebar-toggle"
+        onClick={onToggleCollapse}
+        aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+        aria-expanded={!collapsed}
+        style={{ left: collapsed ? 80 : 240 }}
+      >
+        {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+      </button>
+    </>
   );
 };
 

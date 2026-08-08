@@ -3704,17 +3704,208 @@ body.dark-theme .app-header__search:hover {
   color: var(--text-muted);
 }
 
+/* Xem chú thích ở toggleSidebar trong App.tsx: kính mờ là thứ đắt nhất trong
+   200ms sidebar co giãn, không phải Chart.js. `*` để quét luôn cả lớp nổi của
+   antd; nó chỉ khớp hai lần (lúc gắn và lúc gỡ class), rẻ hơn nhiều so với hơn
+   chục khung hình tính lại backdrop-filter. */
+body.is-sidebar-resizing *,
+body.is-sidebar-resizing *::before,
+body.is-sidebar-resizing *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Sidebar. Tất cả xoay quanh một con số: tâm x = 40px. Lúc thu gọn sidebar rộng
+   80px nên mọi thứ nhìn thấy phải nằm giữa, tức tâm 40px; lúc mở rộng cũng đặt
+   đúng 40px. Nhờ vậy suốt 200ms co giãn không có toạ độ nào đổi — chỉ phần chữ
+   mờ đi rồi bị mép xén. */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--app-header-h);
+  /* (80 − 36) / 2 */
+  padding: 0 22px;
+  border-bottom: 1px solid var(--surface-border);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* `0 0 auto` + nowrap: khối chữ giữ bề ngang tự nhiên rồi để mép xén dần. Cho
+   nó co lại thì chữ tự xuống dòng giữa chừng animation. */
+.sidebar-brand__text {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  transition: opacity 0.16s ease;
+}
+
+.sidebar-brand__name {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sidebar-brand__tagline {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.sidebar-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 8px;
+  overflow-y: auto;
+  /* Thiếu dòng này thì nhãn thò ra sinh thanh cuộn ngang giữa animation. */
+  overflow-x: hidden;
+}
+
+/* Trái 22px + 8px của danh sách → tâm icon 20px rơi đúng 40px. Viên thuốc lúc
+   thu gọn rộng 64px nên tâm nó cũng là 40px: icon nằm chính giữa mà không cần
+   đổi sang justify-content: center. */
+.sidebar-nav__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px 10px 22px;
+  border-radius: 16px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition:
+    background-color 0.22s var(--ease-out),
+    color 0.22s var(--ease-out),
+    box-shadow 0.22s var(--ease-out);
+}
+
+.sidebar-nav__icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.sidebar-nav__label {
+  flex: 0 0 auto;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: opacity 0.16s ease;
+}
+
+.sidebar-nav__badge {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #ef4444;
+  transition: opacity 0.16s ease;
+}
+
+.sidebar-nav__item.is-active {
+  background: var(--accent-gradient);
+  color: #ffffff;
+  font-weight: 600;
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.45), var(--glass-sheen);
+}
+
+.sidebar-nav__item.is-active .sidebar-nav__badge {
+  color: var(--primary-color);
+  background: #ffffff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sidebar-nav__item:not(.is-active):hover {
+    background: var(--surface-subtle);
+  }
+}
+
+.app-sidebar.is-collapsed .sidebar-brand__text,
+.app-sidebar.is-collapsed .sidebar-nav__label,
+.app-sidebar.is-collapsed .sidebar-nav__badge {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-brand__text,
+  .sidebar-nav__label,
+  .sidebar-nav__badge,
+  .sidebar-nav__item {
+    transition: none;
+  }
+}
+
+.sidebar-toggle {
+  position: fixed;
+  top: calc((var(--app-header-h) + env(safe-area-inset-top, 0px)) / 2);
+  z-index: 1001;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--text-muted);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-sheen);
+  transition:
+    left 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s var(--ease-spring);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sidebar-toggle:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+}
+
+.sidebar-toggle:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Sidebar bị ẩn ở khổ này (.desktop-only), tay nắm của nó cũng vậy — nếu không
+   nó sẽ nổi lơ lửng ở mép trái màn hình điện thoại. */
+@media (max-width: 768px) {
+  .sidebar-toggle {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-toggle {
+    transition: none;
+  }
+
+  .sidebar-toggle:hover {
+    transform: translate(-50%, -50%);
+  }
+}
+
 .app-main {
   padding-top: calc(var(--app-header-h) + 20px + env(safe-area-inset-top, 0px)) !important;
 }
 
-/* ---- Thanh công cụ trang Giao dịch ----
-   Hai cụm tách hẳn nhau: tìm kiếm bên trái, lọc bên phải. Khoảng trống ở giữa
-   là chủ ý — nó chia thanh công cụ thành hai nhóm có nghĩa, thay vì một dãy bốn
-   ô dính nhau dồn hết về trái rồi bỏ trống nửa phải. */
 .tx-toolbar__search {
-  /* Co giãn, có trần. Không trần thì trên màn 1600px ô tìm kiếm dài cả gang tay
-     mà chẳng ai gõ tới đó; không co thì nó kẹt ở 220px và gợi ý bị cắt cụt. */
   flex: 1 1 220px;
   max-width: 380px;
 }

@@ -99,6 +99,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ state }) => {
   const comparisonOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
+    resizeDelay: 260,
     // intersect: true -> tooltip chỉ hiện khi con trỏ nằm đúng trên thân cột.
     interaction: { mode: 'index', intersect: true },
     plugins: {

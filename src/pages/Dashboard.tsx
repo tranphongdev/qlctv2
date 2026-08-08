@@ -234,6 +234,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, onOpenAddModal, onD
   const trendOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
+    resizeDelay: 260,
     // intersect: true -> tooltip chỉ hiện khi con trỏ nằm đúng trên thân cột.
     interaction: { mode: 'index', intersect: true },
     plugins: {

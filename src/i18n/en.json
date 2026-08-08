@@ -684,6 +684,8 @@
 
   "avatar.canvas_unavailable": "Canvas 2D context is unavailable",
   "sidebar.tagline": "Expense management",
+  "sidebar.collapse": "Collapse sidebar",
+  "sidebar.expand": "Expand sidebar",
 
 
 
